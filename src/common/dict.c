@@ -25,7 +25,7 @@ void Dict_IntercambiarNodos(struct Dict_Dict* dict, struct Dict_Nodo* u, struct 
     return;
 }
 
-struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, const char* clave, const void* valor){
+struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor){
     int comp;
     struct Dict_Nodo* padre = NULL;
     struct Dict_Nodo* nodo = dict->raiz;
@@ -60,8 +60,9 @@ struct Dict_Nodo* Dict_Get(struct Dict_Dict* dict, const char* clave){
     return nodo;
 }
 
-void Dict_Remove(struct Dict_Dict* dict, const char* clave){
+int Dict_Remove(struct Dict_Dict* dict, const char* clave){
     struct Dict_Nodo* nodo = Dict_Get(dict, clave);
+    if (nodo == NULL) return 1;
     if (nodo->izquierda == NULL) Dict_IntercambiarNodos(dict, nodo, nodo->derecha);
     else if (nodo->derecha == NULL) Dict_IntercambiarNodos(dict, nodo, nodo->izquierda);
     else {
@@ -93,8 +94,9 @@ void Dict_Remove(struct Dict_Dict* dict, const char* clave){
         sucesor->izquierda = nodo->izquierda;
         sucesor->izquierda->padre = sucesor;
     }
+    free(nodo);
     dict->tamano--;
-    return;
+    return 0;
 }
 
 size_t Dict_Size(struct Dict_Dict* dict){
