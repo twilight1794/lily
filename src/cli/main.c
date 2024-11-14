@@ -6,6 +6,7 @@
 #include <libintl.h>
 
 #include "../common/log.h"
+#include "../common/dict.h"
 
 #define _(STRING) gettext(STRING)
 
@@ -54,7 +55,7 @@ int main(int argc, char **argv){
     };
 
     // Filtrar primero las opciones de ayuda y versión
-    if (!strcmp(argv[1], "-h")) {
+    if (argc == 1 || !strcmp(argv[1], "-h")) {
         f_help(argv[0]);
         return 0;
     } else if (!strcmp(argv[1], "-v")){
@@ -72,6 +73,8 @@ int main(int argc, char **argv){
     char* archivo_final_ruta = NULL;
     char* directorio_fuentes_ruta = NULL;
     size_t direccion_memoria_inicio = 0;
+    struct Dict_Dict* variables = Dict_Create();
+    char* archivo = NULL;// FIX: Por ahora, un solo archivo
 
     while ((c = getopt(argc, argv, "Ece:L:Po:D:I:a")) != -1){
         if (c == 'E') opts |= 1;
@@ -90,11 +93,13 @@ int main(int argc, char **argv){
         }
     }
 
-    // Subcomandos
+    // Listas de archivos
+    // FIX: Por ahora, un solo archivo
     if (optind == argc){
         log_error(&log_cfg, _("An input file was not specified."));
         exit(EXIT_FAILURE);
-    }// else subcom = argv[optind++];
+    } else archivo = argv[optind++];
+    puts(archivo);
 
     return 0;
 }
