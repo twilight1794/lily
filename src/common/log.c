@@ -1,6 +1,6 @@
 #include "log.h"
 
-void navi_log(struct Navi_Log_Config* conf, int type, const char* file, unsigned int line, const char* msg){
+void lily_log(struct Lily_Log_Config* conf, int type, const char* file, unsigned int line, const char* msg){
 
     // Fecha-hora
     time_t rawtime;
@@ -19,23 +19,23 @@ void navi_log(struct Navi_Log_Config* conf, int type, const char* file, unsigned
 
     // Tipo
     switch (type){
-    case NAVI_LOG_DEBUG:
+    case LILY_LOG_DEBUG:
 	if (conf->use_color) printf("\x1b[36;1mDEBUG\x1b[0m ");
 	else printf("DEBUG ");
 	break;
-    case NAVI_LOG_INFO:
+    case LILY_LOG_INFO:
 	if (conf->use_color) printf("\x1b[32;1mINFO\x1b[0m  ");
 	else printf("INFO  ");
 	break;
-    case NAVI_LOG_WARN:
+    case LILY_LOG_WARN:
 	if (conf->use_color) printf("\x1b[33;1mWARN\x1b[0m  ");
 	else printf("WARN  ");
 	break;
-    case NAVI_LOG_ERROR:
+    case LILY_LOG_ERROR:
 	if (conf->use_color) printf("\x1b[31;1mERROR\x1b[0m ");
 	else printf("ERROR ");
 	break;
-    case NAVI_LOG_FATAL:
+    case LILY_LOG_FATAL:
 	if (conf->use_color) printf("\x1b[35;1mFATAL\x1b[0m ");
 	else printf("FATAL ");
 	break;
