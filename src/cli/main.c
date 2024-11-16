@@ -108,6 +108,17 @@ int main(int argc, char **argv){
     int codigo = z80_lexico(p_archivo, simbolos);
     printf("Código retornado: %d\n", codigo);
 
+    // Probar
+    for (size_t i=0; i<LDE_Size(simbolos); i++){
+        struct LDE_Nodo* nodo = LDE_Get(simbolos, i);
+        struct Z80_Lex_Simbolo* sim = nodo->valor;
+        printf("Nodo %lu (tipo %d): ", i, sim->tipo);
+        if (sim->etiqueta != NULL) printf("eti=%s ", sim->etiqueta);
+        if (sim->valor != NULL) printf("val=%s ", sim->valor);
+        if (sim->expresion != NULL) printf("exp=%s ", sim->expresion);
+        puts("");
+    }
+
     munmap(p_archivo, st.st_size);
     close(fd);
     return 0;

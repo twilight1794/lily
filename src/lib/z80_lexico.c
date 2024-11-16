@@ -1,4 +1,5 @@
 #include "z80_lexico.h"
+#include <stdio.h>
 
 struct Z80_Lex_Simbolo* Z80_Lex_Simbolo_Create(){
     struct Z80_Lex_Simbolo* sim = (struct Z80_Lex_Simbolo*) malloc (sizeof(struct Z80_Lex_Simbolo));
@@ -20,18 +21,20 @@ void modo_comentario(char* blob, size_t* i){
 }
 
 int modo_ambiguo(char* blob, size_t* i, struct Z80_Lex_Simbolo* sim){
-    char c;
+    puts("Entramos");
+    char c = blob[*i];
     bool puede_ser_etiqueta = true;
     bool puede_ser_instruccion = true;
     bool es_modo_expresion = false;
     char* tkn = Cadena_Create();
     tkn = Cadena_Add(tkn, &c);
     (*i)++;
+    c = blob[*i];
     // En este punto, solo queremos caracteres alfanuméricos o _
     while (isalnum(c) || c == '_'){
-        tkn = Cadena_Add(tkn, blob+*i);
+        tkn = Cadena_Add(tkn, &c);
+        (*i)++;
         c = blob[*i];
-        i++;
     }
     // Después, podemos esperar:
     while (c != '\n'){
@@ -61,9 +64,11 @@ int modo_ambiguo(char* blob, size_t* i, struct Z80_Lex_Simbolo* sim){
             (*i)++;
             c = blob[*i];
         // Espacios fuera del modo expresión, ignorar
-        } else if (c == ' ' || c == '\r' || c == '\t') ;
+        } else if (c == ' ' || c == '\r' || c == '\t'){
+            (*i)++;
+            c = blob[*i];
         // Otra vez caracteres:...
-        else if (c != '\n'){
+        } else if (c != '\n'){
             // ...era modo instrucción, salimos de él
             if (puede_ser_instruccion){
                 puede_ser_etiqueta = false;
@@ -89,9 +94,10 @@ int z80_lexico(char* blob, struct LDE_LDE* simbolos){
     size_t i=0;
     // Modo fundamental
     do {
+        puts("Linea");
         c = blob[i];
         if (c == ';') modo_comentario(blob, &i);
-        else if (c == ' ' || c == '\r' || c == '\t' || c == '\n') {
+        else if (c == ' ' || c == '\r' || c == '\t' || c == '\n'){
             i++;
             continue;
         } else if (isalpha(c)){
@@ -99,6 +105,7 @@ int z80_lexico(char* blob, struct LDE_LDE* simbolos){
             err = modo_ambiguo(blob, &i, sim);
             if (err) return err;
             struct LDE_Nodo* nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
+            if (nodo == NULL) return COD_MALLOC_FALLO;
         }
         else if (c != 0) return COD_Z80_LEXICO_CARACTER_INVALIDO;
     } while (c != 0);
