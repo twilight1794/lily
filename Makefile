@@ -10,8 +10,8 @@ MANDIR := /usr/local/share/man/man1
 all: dist/lily dist/liblily.so
 
 MODS_CLI := main
-MODS_COMMON := cadena log
-#MODS_LIB := a_lexico
+MODS_COMMON := cadena dict lde log
+MODS_LIB := z80_lexico
 
 $(addprefix src/common/,$(addsuffix .o,$(MODS_COMMON))): $(addprefix src/common/,$(addsuffix .c,$(MODS_COMMON)))
 	@echo Generando $(notdir $@)
@@ -32,13 +32,14 @@ dist/liblily.so: $(addprefix src/lib/,$(addsuffix .o,$(MODS_LIB))) $(addprefix s
 	@mkdir -p dist
 	$(CC) -shared -fPIC $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/lily: dist/libnavi.so $(addprefix src/cli/,$(addsuffix .o,$(MODS_CLI)))
+dist/lily: dist/liblily.so $(addprefix src/cli/,$(addsuffix .o,$(MODS_CLI)))
 	@mkdir -p dist
 	$(CC) $(LDFLAGS) $^ -L dist -llily $(LDLIBS) -o $@
 
 install:
 	cp dist/lily $(BINDIR)/lily
 	cp dist/liblily.so $(LIBDIR)/liblily.so
+	ldconfig
 
 remove:
 	$(RM) $(BINDIR)/lily

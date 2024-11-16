@@ -1,5 +1,4 @@
 #include "z80_lexico.h"
-#include <stdio.h>
 
 struct Z80_Lex_Simbolo* Z80_Lex_Simbolo_Create(){
     struct Z80_Lex_Simbolo* sim = (struct Z80_Lex_Simbolo*) malloc (sizeof(struct Z80_Lex_Simbolo));
@@ -104,8 +103,4 @@ int z80_lexico(char* blob, struct LDE_LDE* simbolos){
         else if (c != 0) return COD_Z80_LEXICO_CARACTER_INVALIDO;
     } while (c != 0);
     return COD_OK;
-}
-
-int main(){
-    return 0;
 }
