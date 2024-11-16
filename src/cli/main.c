@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <fcntl.h>
 #include <getopt.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <libintl.h>
 
+#include "../lib/z80_lexico.h"
 #include "../common/log.h"
 #include "../common/dict.h"
 
@@ -18,20 +24,13 @@ void f_help(char* name){
     /* Misc */
     puts(_(" -h               Show this help"));
     puts(_(" -v               Show Lily version"));
-    /* Stage options */
-    puts(_(" -E               Preprocess only, do not assemble and link"));
-    puts(_(" -c               Preprocess and compile, do not link"));
-    /* Optional files options */
-    puts(_(" -e<path>         Generate errors file in <path>"));
-    puts(_(" -L<path>         Generate listing file in <path>"));
-    puts(_(" -P               Save files generated in preprocess stage"));
-    puts(_(" -o<path>         Save output file in <path>"));
     /* Preprocess stage options */
+    puts(_(" -L<path>         Generate listing file in <path>"));
     puts(_(" -D<tag>=<value>  Define a tag <tag> with a value <value>"));
     puts(_(" -I<path>         Search for assembly files in <path>"));
-    /* Assembly stage options */
-    puts(_(" -a<address>      Address memory in which PC should start"));
     puts(_("\nFor more info, see the man pages."));
+    /* Assembly stage options */
+    puts(_(" -A<path>         Save file generated in assemble stage in <path>"));
 }
 
 void f_version(){
@@ -68,24 +67,17 @@ int main(int argc, char **argv){
     opterr = 0;
 
     unsigned char opts = 0;
-    char* archivo_errores_ruta = NULL;
     char* archivo_listado_ruta = NULL;
-    char* archivo_final_ruta = NULL;
+    char* archivo_ensamblado_ruta = NULL;
     char* directorio_fuentes_ruta = NULL;
-    size_t direccion_memoria_inicio = 0;
     struct Dict_Dict* variables = Dict_Create();
-    char* archivo = NULL;// FIX: Por ahora, un solo archivo
+    char* archivo = NULL;
 
-    while ((c = getopt(argc, argv, "Ece:L:Po:D:I:a")) != -1){
-        if (c == 'E') opts |= 1;
-        else if (c == 'c') opts |= 2;
-        else if (c == 'e') archivo_errores_ruta = optarg;
-        else if (c == 'L') archivo_listado_ruta = optarg;
-        else if (c == 'P') opts |= 4;
-        else if (c == 'o') archivo_final_ruta = optarg;
+    while ((c = getopt(argc, argv, "L:D:I:A:")) != -1){
+        if (c == 'L') archivo_listado_ruta = optarg;
         else if (c == 'D') ; // Hasta implementar bien los diccionarios
         else if (c == 'I') directorio_fuentes_ruta = optarg;
-        else if (c == 'a') direccion_memoria_inicio = (size_t) atoi(optarg);
+        else if (c == 'A') archivo_ensamblado_ruta = optarg;
         else {
             snprintf(msg_err, 99, _("The argument %c was not recognized."), c);
             log_fatal(&log_cfg, msg_err);
@@ -99,7 +91,24 @@ int main(int argc, char **argv){
         log_error(&log_cfg, _("An input file was not specified."));
         exit(EXIT_FAILURE);
     } else archivo = argv[optind++];
-    puts(archivo);
 
+    // Abrimos archivo
+    int fd = open(archivo, O_RDONLY);
+    if (fd == -1){
+        snprintf(msg_err, 99, _("File %s cannot be open."), archivo);
+        log_fatal(&log_cfg, msg_err);
+        exit(EXIT_FAILURE);
+    }
+    struct stat st;
+    fstat(fd, &st);
+    char* p_archivo = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+    // Empezamos análisis léxico
+    struct LDE_LDE* simbolos = LDE_Create();
+    int codigo = z80_lexico(p_archivo, simbolos);
+    printf("Código retornado: %d\n", codigo);
+
+    munmap(p_archivo, st.st_size);
+    close(fd);
     return 0;
 }
