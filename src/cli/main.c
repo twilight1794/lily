@@ -11,8 +11,9 @@
 #include <libintl.h>
 
 #include "../lib/z80_lexico.h"
-#include "../common/log.h"
 #include "../common/dict.h"
+#include "../common/lde.h"
+#include "../common/log.h"
 
 #define _(STRING) gettext(STRING)
 
@@ -103,23 +104,20 @@ int main(int argc, char **argv){
     fstat(fd, &st);
     char* p_archivo = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
-    // Empezamos análisis léxico
+    // Empezamos análisis
     struct LDE_LDE* simbolos = LDE_Create();
     int codigo = z80_lexico(p_archivo, simbolos);
-    printf("Código retornado: %d\n", codigo);
-
-    // Probar
-    for (size_t i=0; i<LDE_Size(simbolos); i++){
-        struct LDE_Nodo* nodo = LDE_Get(simbolos, i);
-        struct Z80_Lex_Simbolo* sim = nodo->valor;
-        printf("Nodo %lu (tipo %d): ", i, sim->tipo);
-        if (sim->etiqueta != NULL) printf("eti='%s' ", sim->etiqueta);
-        if (sim->valor != NULL) printf("val='%s' ", sim->valor);
-        if (sim->expresion != NULL) printf("exp='%s' ", sim->expresion);
-        puts("");
-    }
-
     munmap(p_archivo, st.st_size);
     close(fd);
+    if (codigo) return codigo;
+
+    struct LDE_LDE* ast = LDE_Create();
+    codigo = z80_sintactico(simbolos, ast);
+    if (codigo) return codigo;
+
+    //struct LDE_LDE* objeto = LDE_Create();
+    //codigo = z80_semantico(ast, objeto);
+    //if (codigo) return codigo;
+
     return 0;
 }

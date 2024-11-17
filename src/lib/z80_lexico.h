@@ -1,10 +1,10 @@
 /**
- * @file z80.lexico.h
+ * @file z80_lexico.h
  * Analizador léxico del ensamblador Z80
  */
 
-#ifndef LILY_C_Z80_LEX
-#define LILY_C_Z80_LEX
+#ifndef LILY_L_Z80_LEX
+#define LILY_L_Z80_LEX
 
 #include <ctype.h>
 #include <stdbool.h>

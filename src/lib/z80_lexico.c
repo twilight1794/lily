@@ -1,5 +1,4 @@
 #include "z80_lexico.h"
-#include <stdio.h>
 
 struct Z80_Lex_Simbolo* Z80_Lex_Simbolo_Create(){
     struct Z80_Lex_Simbolo* sim = (struct Z80_Lex_Simbolo*) malloc (sizeof(struct Z80_Lex_Simbolo));
