@@ -113,9 +113,9 @@ int main(int argc, char **argv){
         struct LDE_Nodo* nodo = LDE_Get(simbolos, i);
         struct Z80_Lex_Simbolo* sim = nodo->valor;
         printf("Nodo %lu (tipo %d): ", i, sim->tipo);
-        if (sim->etiqueta != NULL) printf("eti=%s ", sim->etiqueta);
-        if (sim->valor != NULL) printf("val=%s ", sim->valor);
-        if (sim->expresion != NULL) printf("exp=%s ", sim->expresion);
+        if (sim->etiqueta != NULL) printf("eti='%s' ", sim->etiqueta);
+        if (sim->valor != NULL) printf("val='%s' ", sim->valor);
+        if (sim->expresion != NULL) printf("exp='%s' ", sim->expresion);
         puts("");
     }
 
