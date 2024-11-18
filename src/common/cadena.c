@@ -49,10 +49,10 @@ char* Cadena_Remove(char* cad){
 
 size_t Cadena_Size_Char(const char* c){
   size_t n;
-  if (*c == 0xC0 || *c == 0xC1 || *c >= 0xF5) n=0;
-  else if (*c >= 0xF0) n=4;
-  else if (*c >= 0xE0) n=3;
-  else if (*c >= 0xC2) n=2;
+  if ((unsigned char) *c == 0xC0 || (unsigned char) *c == 0xC1 || (unsigned char) *c >= 0xF5) n=0;
+  else if ((unsigned char) *c >= 0xF0) n=4;
+  else if ((unsigned char) *c >= 0xE0) n=3;
+  else if ((unsigned char) *c >= 0xC2) n=2;
   else n=1;
   return n;
 }

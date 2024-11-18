@@ -8,7 +8,7 @@
 #include "../../src/lib/z80_lexico.h"
 #include "../../src/common/lde.h"
 
-int main(int argc; char** argv){
+int main(int argc, char** argv){
     int fd = open(argv[1], O_RDONLY);
     if (fd == -1) exit(EXIT_FAILURE);
     struct stat st;
