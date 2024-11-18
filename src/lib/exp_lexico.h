@@ -8,6 +8,7 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,10 +18,10 @@
 
 enum LILY_EXP_TIPO_VAL {
     // Terminales
-    VAL_NUMERO = 0,
-    VAL_REGISTRO,
+    VAL_REGISTRO = 0,
     VAL_BANDERA,
-    VAL_AMB_C, // Para Z80
+    VAL_AMB_C,
+    VAL_NUMERO,
     VAL_DIRECCION,
     VAL_DESPLAZAMIENTO,
 
@@ -64,5 +65,23 @@ struct Exp_Simbolo {
     enum LILY_EXP_TIPO_VAL tipo;
     char* valor;
 };
+
+char* isregister(char* blob, size_t* i);
+
+char* isflag(char* blob, size_t* i);
+
+/*
+ * Devuelve el nombre del tipo de dato usando su identificador
+ * @param v Tipo de valor
+ * @return Cadena correspondiente al operador
+ */
+char* exp_cadena_operador(enum LILY_EXP_TIPO_OP v);
+
+/* Analiza una expresión y genera los símbolos de la expresión
+ * @param blob Cadena de texto que contiene una expresión en formato infijo
+ * @param i Puntero al índice
+ * @param simbolos Lista que va a almacenar los símbolos relevantes
+ */
+int exp_lexico(char* blob, size_t* i, struct LDE_LDE* simbolos);
 
 #endif
