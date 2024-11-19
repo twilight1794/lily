@@ -11,7 +11,7 @@ all: dist/lily dist/liblily.so
 
 MODS_CLI := main
 MODS_COMMON := cadena dict lde log
-MODS_LIB := z80_lexico
+MODS_LIB := z80_lexico exp_lexico
 
 $(addprefix src/common/,$(addsuffix .o,$(MODS_COMMON))): $(addprefix src/common/,$(addsuffix .c,$(MODS_COMMON)))
 	@echo Generando $(notdir $@)

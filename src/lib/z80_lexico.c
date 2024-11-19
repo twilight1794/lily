@@ -1,4 +1,5 @@
 #include "z80_lexico.h"
+#include "exp_lexico.h"
 
 struct Z80_Lex_Simbolo* Z80_Lex_Simbolo_Create(){
     struct Z80_Lex_Simbolo* sim = (struct Z80_Lex_Simbolo*) malloc (sizeof(struct Z80_Lex_Simbolo));
@@ -22,21 +23,25 @@ int modo_expresion(char* blob, size_t* i, struct Z80_Lex_Simbolo* sim){
     while (blob[*i] == ' ' || blob[*i] == '\t' || blob[*i] == '\r') (*i)++;
     if (blob[*i] == '\n' || blob[*i] == 0) return COD_OK;
     // Si después hallamos una ;, es un comentario
-    else if (blob[*i] == ';') {
+    else if (blob[*i] == ';'){
         modo_comentario(blob, i);
         return COD_OK;
     }
 
     // Estamos listos para leer la expresión
-    if (sim->expresion == NULL){
-        sim->expresion = Cadena_Create();
-        if (sim->expresion == NULL) return COD_MALLOC_FALLO;
-    }
+    char* tmp = Cadena_Create();
+    if (tmp == NULL) return COD_MALLOC_FALLO;
     // Capturar todo hasta el fin de línea
     while (blob[*i] != '\n' && blob[*i] != 0){
-        sim->expresion = Cadena_Add(sim->expresion, blob+(*i));
+        tmp = Cadena_Add(tmp, blob+(*i));
         (*i)++;
     }
+
+    // Tokenizar expresión
+    sim->expresion = LDE_Create();
+    if (sim->expresion == NULL) return COD_MALLOC_FALLO;
+    int cod = exp_lexico(blob, i, sim->expresion);
+    if (cod) return cod;
     return COD_OK;
 }
 

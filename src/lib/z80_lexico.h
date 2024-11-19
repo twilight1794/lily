@@ -32,7 +32,7 @@ struct Z80_Lex_Simbolo {
     enum Z80_Tipo_Simbolo tipo;
     char* valor;
     char* etiqueta;
-    char* expresion;
+    struct LDE_LDE* expresion;
 };
 
 /**

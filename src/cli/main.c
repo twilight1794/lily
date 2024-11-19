@@ -111,9 +111,9 @@ int main(int argc, char **argv){
     close(fd);
     if (codigo) return codigo;
 
-    struct LDE_LDE* ast = LDE_Create();
-    codigo = z80_sintactico(simbolos, ast);
-    if (codigo) return codigo;
+    //struct LDE_LDE* ast = LDE_Create();
+    //codigo = z80_sintactico(simbolos, ast);
+    //if (codigo) return codigo;
 
     //struct LDE_LDE* objeto = LDE_Create();
     //codigo = z80_semantico(ast, objeto);
