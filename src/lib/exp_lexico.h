@@ -63,7 +63,7 @@ enum LILY_EXP_TIPO_OP {
 
 struct Exp_Simbolo {
     enum LILY_EXP_TIPO_VAL tipo;
-    char* valor;
+    void* valor;
 };
 
 char* isregister(char* blob, size_t* i);

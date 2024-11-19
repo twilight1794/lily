@@ -7,7 +7,7 @@ char* isregister(char* blob, size_t* i){
         (*i)++;
     }
     if (!strcmp(cad, "A") || !strcmp(cad, "B") || !strcmp(cad, "D") || !strcmp(cad, "E") || !strcmp(cad, "H") || !strcmp(cad, "L") || !strcmp(cad, "HL") || !strcmp(cad, "AF") || !strcmp(cad, "BC") || !strcmp(cad, "DE") || !strcmp(cad, "IX") || !strcmp(cad, "IY")) return cad;
-    (*i) =- strlen(cad);
+    (*i) -= strlen(cad);
     return NULL;
 }
 
@@ -18,7 +18,28 @@ char* isflag(char* blob, size_t* i){
         (*i)++;
     }
     if (!strcmp(cad, "NZ") || !strcmp(cad, "NC") || !strcmp(cad, "PO") || !strcmp(cad, "PE") || !strcmp(cad, "Z") || !strcmp(cad, "P") || !strcmp(cad, "M")) return cad;
-    (*i) =- strlen(cad);
+    (*i) -= strlen(cad);
+    return NULL;
+}
+
+long* isnumber(char* blob, size_t* i){
+    char* cad = Cadena_Create();
+    bool puede_ser_hex = false;
+    bool es_hex = false;
+    while (isxdigit(blob[*i]) || blob[*i] == 'h' || blob[*i] == 'H'){
+        puede_ser_hex =  !isdigit(blob[*i]);
+        es_hex = blob[*i] == 'h' || blob[*i] == 'H';
+        if (es_hex) break;
+        cad = Cadena_Add(cad, blob+(*i));
+        (*i)++;
+    }
+    if (!(puede_ser_hex && !es_hex) && cad[0] != 0){
+        long* tmp = (long *) malloc(sizeof(long));
+        *tmp = strtol(cad, NULL, es_hex?16:10);
+        free(cad);
+        return tmp;
+    }
+    (*i) -= strlen(cad);
     return NULL;
 }
 
@@ -74,7 +95,6 @@ char* exp_cadena_operador(enum LILY_EXP_TIPO_OP v){
 
 int exp_lexico(char* blob, size_t* i, struct LDE_LDE* simbolos){
     do {
-        // FIX: crear constructor
         struct Exp_Simbolo* sim = (struct Exp_Simbolo*) malloc(sizeof(struct Exp_Simbolo));
         if (sim == NULL) return COD_MALLOC_FALLO;
 
@@ -104,8 +124,8 @@ int exp_lexico(char* blob, size_t* i, struct LDE_LDE* simbolos){
                 tmp = Cadena_Add(tmp, blob+(*i));
                 (*i)++;
             }
-            sim->valor = (void *) malloc(sizeof(long));
-            *(sim->valor) = strtol(tmp, NULL, 16);
+            sim->valor = (long *) malloc(sizeof(long));
+            *((long*) sim->valor) = strtol(tmp, NULL, 16);
             free(tmp);
             struct LDE_Nodo* nodo = LDE_Insert(simbolos, LDE_Size(simbolos), sim);
             if (nodo == NULL) return COD_MALLOC_FALLO;
@@ -118,8 +138,8 @@ int exp_lexico(char* blob, size_t* i, struct LDE_LDE* simbolos){
                 tmp = Cadena_Add(tmp, blob+(*i));
                 (*i)++;
             }
-            sim->valor = (void *) malloc(sizeof(long));
-            *(sim->valor) = strtol(tmp, NULL, 8);
+            sim->valor = (long *) malloc(sizeof(long));
+            *((long*) sim->valor) = strtol(tmp, NULL, 8);
             free(tmp);
             struct LDE_Nodo* nodo = LDE_Insert(simbolos, LDE_Size(simbolos), sim);
             if (nodo == NULL) return COD_MALLOC_FALLO;
@@ -132,24 +152,14 @@ int exp_lexico(char* blob, size_t* i, struct LDE_LDE* simbolos){
                 tmp = Cadena_Add(tmp, blob+(*i));
                 (*i)++;
             }
-            sim->valor = (void *) malloc(sizeof(long));
-            *(sim->valor) = strtol(tmp, NULL, 2);
+            sim->valor = (long *) malloc(sizeof(long));
+            *((long *) sim->valor) = strtol(tmp, NULL, 2);
             free(tmp);
             struct LDE_Nodo* nodo = LDE_Insert(simbolos, LDE_Size(simbolos), sim);
             if (nodo == NULL) return COD_MALLOC_FALLO;
         // Es un número hexadecimal o decimal
-        } else if (isxdigit(blob[*i])){
+        } else if ((sim->valor = isnumber(blob, i), sim->valor != NULL)){
             sim->tipo = VAL_NUMERO;
-            char* tmp = Cadena_Create();
-            bool es_hex = false;
-            while (isxdigit(blob[*i]) || blob[*i] == 'h' || blob[*i] == 'H'){
-                es_hex =  (!isxdigit(blob[*i]) || blob[*i] == 'h' || blob[*i] == 'H');
-                tmp = Cadena_Add(tmp, blob+(*i));
-                (*i)++;
-            }
-            sim->valor = (void *) malloc(sizeof(long));
-            *(sim->valor) = strtol(tmp, NULL, es_hex?16:10);
-            free(tmp);
             struct LDE_Nodo* nodo = LDE_Insert(simbolos, LDE_Size(simbolos), sim);
             if (nodo == NULL) return COD_MALLOC_FALLO;
         // Es un operador
@@ -185,7 +195,7 @@ int exp_lexico(char* blob, size_t* i, struct LDE_LDE* simbolos){
             sim->tipo = VAL_CADENA;
             sim->valor = Cadena_Create();
             (*i)++;
-            while ((blob[*i] == 0 || blob[*i] == '\n') && (blob[*i] != '"')){
+            while (blob[*i] != 0 && blob[*i] != '\n' && blob[*i] != '"'){
                 sim->valor = Cadena_Add(sim->valor, blob+(*i));
                 (*i)++;
             }
@@ -222,7 +232,10 @@ int exp_lexico(char* blob, size_t* i, struct LDE_LDE* simbolos){
             struct LDE_Nodo* nodo = LDE_Insert(simbolos, LDE_Size(simbolos), sim);
             if (nodo == NULL) return COD_MALLOC_FALLO;
             (*i)++;
+        // Era un comentario
+        } else if (blob[*i] == ';'){
+            while (blob[*i] != 0 && blob[*i] != '\n') (*i)++;
         } else return COD_CARACTER_INVALIDO;
-    } while (blob[*i] != 0);
+    } while (blob[*i] != 0 && blob[*i] != '\n');
     return COD_OK;
 }

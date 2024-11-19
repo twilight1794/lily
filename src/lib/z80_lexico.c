@@ -29,13 +29,13 @@ int modo_expresion(char* blob, size_t* i, struct Z80_Lex_Simbolo* sim){
     }
 
     // Estamos listos para leer la expresión
-    char* tmp = Cadena_Create();
+    /*char* tmp = Cadena_Create();
     if (tmp == NULL) return COD_MALLOC_FALLO;
     // Capturar todo hasta el fin de línea
     while (blob[*i] != '\n' && blob[*i] != 0){
         tmp = Cadena_Add(tmp, blob+(*i));
         (*i)++;
-    }
+    }*/
 
     // Tokenizar expresión
     sim->expresion = LDE_Create();
