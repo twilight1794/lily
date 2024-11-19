@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "../../src/lib/z80_lexico.h"
+#include "../../src/lib/exp_lexico.h"
 #include "../../src/common/lde.h"
 
 int main(int argc, char** argv){
@@ -27,7 +28,39 @@ int main(int argc, char** argv){
         printf("Nodo %lu (tipo %d): ", i, sim->tipo);
         if (sim->etiqueta != NULL) printf("eti='%s' ", sim->etiqueta);
         if (sim->valor != NULL) printf("val='%s' ", sim->valor);
-        if (sim->expresion != NULL) printf("exp='%s' ", sim->expresion);
         puts("");
+        if (sim->expresion != NULL){
+            for (size_t j=0; j<LDE_Size(sim->expresion); j++){
+                struct Exp_Simbolo* nodo_exp = LDE_Get(sim->expresion, j)->valor;
+                switch (nodo_exp->tipo){
+                    case VAL_REGISTRO:
+                        printf("\tRegistro: '%s'\n", (char*) nodo_exp->valor); break;
+                    case VAL_BANDERA:
+                        printf("\tBandera: '%s'\n", (char*) nodo_exp->valor); break;
+                    case VAL_AMB_C:
+                        printf("\tAmb_c\n"); break;
+                    case VAL_NUMERO:
+                        printf("\tNum: '%ld'\n", *((long*) nodo_exp->valor)); break;
+                    case VAL_OP:
+                        printf("\tOp: '%s'\n", (char*) nodo_exp->valor); break;
+                    case VAL_ETIQUETA:
+                        printf("\tEti: '%s'\n", (char*) nodo_exp->valor); break;
+                    case VAL_CADENA:
+                        printf("\tCadena: '%s'\n", (char*) nodo_exp->valor); break;
+                    case VAL_PARENTESIS_AP:
+                        printf("\tParen_ap\n"); break;
+                    case VAL_PARENTESIS_CI:
+                        printf("\tParen_ci\n"); break;
+                    case VAL_DESP_AP:
+                        printf("\tDesp_ap\n"); break;
+                    case VAL_DESP_CI:
+                        printf("\tDesp_ci\n"); break;
+                    case VAL_SEPARADOR:
+                        printf("\tSeparador\n"); break;
+                    default:
+                        printf("\tDesconocido\n"); break;
+                }
+            }
+        }
     }
 }
