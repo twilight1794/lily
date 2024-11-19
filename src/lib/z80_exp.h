@@ -1,10 +1,10 @@
 /**
- * @file exp_lexico.h
- * Analizador léxico de una expresión
+ * @file z80_exp.h
+ * Analizador de una expresión para el Z80
  */
 
-#ifndef LILY_L_EXP_LEX
-#define LILY_L_EXP_LEX
+#ifndef LILY_L_Z80_EXP
+#define LILY_L_Z80_EXP
 
 #include <ctype.h>
 #include <stdio.h>
@@ -66,9 +66,20 @@ struct Exp_Simbolo {
     void* valor;
 };
 
+/**
+ * Comprueba si una cadena hace referencia a un registro
+ */
 char* isregister(char* blob, size_t* i);
 
+/**
+ * Comprueba si una cadena hace referencia a una bandera
+ */
 char* isflag(char* blob, size_t* i);
+
+/**
+ * Comprueba si una cadena contiene un número
+ */
+long* isnumber(char* blob, size_t* i);
 
 /*
  * Devuelve el nombre del tipo de dato usando su identificador

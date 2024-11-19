@@ -10,10 +10,10 @@
 
 #include <libintl.h>
 
-#include "../lib/z80_lexico.h"
 #include "../common/dict.h"
 #include "../common/lde.h"
 #include "../common/log.h"
+#include "../lib/z80.h"
 
 #define _(STRING) gettext(STRING)
 

@@ -5,8 +5,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "../../src/lib/z80_lexico.h"
-#include "../../src/lib/exp_lexico.h"
+#include "../../src/lib/z80.h"
+#include "../../src/lib/z80_exp.h"
 #include "../../src/common/lde.h"
 
 int main(int argc, char** argv){

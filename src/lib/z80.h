@@ -1,10 +1,10 @@
 /**
- * @file z80_lexico.h
- * Analizador léxico del ensamblador Z80
+ * @file z80.h
+ * Analizador léxico, sintáctico y semántico del ensamblador Z80
  */
 
-#ifndef LILY_L_Z80_LEX
-#define LILY_L_Z80_LEX
+#ifndef LILY_L_Z80
+#define LILY_L_Z80
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -13,6 +13,7 @@
 #include "../common/cadena.h"
 #include "../common/lde.h"
 #include "../common/error.h"
+#include "z80_exp.h"
 
 // Tipos para símbolos
 
