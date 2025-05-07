@@ -95,7 +95,7 @@ remove-linux:
 	$(RM) $(LIBDIR)/liblily.so
 
 remove-windows:
-        $(RM) $(BINDIR)
+	$(RM) $(BINDIR)
 
 clean:
 	$(RM) dist/*
