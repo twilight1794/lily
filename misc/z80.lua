@@ -140,7 +140,7 @@ return {
     },
     grupos = {
         r = "(a|b|c|d|e|h|l)",
-        n = "%d\+"
+        n = "%d\\+",
         qq = "(bc|de|hl|af)",
         m = "(hl)"
     },
@@ -198,7 +198,7 @@ return {
             {
                 { "ra", "dde" },
                 function () end
-            }
+            },
             {
                 { "ra", "dnn" },
                 function () end
@@ -285,7 +285,7 @@ return {
                 function () end
             },
         },
-        PUSH: {
+        PUSH = {
             {
                 { "qq" },
                 function () end
@@ -299,7 +299,7 @@ return {
                 function () end
             }
         },
-        POP:  {
+        POP =  {
             {
                 { "qq" },
                 function () end
@@ -314,7 +314,7 @@ return {
             }
         },
         -- Grupo de búsqueda, intercambio y transferencia
-        EX: {
+        EX = {
             {
                 { 'rde', 'rhl' },
                 { 0xeb }
@@ -336,16 +336,16 @@ return {
                 { 0xfd, 0xe3 }
             }
         },
-        EXX: { 0xd9 },
-        LDI: { 0xed, 0xa0 },
-        LDIR: { 0xed, 0xb0 },
-        LDD: { 0xed, 0xa8 },
-        LDDR: { 0xed, 0xb8 },
-        CPI: { 0xed, 0xa1 },
-        CPIR: { 0xed, 0xb1 },
-        CPD: { 0xed, 0xa9 },
-        CPDR: { 0xed, 0xb9 },
-        ADD: {
+        EXX = { 0xd9 },
+        LDI = { 0xed, 0xa0 },
+        LDIR = { 0xed, 0xb0 },
+        LDD = { 0xed, 0xa8 },
+        LDDR = { 0xed, 0xb8 },
+        CPI = { 0xed, 0xa1 },
+        CPIR = { 0xed, 0xb1 },
+        CPD = { 0xed, 0xa9 },
+        CPDR = { 0xed, 0xb9 },
+        ADD = {
             -- Grupo aritmético de 8 bits
             {
                 { "r2" },
@@ -362,7 +362,7 @@ return {
             {
                 { "diy" },
                 function () end
-            }
+            },
             -- Grupo aritmético de 16 bits
             {
                 { "rhl", "ss" },
@@ -377,7 +377,7 @@ return {
                 function () end
             }
         },
-        ADC: {
+        ADC = {
             {
                 { "r2" },
                 {
@@ -411,7 +411,7 @@ return {
                 function () end
             }
         },
-        SUB: {
+        SUB = {
             {
                 { "r2" },
                 {
@@ -441,7 +441,7 @@ return {
                 }
             }
         },
-        SBC: {
+        SBC = {
             {
                 { "r2" },
                 {
@@ -475,7 +475,7 @@ return {
                 function () end
             }
         },
-        AND: {
+        AND = {
             {
                 { "r2" },
                 {
@@ -505,7 +505,7 @@ return {
                 }
             }
         },
-        OR: {
+        OR = {
             {
                 { "r2" },
                 {
@@ -535,7 +535,7 @@ return {
                 }
             }
         },
-        XOR: {
+        XOR = {
             {
                 { "r2" },
                 {
@@ -565,7 +565,7 @@ return {
                 }
             }
         },
-        CP: {
+        CP = {
             {
                 { "r2" },
                 {
@@ -595,7 +595,7 @@ return {
                 }
             }
         },
-        INC: {
+        INC = {
             {
                 { "r2" },
                 function () end
@@ -609,31 +609,31 @@ return {
                 function () end
             },
         },
-        DEC: {},
+        DEC = {},
         -- Grupo de propòsito general y control de CPU
-        DAA: { 0x27 },
-        CPL: { 0x2f },
-        NEG: { 0xed, 0x44 }
-        CCF: { 0x3f },
-        SCF: { 0x37},
-        NOP: { 0x00 },
-        HALT: { 0x76 },
-        DI: { 0xf3 },
-        EI: { 0xfb },
-        IM: {
+        DAA = { 0x27 },
+        CPL = { 0x2f },
+        NEG = { 0xed, 0x44 },
+        CCF = { 0x3f },
+        SCF = { 0x37},
+        NOP = { 0x00 },
+        HALT = { 0x76 },
+        DI = { 0xf3 },
+        EI = { 0xfb },
+        IM = {
             { "im" },
             function (im)
                 local v = 0
                 if im == 1 then v = 2
-                else if im == 2 then v = 3 end
-            return { 0xed, 70+im} end
+                elseif im == 2 then v = 3 end
+            return { 0xed, 70+v } end
         },
         -- Grupo de rotaciòn y desplazamiento
-        RLCA: { 0x7 },
-        RLA: { 0x17 },
-        RRCA: { 0xf },
-        RRA: { 0x1f },
-        RLC: {
+        RLCA = { 0x7 },
+        RLA = { 0x17 },
+        RRCA = { 0xf },
+        RRA = { 0x1f },
+        RLC = {
             {
                 { "r" },
                 function () end
@@ -651,40 +651,40 @@ return {
                 function () end
             },
         },
-        RL: {
+        RL = {
             "RLC",
             function () end
         },
-        RRC: {
+        RRC = {
             "RLC",
             function () end
         },
-        RR: {
+        RR = {
             "RLC",
             function () end
         },
-        SLA: {
+        SLA = {
             "RLC",
             function () end
         },
-        SRA: {
+        SRA = {
             "RLC",
             function () end
         },
-        SRL: {
+        SRL = {
             "RLC",
             function () end
         },
-        RLD: {
+        RLD = {
             "RLC",
             function () end
         },
-        RRD: {
+        RRD = {
             "RLC",
             function () end
         },
         -- Grupo de bits
-        BIT: {
+        BIT = {
             {
                 { "b", "r" }
             },
@@ -698,24 +698,24 @@ return {
                 { "b", "diy" }
             }
         },
-        SET: {
+        SET = {
             "BIT",
             function () end
         },
-        RES: { -- Ver si es igual que bit
+        RES = { -- Ver si es igual que bit
             {
                 { "b", "m" },
                 function () end
             }
         },
         -- Grupo de salto
-        JP: {
+        JP = {
             {
                 { "nn" },
                 function () end
             },
             {
-                { "cc", "nn" }.
+                { "cc", "nn" },
                 function () end
             },
             {
@@ -731,7 +731,7 @@ return {
                 { 0xfd, 0xe9 }
             }
         },
-        JR: {
+        JR = {
             {
                 { "e" },
                 function () end
@@ -753,14 +753,14 @@ return {
                 function () end
             }
         },
-        DJNZ: {
+        DJNZ = {
             {
                 { "e" },
                 function () end
             }
         },
         -- Grupo de llamada y retorno
-        CALL: {
+        CALL = {
             {
                 { "nn" },
                 function () end
@@ -770,7 +770,7 @@ return {
                 function () end
             }
         },
-        RET: {
+        RET = {
             {
                 {},
                 { 0xc9 }
@@ -780,16 +780,16 @@ return {
                 function () end
             }
         },
-        RETI: { 0xed, 0x4d },
-        RETN: { 0xed, 0x45 },
-        RST: {
+        RETI = { 0xed, 0x4d },
+        RETN = { 0xed, 0x45 },
+        RST = {
             {
                 { "p" },
                 function () end
             }
         },
         -- Grupo de E/S
-        IN: {
+        IN = {
             {
                 { "ra", "dn" },
                 function () end
@@ -799,11 +799,11 @@ return {
                 function () end
             }
         },
-        INI: { 0xed, 0xa2 },
-        INIR: { 0xed, 0xb2 },
-        IND: { 0xed, 0xaa },
-        INDR: { 0xed, 0xba },
-        OUT: {
+        INI = { 0xed, 0xa2 },
+        INIR = { 0xed, 0xb2 },
+        IND = { 0xed, 0xaa },
+        INDR = { 0xed, 0xba },
+        OUT = {
             {
                 { "dn", "g:ra" },
                 function () end
@@ -813,10 +813,10 @@ return {
                 function () end
             }
         },
-        OUTI: { 0xed, 0xa3 },
-        OTIR: { 0xed, 0xb3 },
-        OUTD: { 0xed, 0xab },
-        OTDR: { 0xed, 0xbb },
+        OUTI = { 0xed, 0xa3 },
+        OTIR = { 0xed, 0xb3 },
+        OUTD = { 0xed, 0xab },
+        OTDR = { 0xed, 0xbb },
     },
     opcodes = {
         
@@ -825,4 +825,3 @@ return {
         
     }
 }
-]]
