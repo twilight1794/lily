@@ -1,4 +1,4 @@
--- Especificación del microprocesador Zilog Z80
+s-- Especificación del microprocesador Zilog Z80
 
 --[[
   Habrá disponible un objeto global para controlar la plataforma, L
@@ -16,13 +16,38 @@ r_vals = {
     { 3, 'E' },
     { 4, 'H' },
     { 5, 'L' },
+    -- { 6, 'HL' }?
     { 7, 'A' }
 }
-dd_vals = {
+--[[dd_vals = { -> ss
     { 0, 'BC' },
     { 1, 'DE' },
     { 2, 'HL' },
-    { 3, 'SP' },
+    { 3, 'SP' }
+    }]]
+qq_vals = {
+    { 0, 'BC' },
+    { 1, 'DE' },
+    { 2, 'HL' },
+    { 3, 'AF' }
+}
+ss_vals = {
+    { 0, 'BC' },
+    { 1, 'DE' },
+    { 2, 'HL' },
+    { 3, 'SP' }
+}
+pp_vals = {
+    { 0,  },
+    { 1,  },
+    { 2,  },
+    { 3,  }
+}
+rr_vals = {
+    { 0},
+    {},
+    {},
+    {}
 }
 
 -- 
@@ -138,6 +163,8 @@ return {
             desplazamiento = 15
         },
     },
+    -- Grupos de captura
+    -- N
     grupos = {
         r = "(a|b|c|d|e|h|l)",
         n = "%d\\+",
@@ -153,11 +180,11 @@ return {
             },
             {
                 { "r", "n" },
-                function () end
+                function (r, n) return { r_vals[r1]<<3 + 6, n } end
             },
             {
                 { "r", "dhl" },
-                function () end
+                function (r, dhl)  end
             },
             {
                 { "r", "dix" },
@@ -823,5 +850,7 @@ return {
     },
     desensamble = {
         
+    },
+    paneles = {
     }
 }
