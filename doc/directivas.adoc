@@ -1,0 +1,133 @@
+= Directivas reconocidas por el preprocesador de Lily
+
+La siguiente tabla lista las directivas que modifican el comportamiento del ensamblador.
+
+|===
+| Categoría                | Expresión     | Significado                | Descripción
+
+.11+| Definición de constantes
+| DB exp
+| Define Byte
+| Define un entero de 1 byte
+
+| DWL exp
+| Define Word (Least)
+| Define una palabra (2 bytes), empezando por el byte menos significativo
+
+| DWM exp
+| Define Word (Most)
+| Define una palabra (2 bytes), empezando por el byte más significativo
+
+| DDL exp
+| Define Double word (Least)
+| Define una palabra doble (4 bytes), empezando por el byte menos significativo
+
+| DDM exp
+| Define Double word (Most)
+| Define una palabra doble (4 bytes), empezando por el byte más significativo
+
+| DQL exp
+| Define Quad word (Least)
+| Define una palabra cuádruple (8 bytes), empezando por el byte menos significativo
+
+| DQM exp
+| Define Quad word (Most)
+| Define una palabra cuádruple (8 bytes), empezando por el byte más significativo
+
+| DR exp
+| Define Real
+| Define un valor de punto flotante de precisión simple, según el estándar IEEE 754
+
+| DRD exp
+| Define Real Double
+| Define un valor de punto flotante de precisión doble, según el estándar IEEE 754
+
+| DRL exp
+| Define Real Long
+| Define un valor de punto flotante de 80 bits, según la implementación en el Intel 8087
+
+| DFS exp
+| DeFine Storage
+| Define una secuencia de bytes nulos
+
+.2+| Definición de símbolos
+| CONST eti exp
+|
+| Define una constante conocida por el preprocesador
+
+| VAR eti exp
+|
+| Define una variable conocida por el preprocesador
+
+.5+| Condicionales
+| IF exp
+|
+| Bloque para iniciar un condicional
+
+| IFDEF eti
+| IF DEFined
+| Bloque para iniciar un condicional comprobando si un símbolo está definido
+
+| IFNDEF eti
+| IF Not DEFined
+| Bloque para iniciar un condicional comprobando si un símbolo no está definido
+
+| ELSE
+|
+| Bloque para la condición contraria de un condicional
+
+| ELIF exp
+| ELse IF
+| Bloque para una condición adicional
+
+.2+| Bucles
+| WHILE exp
+|
+| Bloque para un bucle
+
+| LOOP
+|
+| Marca de fin de un bloque WHILE
+
+| Inclusión de archivos
+| INC exp
+| INClude
+| Indicador para incluir externamente un archivo
+
+.2+| Control de ejecución
+| ORG exp
+| ORiGin
+| Indicador para el lugar de inicio de ejecución
+
+| STOP exp
+| Fin de programa
+| Indicador para dejar de procesar un programa
+
+.2+| Estructuras de datos
+| STRUCT eti
+|
+| Bloque para una estructura de datos
+
+| UNION eti
+|
+| Bloque para una unión
+
+.2+| Subrutinas
+| MACRO eti
+|
+| Bloque para una macro
+
+| PROC eti
+|
+| Bloque para una subrutina
+
+.2+| Miscelánea
+| END
+|
+| Marca de fin para un bloque de directiva IF, IFDEF, IFNDEF, ELSE, ELIF, STRUCT, UNION, MACRO y PROC
+
+| eti:
+|
+| Definición de etiqueta
+
+|===
