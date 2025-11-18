@@ -1,44 +1,51 @@
 = Esquema de descripción Lily
 :toc:
 
-Para poder trabajar con diversas arquitecturas, Lily necesita conocerlas a detalle, lo que hacemos a través de archivos de descripción escritos en tablas de Lua. Aquí se describe la estructura que debe tener dicha tabla de Lua para ser reconocidas por el hipervisor.
+Para poder trabajar con diversas arquitecturas, Lily necesita conocerlas a
+detalle, lo que hacemos a través de archivos de descripción escritos en tablas
+de Lua. Aquí se describe la estructura que debe tener dicha tabla de Lua para
+ser reconocidas por el hipervisor.
 
 == ``string`` __id__
 Contiene un identificador para el procesador.
 
 == ``table`` __registros__
-La tabla registros contiene todos los registros utilizados por el microprocesador. Es una tabla asociativa: cada índice corresponderá al nombre de un registro reconocido, y contendrá una tabla que tendrá especificadas las siguientes propiedades:
+La tabla registros contiene todos los registros utilizados por el
+microprocesador. Es una tabla asociativa: cada índice corresponderá al nombre de
+un registro reconocido, y contendrá una tabla que tendrá especificadas las
+siguientes propiedades:
 
  ``tamano``:: Entero, tamaño en bits del registro.
- ``desplazamiento``:: Entero, ubicación del registro en la matriz de bits. Se ha de notar que varios registros pueden solaparse, y eso se controla con esta propiedad.
+ ``desplazamiento``:: Entero, ubicación del registro en la matriz de bits. Se ha
+ de notar que varios registros pueden solaparse, y eso se controla con esta
+ propiedad.
 
-== ``table`` __grupos__
+== ``table`` __operandos__
+La tabla operandos contiene funciones para reconocer y obtener valores por cada
+tipo de operando que el lenguaje requiere.
 
 == ``table`` __ensamble__
+La tabla ensamble contiene todos los mnemónicos del conjunto de
+instrucciones. Es una tabla asociativa, cada índice corresponde a un mnemónico
+reconocido. El tipo del valor asociado a cada clave puede variar, dependiendo de
+su función, pero normalmente, será una tabla que contendrá varias duplas,
+representando cada una un conjunto de parámetros diferente. El primer elemento
+de esta dupla será una tupla de cadenas, donde cada cadena será un marcador de
+tipo (detallado en su sección), el segundo, un elemento de cualquiera de los
+siguientes tipos:
 
-La tabla ensamble contiene todos los mnemónicos del conjunto de instrucciones. Es una tabla 
-asociativa, cada índice corresponde a un mnemónico reconocido. El tipo del 
-valor asociado a cada clave puede variar, dependiendo de su función, pero 
-normalmente, será una tabla que contendrá varias duplas, representando cada 
-una un conjunto de parámetros diferente. El primer elemento de esta dupla será 
-una tupla de cadenas, donde cada cadena será un marcador de tipo (detallado en 
-su sección), el segundo, un elemento de cualquiera de los siguientes tipos:
-
-- function: una función que recibirá los parámetros y devolverá una lista de 
+ ``function``:: una función que recibirá los parámetros y devolverá una lista de
   enteros, representando la conversión a bytes.
+ ``List<int>``:: su equivalencia en código máquina.
+ ``Tuple<char*, function>``:: la cadena representa el nombre de otro mnemónico,
+de modo que se debe usar el valor definido para esta combinación de parámetros
+en dicho mnemónico. Después, se pasará la lista de bytes devuelta a la función
+para aplicar alguna transformación.
 
-- List<int>: su equivalencia en código máquina
-
-- Tuple<char*, function>: la cadena representa el nombre de otro mnemónico, de 
-modo que se debe usar el valor definido para esta combinación de parámetros en 
-dicho mnemónico. Después, se pasará la lista de bytes devuelta a la función 
-para aplicar alguna transformación
-
-Además, si un mnemónico no admite parámetros, pueden usarse como valor 
-directamente el segundo y el tercer tipo directamente, en vez de especificar 
-una opción con una lista de parámetros vacía.
+Además, si un mnemónico no admite parámetros, pueden usarse como valor
+cualquiera de los tres tipos descritos directamente, en vez de especificar una
+opción con una lista de parámetros vacía.
 
 == ``table`` __opcodes__
 
 == ``table`` __desensamble__
-
