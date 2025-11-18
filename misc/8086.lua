@@ -127,14 +127,10 @@ return {
     grupos = {
     },
     ensamble = {
-        AAA = {
-        },
-        AAD = {
-        },
-        AAM = {
-        },
-        AAS = {
-        },
+        AAA = { 0x37 },
+        AAD = { 0xd5, 0x0a },
+        AAM = { 0xd4, 0x0a },
+        AAS = { 0x3f },
         ADC = {
         },
         ADD = {
@@ -143,50 +139,44 @@ return {
         },
         CALL = {
         },
-        CBW = {
-        },
-        CLC = {
-        },
-        CLD = {
-        },
-        CLI = {
-        },
-        CMC = {
-        },
+        CBW = { 0x66, 0x98 },
+        CLC = { 0xf8 },
+        CLD = { 0xfc },
+        CLI = { 0xfa },
+        CMC = { 0xf5 },
         CMP = {
         },
-        CMPSB = {
-        },
-        CMPSW = {
-        },
-        CWD = {
-        },
-        DAA = {
-        },
-        DAS = {
-        },
+        CMPSB = { 0xa6 },
+        CMPSW = { 0x66, 0xa7 },
+        CWD = { 0x66, 0x99 },
+        DAA = { 0x27 },
+        DAS = { 0x2f },
         DEC = {
         },
         DIV = {
         },
         ESC = {
         },
-        HLT = {
-        },
+        HLT = { 0xf4 },
         IDIV = {
         },
         IMUL = {
         },
         IN = {
+            --falta al, imm8; ax, imm8
+            {
+                { "al", "dx" }
+            },
+            {
+                { "ax", "dx" }
+            },
         },
         INC = {
         },
         INT = {
         },
-        INTO = {
-        },
-        IRET = {
-        },
+        INTO = { 0xce },
+        IRET = { 0xcf },
         JA = {
         },
         JAE = {
@@ -247,24 +237,18 @@ return {
         },
         JZ = {
         },
-        JCXZ = {
-        },
+        JCXZ = { 0xe3 },
         JMP = {
         },
-        LAHF = {
-        },
+        LAHF = { 0x9f },
         LDS = {
         },
         LEA = {
         },
-        LES = {
-        },
-        LOCK = {
-        },
-        LODSB = {
-        },
-        LODSW = {
-        },
+        LES = {        },
+        --LOCK = {        }, --es un prefijo
+        LODSB = { 0xac },
+        LODSW = { 0x66, 0xad },
         LOOP = {
         },
         LOOPE = {
@@ -277,16 +261,13 @@ return {
         },
         MOV = {
         },
-        MOVSB = {
-        },
-        MOVSW = {
-        },
+        MOVSB = { 0xa4 },
+        MOVSW = { 0x66, 0xa5 },
         MUL = {
         },
         NEG = {
         },
-        NOP = {
-        },
+        NOP = { 0x90 },
         NOT = {
         },
         OR = {
@@ -295,17 +276,16 @@ return {
         },
         POP = {
         },
-        POPF = {
-        },
+        POPF = { 0x9d },
         PUSH = {
         },
-        PUSHF = {
-        },
+        PUSHF = { 0x9c },
         RCL = {
         },
         RCR = {
         },
-        REP = {
+        --
+        --[[REP = {
         },
         REPE = {
         },
@@ -314,49 +294,60 @@ return {
         REPNZ = {
         },
         REPZ = {
-        },
-        RET = {
+            },]]
+        RET = { -- tratar
         },
         RETN = {
+            {
+                {},
+                { 0xc3 }
+            },
+            {
+                { "imm16" },
+                function (r1)
+                    return { 0xc2, r1 } -- tratar valor binario
+                end
+            }
         },
         RETF = {
+            {
+                {},
+                { 0xcb }
+            },
+            {
+                { "imm16" },
+                function (r1)
+                    return { 0xca, r1 }
+                end
+            }
         },
         ROL = {
         },
         ROR = {
         },
-        SAHF = {
-        },
+        SAHF = { 0x9e },
         SAL = {
         },
         SAR = {
         },
         SBB = {
         },
-        SCASB = {
-        },
-        SCASW = {
-        },
+        SCASB = { 0xae },
+        SCASW = { 0x66, 0xaf },
         SHL = {
         },
         SHR = {
         },
-        STC = {
-        },
-        STD = {
-        },
-        STI = {
-        },
-        STOSB = {
-        },
-        STOSW = {
-        },
+        STC = { 0xf9 },
+        STD = { 0xfd },
+        STI = { 0xfb },
+        STOSB = { 0xaa },
+        STOSW = { 0x66, 0xab },
         SUB = {
         },
         TEST = {
         },
-        WAIT = {
-        },
+        WAIT = { 0x9b },
         XCHG = {
         },
         XLAT = {
