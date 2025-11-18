@@ -22,13 +22,25 @@ siguientes propiedades:
 
 == ``table`` __operandos__
 La tabla operandos contiene funciones para reconocer y obtener valores por cada
-tipo de operando que el lenguaje requiere.
+tipo de operando que un mnemónico pueda requerir. Es una tabla asociativa, cada
+índice corresponde a un identificador para el tipo a definir, mientras que el
+valor asociado será una función que acepte un solo parámetro: una cadena que
+contiene al resto de la línea que aún no ha sido procesada que contiene los
+argumentos tal cual se encuentran en el código fuente, finalizando con un
+caracter de salto de línea. Esta función deberá devolver una tupla de dos
+valores: el valor del parámetro reconocido (o `nil` si no hubo coincidencia con
+esa función), y la cadena desde la cual se seguirán extrayendo parámetros.
+
+Si un valor podría coincidir con más de un tipo, es importante notar que se
+devolverá el primer tipo que haga coincidencia. Dado que éstas se procesan según
+el orden en el que fueron agregadas en el código Lua, recomendamos incluir antes
+las definiciones más específicas, y después, las más generales.
 
 == ``table`` __ensamble__
 La tabla ensamble contiene todos los mnemónicos del conjunto de
 instrucciones. Es una tabla asociativa, cada índice corresponde a un mnemónico
-reconocido. El tipo del valor asociado a cada clave puede variar, dependiendo de
-su función, pero normalmente, será una tabla que contendrá varias duplas,
+reconocido, y el tipo del valor asociado a cada clave puede variar, dependiendo
+de su función, pero normalmente, será una tabla que contendrá varias duplas,
 representando cada una un conjunto de parámetros diferente. El primer elemento
 de esta dupla será una tupla de cadenas, donde cada cadena será un marcador de
 tipo (detallado en su sección), el segundo, un elemento de cualquiera de los

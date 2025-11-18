@@ -124,7 +124,7 @@ return {
             desplazamiento = 216
         },
     },
-    grupos = {
+    operandos = {
     },
     ensamble = {
         AAA = { 0x37 },
