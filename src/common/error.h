@@ -12,8 +12,8 @@ enum Lily_Error {
     // Generales
     COD_MALLOC_FALLO,
     COD_CARACTER_INVALIDO,
-    // lib/z80_lexico.h
-    COD_Z80_LEXICO_CARACTER_INVALIDO, /**< Caracter inválido */
+    // lib/a_lexico.h
+    COD_A_LEXICO_CARACTER_INVALIDO, /**< Caracter inválido */
 };
 
 #endif
