@@ -2,6 +2,7 @@
 
 struct LDE_LDE* LDE_Create(void){
     struct LDE_LDE* lde = (struct LDE_LDE*) calloc(1, sizeof(struct LDE_LDE));
+    if (lde == NULL) return NULL;
     lde->inicio = NULL;
     lde->final = NULL;
     lde->tamano = 0;
@@ -10,6 +11,7 @@ struct LDE_LDE* LDE_Create(void){
 
 struct LDE_Nodo* LDE_Nodo_Create(void){
     struct LDE_Nodo* nodo = (struct LDE_Nodo*) calloc(1, sizeof(struct LDE_Nodo));
+    if (nodo == NULL) return NULL;
     nodo->anterior = NULL;
     nodo->posterior = NULL;
     nodo->valor = NULL;
@@ -30,12 +32,12 @@ struct LDE_Nodo* LDE_Insert(struct LDE_LDE* lde, size_t pos, void* valor){
     if (hermano != NULL){
         nodo->anterior = hermano->anterior;
         nodo->posterior = hermano;
-        if (nodo->anterior) nodo->anterior->posterior = nodo;
+        if (nodo->anterior != NULL) nodo->anterior->posterior = nodo;
         else lde->inicio = nodo;
         nodo->posterior->anterior = nodo;
     } else {
         nodo->anterior = hermano_anterior;
-        if (nodo->anterior) nodo->anterior->posterior = nodo;
+        if (nodo->anterior != NULL) nodo->anterior->posterior = nodo;
         else lde->inicio = nodo;
         lde->final = nodo;
     }
@@ -55,9 +57,10 @@ struct LDE_Nodo* LDE_Get(struct LDE_LDE* lde, size_t pos){
 int LDE_Remove(struct LDE_LDE* lde, size_t pos){
     if (pos >= lde->tamano) return 1;
     struct LDE_Nodo* nodo = LDE_Get(lde, pos);
-    if (nodo->anterior) nodo->anterior->posterior = nodo->posterior;
+    if (nodo == NULL) return 1;
+    if (nodo->anterior != NULL) nodo->anterior->posterior = nodo->posterior;
     else lde->inicio = nodo->posterior;
-    if (nodo->posterior) nodo->posterior->anterior = nodo->anterior;
+    if (nodo->posterior != NULL) nodo->posterior->anterior = nodo->anterior;
     else lde->final = nodo->anterior;
     free(nodo);
     lde->tamano--;
