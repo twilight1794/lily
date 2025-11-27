@@ -14,7 +14,7 @@ MODS_CLI := main
 MODS_COMMON := cadena dict lde log
 MODS_LIB :=
 
-.PHONY: all $(TARGETS) install remove clean
+.PHONY: all $(TARGETS) install remove doxy clean
 
 all: linux win web
 
@@ -74,7 +74,7 @@ dist/lily: $(addprefix src/cli/,$(addsuffix .o,$(MODS_CLI))) lua-linux
 	$(CC) $(LDFLAGS) $^ -L dist -llily $(LDLIBS) -o $@
 
 dist/lily.exe: $(addprefix src/cli,$(addsuffix .o,$(MODS_CLI))) lua-win
-	@mkdir -p dist 
+	@mkdir -p dist
 	(CC) $(LDFLAGS) $^ -L dist -llily  $(LDLIBS) -o $@
 
 dist/liblily.js: lua-web
@@ -96,6 +96,10 @@ remove-linux:
 
 remove-windows:
 	$(RM) $(BINDIR)
+
+doxy:
+	@mkdir -p dist
+	doxygen Doxyfile
 
 clean:
 	$(RM) dist/*
