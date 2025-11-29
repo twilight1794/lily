@@ -133,15 +133,16 @@ enum Lily_Error lex_modo_r_etiqueta(const char* blob, size_t* i, struct Lex_Simb
  */
 enum Lily_Error lex_modo_objeto(const char* blob, size_t* i, struct Lex_Simbolo* sim);
 
-/**
- * @brief Modo ambiguo
- * Comprueba si la cadena puede ser un identificador válido para un mnemónico, definición de etiqueta o llamada a función
+/*
+ * @brief Modo cadena
+ * Comprueba si la cadena precedida por ''' o '"' es una cadena válida
  * @param blob Cadena a analizar
  * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo creado, o NULL si no es un valor válido
+ * @param sim Estructura para almacenar el símbolo de la cadena, o NULL si no es un identificador de objeto válido
+ * @param tipo Caracter que abrió la cadena: comilla simple o doble
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_ambiguo(const char* blob, size_t* i, struct Lex_Simbolo* sim);
+enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo* sim, const char tipo);
 
 /*
  * @brief Modo número
@@ -149,26 +150,30 @@ enum Lily_Error lex_modo_ambiguo(const char* blob, size_t* i, struct Lex_Simbolo
  * @param blob Cadena a analizar
  * @param i Índice del puntero
  * @param sim Estructura para almacenar el símbolo creado, o NULL si no es una constante numérica válido
+ * @param tipo Caracter que marca el tipo del número recibido: 'x', 'o', 'b', o 0
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo* sim);
+enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo* sim, const char tipo);
 
 /*
- * Comprueba si una cadena es un identificador válido para una función definida
+ * @brief Modo operador
+ * Comprueba si una cadena representa un operador válido
  * @param blob Cadena a analizar
  * @param i Índice del puntero
- * @param tipo Tipo de comillas usadas en la cadena: 0 para simples, 1 para dobles
- * @param sim Estructura para almacenar la cadena creada, o NULL si no es un valor válido
+ * @param sim Estructura para almacenar el símbolo creado, o NULL si no es una constante numérica válido
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, char tipo, struct Lex_Simbolo* sim);
+enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbolo* sim);
 
-/*
- * Devuelve el nombre del tipo de dato usando su identificador
- * @param v Tipo de valor
- * @return Cadena correspondiente al operador
+/**
+ * @brief Modo ambiguo
+ * Comprueba si la cadena puede ser un número hexadecimal de la forma /[:xdigit:]h/, o identificador válido para un mnemónico, definición de etiqueta o llamada a función
+ * @param blob Cadena a analizar
+ * @param i Índice del puntero
+ * @param sim Estructura para almacenar el símbolo creado, o NULL si no es un valor válido
+ * @return Código de error de la operación
  */
-char* lex_cadena_operador(enum Lex_Tipo_Op v);
+enum Lily_Error lex_modo_ambiguo(const char* blob, size_t* i, struct Lex_Simbolo* sim);
 
 /**
  * Función de entrada del analizador léxico

@@ -41,6 +41,39 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
             if (nodo == NULL) return COD_MALLOC_FALLO;
         }
         else if (lex_esblanco(blob[i])) while (lex_esblanco(blob[i])) i++; // Espacios en blanco
+        else if (blob[i] == 0x27 || blob[i] == 0x22) {
+            // Es una cadena
+            sim = Lex_Simbolo_Create();
+            err = lex_modo_cadena(blob, &i, sim, blob[i]);
+            if (err != COD_OK) return err;
+            nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
+            if (nodo == NULL) return COD_MALLOC_FALLO;
+        }
+        else if (blob[i] == '0' && blob[i + 1] == 'x') {
+            // Es un número en otra base
+            blob += 2;
+            sim = Lex_Simbolo_Create();
+            err = lex_modo_numero(blob, &i, sim, blob[i-1]);
+            if (err != COD_OK) return err;
+            nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
+            if (nodo == NULL) return COD_MALLOC_FALLO;
+        }
+        else if (isdigit(blob[i])) {
+            // Es un número decimal
+            sim = Lex_Simbolo_Create();
+            err = lex_modo_numero(blob, &i, sim, 0);
+            if (err != COD_OK) return err;
+            nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
+            if (nodo == NULL) return COD_MALLOC_FALLO;
+        }
+        else if (lex_esoperador(blob[i])) {
+            // Es probablemente un operador
+            sim = Lex_Simbolo_Create();
+            err = lex_modo_operador(blob, &i, sim);
+            if (err != COD_OK) return err;
+            nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
+            if (nodo == NULL) return COD_MALLOC_FALLO;
+        }
         else if (isalpha(blob[i])){
             // Es una etiqueta o directiva
             sim = Lex_Simbolo_Create();
