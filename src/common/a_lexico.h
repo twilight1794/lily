@@ -11,17 +11,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../common/a_lexico_ctipos.h"
 #include "../common/cadena.h"
 #include "../common/lde.h"
 #include "../common/error.h"
 
-char lex_esblanco_t[0x21] = {0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 /**
- * \def lex_esblanco(c)
+ * @def lex_esblanco(c)
  * Comprueba si un caracter \a c es un espacio (0x20), tabulador (0x9), salto de línea (0xa), o retorno de carro (0xd)
  * @param c Caracter a analizar
  */
-#define lex_esblanco(c) lex_esblanco_t[c]&1
+#define lex_esblanco(c) lex_ctipos[c]&1
+
+/**
+ * @def lex_esoperador(c)
+ * Comprueba si un caracter \a c puede ser parte de un operador
+ * @param c Caracter a analizar
+ */
+#define lex_esoperador(c) lex_ctipos[c]&2
 
 // Tipos para símbolos
 
