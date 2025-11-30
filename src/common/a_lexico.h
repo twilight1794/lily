@@ -38,25 +38,23 @@
  */
 enum Lex_Tipo_Simbolo {
     // Terminal
-    SIMB_MNEMO,
+    SIMB_MNEMO = 1,
     SIMB_DIRECTIVA,
     SIMB_ETI,
-    VAL_OBJETO,
-    VAL_NUMERO,
-    VAL_FUNCION,
+    SIMB_OBJETO,
+    SIMB_NUMERO,
+    SIMB_FUNCION,
 
     // No terminal
     SIMB_INDETERMINADO,
-    VAL_OP,
-    VAL_VARIABLE,
-    VAL_CADENA,
-    VAL_PARENTESIS_AP,
-    VAL_PARENTESIS_CI,
-    VAL_SEPARADOR
-};
+    SIMB_VARIABLE,
+    SIMB_CADENA,
+    SIMB_PARENTESIS_AP,
+    SIMB_PARENTESIS_CI,
+    SIMB_SEPARADOR,
 
-enum Lex_Tipo_Op {
-    OP_SUMA,
+    // Operadores
+    OP_SUMA = 32,
     OP_RESTA,
     OP_MULTI,
     OP_DIV,
@@ -77,7 +75,7 @@ enum Lex_Tipo_Op {
     OP_MENOR_IGUAL,
     OP_MAYOR_IGUAL,
     OP_IGUAL,
-    OP_DIF,
+    OP_DIF
 };
 
 /**

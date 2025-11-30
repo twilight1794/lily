@@ -9,6 +9,47 @@ void lex_modo_comentario(const char* blob, size_t* i) {
     while (blob[*i] != '\n' && blob[*i] != 0);
 }
 
+enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
+    // Guardar estado y preparar
+    size_t i_inicial = *i;
+    (*i)++; // Nos saltamos el punto
+
+    // Obtener la cadena a comparar
+    char c = blob[*i];
+    char* cad_tentativa = Cadena_Create();
+    if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
+    while (isalpha(c)) {
+        Cadena_Add(cad_tentativa, &c);
+        c = blob[*i];
+    }
+    // Ver razón de detención: solo debe detenerse en blanco o fin de archivo
+    if (!(lex_esblanco(c)) && c != 0) {
+        *i = i_inicial;
+        return COD_A_LEXICO_RECON_ERRONEO;
+    }
+
+    // Comparar por cada directiva posible
+    const char* cad_directiva = lex_directivas[0];
+    while (cad_directiva != 0) {
+        if (!strcmp(cad_directiva, cad_tentativa)) {
+            // Directiva encontrada
+            *sim = Lex_Simbolo_Create();
+            if (*sim == NULL) {
+                free(cad_tentativa);
+                return COD_MALLOC_FALLO;
+            }
+            (*sim)->tipo = SIMB_DIRECTIVA;
+            (*sim)->valor = cad_tentativa;
+            return COD_OK;
+        }
+        cad_directiva++;
+    }
+
+    // No hubo resultados :(
+    free(cad_tentativa);
+    return COD_A_LEXICO_DIRECTIVA_INVALIDA;
+}
+
 int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
     // Variables a utilizar
     enum Lily_Error err;
