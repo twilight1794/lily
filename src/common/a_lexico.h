@@ -91,7 +91,7 @@ struct Lex_Simbolo {
 
 /**
  * Crea un objeto para símbolos
- * @returns Un objeto para símbolo nuevo
+ * @return Un objeto para símbolo nuevo
  */
 struct Lex_Simbolo* Lex_Simbolo_Create();
 
@@ -168,7 +168,7 @@ enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbol
 
 /**
  * @brief Modo ambiguo
- * Comprueba si la cadena puede ser un número hexadecimal de la forma /[:xdigit:]h/, o identificador válido para un mnemónico, definición de etiqueta o llamada a función
+ * Comprueba si la cadena puede ser un número hexadecimal de la forma /[:xdigit:]h/, o identificador válido para un mnemónico, definición de etiqueta
  * @param blob Cadena a analizar
  * @param i Índice del puntero
  * @param sim Estructura para almacenar el símbolo creado, o NULL si no es un valor válido
