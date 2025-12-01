@@ -93,7 +93,7 @@ struct Lex_Simbolo {
  * Crea un objeto para símbolos
  * @return Un objeto para símbolo nuevo
  */
-struct Lex_Simbolo* Lex_Simbolo_Create();
+struct Lex_Simbolo* lex_simbolo_create();
 
 // Modos del analizador léxico
 /**
