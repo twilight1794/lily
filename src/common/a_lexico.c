@@ -137,6 +137,62 @@ enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo*
     return COD_OK;
 }
 
+enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo** sim, const char tipo) {
+    size_t i_inicial = *i;
+
+    bool punto = false;
+    char c = blob[*i];
+    char* valor_texto = Cadena_Create();
+    if (tipo == 16) {
+        while (isxdigit(c)) {
+            Cadena_Add(valor_texto, &c);
+            (*i)++;
+            c = blob[*i];
+        }
+    } else if (tipo == 8) {
+        while (c > '0' && c <= '7') {
+            Cadena_Add(valor_texto, &c);
+            (*i)++;
+            c = blob[*i];
+        }
+    } else if (tipo == 2) {
+        while (c == '0' || c == '1') {
+            Cadena_Add(valor_texto, &c);
+            (*i)++;
+            c = blob[*i];
+        }
+    } else {
+        while (isdigit(c) || (c == '.' && !punto)) {
+            if (c == '.') punto = true;
+            Cadena_Add(valor_texto, &c);
+            (*i)++;
+            c = blob[*i];
+        }
+    }
+    // Ver razón de fin: solo debe detenerse si hay después operador, en blanco o fin de archivo
+    if (!(lex_esblanco(c)) && !(lex_esoperador(c)) && c != 0) {
+        *i = i_inicial;
+        return COD_A_LEXICO_CARACTER_INVALIDO;
+    } else if (c == '.' && punto) {
+        free(valor_texto);
+        return COD_A_LEXICO_CARACTER_INVALIDO;
+    }
+    // Obtener valor
+    long* valor = (long*) malloc(sizeof(long));
+    for (size_t j = strlen(valor_texto); j > 0; j--) {
+        *valor = valor_texto[j-1]*pow((tipo==0?10:tipo), strlen(valor_texto)-j);
+    }
+    *sim = Lex_Simbolo_Create();
+    if (*sim == NULL) {
+        free(valor_texto);
+        return COD_MALLOC_FALLO;
+    }
+    (*sim)->tipo = SIMB_NUMERO;
+    (*sim)->valor = (void*) valor;
+    free(valor_texto);
+    return COD_OK;
+}
+
 int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
     // Variables a utilizar
     enum Lily_Error err;

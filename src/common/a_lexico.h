@@ -7,6 +7,7 @@
 #define LILY_C_A_LEX
 
 #include <ctype.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,7 +86,7 @@ enum Lex_Tipo_Simbolo {
  */
 struct Lex_Simbolo {
     enum Lex_Tipo_Simbolo tipo;
-    char* valor;
+    void* valor;
 };
 
 /**

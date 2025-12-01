@@ -3,6 +3,7 @@ TARGET := all
 
 CC := gcc
 CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99
+LDLIBS := -lm
 RM := rm -rf
 BINDIR := /usr/local/bin
 LIBDIR := /usr/local/lib
