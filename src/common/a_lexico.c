@@ -10,24 +10,23 @@ void lex_modo_comentario(const char* blob, size_t* i) {
 }
 
 enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
-    // Guardar estado y preparar
     size_t i_inicial = *i;
     (*i)++; // Nos saltamos el punto
 
-    // Obtener la cadena a comparar
+    // Obtener cadena a comparar
     char c = blob[*i];
     char* cad_tentativa = Cadena_Create();
     if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
     while (isalpha(c)) {
         Cadena_Add(cad_tentativa, &c);
+        (*i)++;
         c = blob[*i];
     }
-    // Ver razón de detención: solo debe detenerse en blanco o fin de archivo
+    // Ver razón de fin: solo debe detenerse en blanco o fin de archivo
     if (!(lex_esblanco(c)) && c != 0) {
         *i = i_inicial;
         return COD_A_LEXICO_RECON_ERRONEO;
     }
-
     // Comparar por cada directiva posible
     const char* cad_directiva = lex_directivas[0];
     while (cad_directiva != 0) {
@@ -50,6 +49,94 @@ enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbo
     return COD_A_LEXICO_DIRECTIVA_INVALIDA;
 }
 
+enum Lily_Error lex_modo_r_etiqueta(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
+    size_t i_inicial = *i;
+    (*i)++; // Nos saltamos el $
+
+    // Obtener cadena a comparar
+    char c = blob[*i];
+    char* cad_tentativa = Cadena_Create();
+    if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
+    /// Primero, debe empezar por una letra o _
+    if (!isalpha(c) && c != '_') {
+        *i = i_inicial;
+        free(cad_tentativa);
+        return COD_A_LEXICO_CARACTER_INVALIDO;
+    }
+    Cadena_Add(cad_tentativa, &c);
+    (*i)++;
+    /// Ya después, puede ser cualquier letra, dígito o _
+    while (isalpha(c) || isdigit(c) || c == '_') {
+        Cadena_Add(cad_tentativa, &c);
+        (*i)++;
+        c = blob[*i];
+    }
+    // Dado a que esto solo debe usarse dentro de una expresión, pueden sucederle muchos tipos de símbolos, así que no hay comprobación de fin
+    *sim = Lex_Simbolo_Create();
+    if (*sim == NULL) {
+        free(cad_tentativa);
+        return COD_MALLOC_FALLO;
+    }
+    (*sim)->tipo = SIMB_VARIABLE;
+    (*sim)->valor = cad_tentativa;
+    return COD_OK;
+}
+
+enum Lily_Error lex_modo_objeto(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
+    (*i)++;
+
+    // Obtener cadena a comparar
+    char c = blob[*i];
+    char* cad_tentativa = Cadena_Create();
+    if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
+    while (isalpha(c)) {
+        Cadena_Add(cad_tentativa, &c);
+        (*i)++;
+        c = blob[*i];
+    }
+    // Dado a que esto solo debe usarse dentro de una expresión, pueden sucederle muchos tipos de símbolos, así que no hay comprobación de fin
+    *sim = Lex_Simbolo_Create();
+    if (*sim == NULL) {
+        free(cad_tentativa);
+        return COD_MALLOC_FALLO;
+    }
+    (*sim)->tipo = SIMB_OBJETO;
+    (*sim)->valor = cad_tentativa;
+    return COD_OK;
+}
+
+enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo** sim, const char tipo) {
+    size_t i_inicial = *i;
+    (*i)++; // Saltamos las comillas
+
+    // Obtener contenido de la cadena
+    // Las cadenas son agnósticas: todo lo que esté entre la primera comilla, y otra comilla de la misma clase, es considerado tal cual parte de la cadena, a excepción de los caracteres 0x0a y 0x00. Por ahora, tampoco hay secuencias de escape.
+    char c = blob[*i];
+    char* contenido = Cadena_Create();
+    if (contenido == NULL) return COD_MALLOC_FALLO;
+    while (c != 0x0a && c != 0 && c == blob[i_inicial]) {
+        Cadena_Add(contenido, &c);
+        (*i)++;
+        c = blob[*i];
+    }
+    // Ver razón de fin
+    if (c != blob[i_inicial]) {
+        // O sea, nos interrumpieron sin cerrar la cadena
+        free(contenido);
+        return COD_A_LEXICO_FIN_INESPERADO;
+    }
+    // Terminamos la cadena bien
+    *sim = Lex_Simbolo_Create();
+    if (*sim == NULL) {
+        free(contenido);
+        return COD_MALLOC_FALLO;
+    }
+    if (c == 0x27) (*sim)->tipo = SIMB_CADENA_SIMPLE;
+    else (*sim)->tipo = SIMB_CADENA_NUL;
+    (*sim)->valor = contenido;
+    return COD_OK;
+}
+
 int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
     // Variables a utilizar
     enum Lily_Error err;
@@ -67,6 +154,7 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
         }
         if (blob[i] == '.') {
             // Es una directiva
+            // NOTE: considerar en el futuro números decimales que comiencen por punto
             err = lex_modo_directiva(blob, &i, &sim);
             if (err == COD_OK) {
                 nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
@@ -104,7 +192,7 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
         }
         if (blob[i] == '0' && blob[i + 1] == 'x') {
             // Es un número en otra base
-            blob += 2;
+            i += 2;
             err = lex_modo_numero(blob, &i, &sim, blob[i-1]);
             if (err == COD_OK) {
                 nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
