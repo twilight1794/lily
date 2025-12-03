@@ -23,7 +23,7 @@ enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbo
         c = blob[*i];
     }
     // Ver razón de fin: solo debe detenerse en blanco o fin de archivo
-    if (!(lex_esblanco(c)) && c != 0) {
+    if (!lex_esblanco(c) && c != 0) {
         *i = i_inicial;
         return COD_A_LEXICO_RECON_ERRONEO;
     }
@@ -170,7 +170,7 @@ enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo*
         }
     }
     // Ver razón de fin: solo debe detenerse si hay después operador, en blanco o fin de archivo
-    if (!(lex_esblanco(c)) && !(lex_esoperador(c)) && c != 0) {
+    if (!lex_esblanco(c) && !lex_esoperador(c) && c != 0) {
         *i = i_inicial;
         return COD_A_LEXICO_CARACTER_INVALIDO;
     } else if (c == '.' && punto) {

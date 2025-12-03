@@ -24,14 +24,14 @@
  * Comprueba si un caracter \a c es un espacio (0x20), tabulador (0x9), salto de línea (0xa), o retorno de carro (0xd)
  * @param c Caracter a analizar
  */
-#define lex_esblanco(c) lex_ctipos[c]&1
+#define lex_esblanco(c) (lex_ctipos[(unsigned char) c]&1)
 
 /**
  * @def lex_esoperador(c)
  * Comprueba si un caracter \a c puede ser parte de un operador
  * @param c Caracter a analizar
  */
-#define lex_esoperador(c) lex_ctipos[c]&2
+#define lex_esoperador(c) (lex_ctipos[(unsigned char) c]&2)
 
 // Tipos para símbolos
 
