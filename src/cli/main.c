@@ -13,7 +13,7 @@
 #include "../common/dict.h"
 #include "../common/lde.h"
 #include "../common/log.h"
-#include "../lib/z80.h"
+#include "../lib/a_lexico.h"
 
 #define _(STRING) gettext(STRING)
 
@@ -106,7 +106,7 @@ int main(int argc, char **argv){
 
     // Empezamos análisis
     struct LDE_LDE* simbolos = LDE_Create();
-    int codigo = z80_lexico(p_archivo, simbolos);
+    int codigo = lex_lexico(p_archivo, simbolos);
     munmap(p_archivo, st.st_size);
     close(fd);
     if (codigo) return codigo;

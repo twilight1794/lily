@@ -1,4 +1,4 @@
-#include "a_lexico.h"
+#include "../lib/a_lexico.h"
 
 struct Lex_Simbolo* lex_simbolo_create() {
     return calloc(1, sizeof(struct Lex_Simbolo));

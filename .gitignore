@@ -7,3 +7,6 @@
 *.exe
 dist
 .idea
+/lib/lua-5.4.8/src/liblua.a
+/lib/lua-5.4.8/src/lua
+/lib/lua-5.4.8/src/luac

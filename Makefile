@@ -8,78 +8,53 @@ RM := rm -rf
 BINDIR := /usr/local/bin
 LIBDIR := /usr/local/lib
 MANDIR := /usr/local/share/man/man1
+LUADIR := lib/lua-5.4.8
 # -----END USER CONFIGURATION-----
 
-TARGETS := linux win lib-linux lib-win cli-linux cli-win web
-MODS_CLI := main
-MODS_COMMON := cadena dict lde log
-MODS_LIB :=
+TARGETS := linux windows lib-linux lib-windows web
+.PHONY: all $(TARGETS) build install-windows install-linux remove-linux remove-windows doxy clean lua-linux lua-win lua-web
 
-.PHONY: all $(TARGETS) install remove doxy clean
-
-all: linux win web
-
-linux: lib-linux cli-linux
-
-win: lib-win cli-win
-
-lib-linux: dist/liblily.so
-
-lib-win: dist/liblily.dll
-
-cli-linux: dist/lily
-
-cli-win: dist/lily.exe
-
-web: dist/liblily.js
+all: linux windows web
+linux: dist/lily
+windows: dist/lily.exe
+lib-linux: build dist/liblily.so
+lib-windows: build dist/liblily.dll
+web: build dist/liblily.js
 
 lua-linux:
-	cd lib/lua-5.4.7/src && make
+	cd $(LUADIR)/src && make
 
-lua-win:
-	cd lib/lua-5.4.7/src && make mingw
+lua-windows:
+	cd $(LUADIR)/src && make mingw
 
 lua-web:
-	cd lib/lua-5.4.7/src && make generic CC='emcc -s WASM=1'
+	cd $(LUADIR)/src && make generic CC='emcc -s WASM=1'
 
-$(addprefix src/common/,$(addsuffix .o,$(MODS_COMMON))): $(addprefix src/common/,$(addsuffix .c,$(MODS_COMMON)))
-	@echo Generando $(notdir $@)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $^
-	mv *.o src/common/
-
-$(addprefix src/cli/,$(addsuffix .o,$(MODS_CLI))): $(addprefix src/cli/,$(addsuffix .c,$(MODS_CLI)))
-	@echo Generando $(notdir $@)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $^
-	mv *.o src/cli/
-
-$(addprefix src/lib/,$(addsuffix .o,$(MODS_LIB))): $(addprefix src/lib/,$(addsuffix .c,$(MODS_LIB)))
-	@echo Generando $(notdir $@)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $^
-	mv *.o src/lib/
-
+src/common/cadena.o: src/common/cadena.c
+src/common/dict.o: src/common/dict.c
+src/common/lde.o: src/common/lde.c
+src/common/log.o: src/common/log.c
+src/cli/main.o: src/cli/main.c
+src/lib/a_lexico.o: src/lib/a_lexico.c
 src/web/main.o: src/web/main.c
-	@echo Generando $(notdir $@)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $^
-	mv main.o src/web/
 
-dist/liblily.so: $(addprefix src/lib/,$(addsuffix .o,$(MODS_LIB))) $(addprefix src/common/,$(addsuffix .o,$(MODS_COMMON))) lua-linux
-	@mkdir -p dist
+dist/liblily.so: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | lua-linux
 	$(CC) -shared -fPIC $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/liblily.dll: $(addprefix src/lib/,$(addsuffix .o,$(MODS_LIB))) $(addprefix src/common/,$(addsuffix .o,$(MODS_COMMON))) lua-win
-	@mkdir -p dist
+dist/liblily.dll: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | lua-windows
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/lily: $(addprefix src/cli/,$(addsuffix .o,$(MODS_CLI))) lua-linux
-	@mkdir -p dist
-	$(CC) $(LDFLAGS) $^ -L dist -llily $(LDLIBS) -o $@
+dist/lily: src/cli/main.o lib-linux | lua-linux
+	$(CC) $(LDFLAGS)  src/cli/main.o -L dist -llily $(LDLIBS) -o $@
 
-dist/lily.exe: $(addprefix src/cli,$(addsuffix .o,$(MODS_CLI))) lua-win
-	@mkdir -p dist
-	(CC) $(LDFLAGS) $^ -L dist -llily  $(LDLIBS) -o $@
+dist/lily.exe: src/cli/main.o lib-windows | lua-windows
+	(CC) $(LDFLAGS) src/cli/main.o -L dist -llily  $(LDLIBS) -o $@
 
 dist/liblily.js: lua-web
 	emcc -Ilib/lua-5.4.7/src main.c lua-5.4.0/src/liblua.a -s WASM=1 -O2 -o dist/liblily.js -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
+
+build:
+	mkdir -p dist
 
 install-linux:
 	cp dist/lily $(BINDIR)/lily
