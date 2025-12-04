@@ -40,6 +40,8 @@
  * Tipo de símbolo
  */
 enum Lex_Tipo_Simbolo {
+    SIMB_INDETERMINADO,
+
     // Terminal
     SIMB_MNEMO = 1,
     SIMB_DIRECTIVA,
@@ -49,10 +51,10 @@ enum Lex_Tipo_Simbolo {
     SIMB_FUNCION,
 
     // No terminal
-    SIMB_INDETERMINADO,
     SIMB_VARIABLE,
     SIMB_CADENA_SIMPLE,
     SIMB_CADENA_NUL,
+    SIMB_OPERADOR, //< Superclase para todo lo siguiente
     SIMB_PARENTESIS_AP,
     SIMB_PARENTESIS_CI,
     SIMB_SEPARADOR,
@@ -67,8 +69,7 @@ enum Lex_Tipo_Simbolo {
     OP_BIT_AND,
     OP_BIT_OR,
     OP_BIT_XOR,
-    OP_COMP_2,
-    OP_COMP_1,
+    OP_BIT_NOT,
     OP_LOG_AND,
     OP_LOG_OR,
     OP_LOG_NEG,
@@ -84,10 +85,10 @@ enum Lex_Tipo_Simbolo {
 
 /**
  * Estructura para guardar un símbolo léxico
- * Un
  */
 struct Lex_Simbolo {
     enum Lex_Tipo_Simbolo tipo;
+    enum Lex_Tipo_Simbolo subtipo;
     void* valor;
 };
 
@@ -163,7 +164,7 @@ enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo*
  * Comprueba si una cadena representa un operador válido
  * @param blob Cadena a analizar
  * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo creado, o NULL si no es una constante numérica válido
+ * @param sim Estructura para almacenar el símbolo creado
  * @return Código de error de la operación
  */
 enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbolo** sim);

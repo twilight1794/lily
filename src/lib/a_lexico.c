@@ -197,6 +197,55 @@ enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo*
     return COD_OK;
 }
 
+enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
+    // Determinar operador involucrado
+    enum Lex_Tipo_Simbolo tipo = SIMB_INDETERMINADO;
+    if (blob[*i] == '+') tipo = OP_SUMA;
+    else if (blob[*i] == '-') tipo = OP_RESTA;
+    else if (blob[*i] == '*') tipo = OP_MULTI;
+    else if (blob[*i] == '/') tipo = OP_DIV;
+    //OP_MODULO,
+    else if (blob[*i] == '.') tipo = OP_MIEMBRO; // NOTE: ¿oportunidad para implementar números?
+    else if (blob[*i] == '&') {
+        if (blob[*(i+1)] == '&') tipo = OP_LOG_AND;
+        else tipo = OP_BIT_AND;
+    }
+    else if (blob[*i] == '|') {
+        if (blob[*(i+1)] == '|') tipo = OP_LOG_OR;
+        else tipo = OP_BIT_OR;
+    }
+    else if (blob[*i] == '^') tipo = OP_BIT_XOR;
+    else if (blob[*i] == '~') tipo = OP_BIT_NOT;
+    else if (blob[*i] == '!') {
+        if (blob[*(i+1)] == '=') tipo = OP_DIF;
+        else tipo = OP_LOG_NEG;
+    }
+    else if (blob[*i] == '<') {
+        if (blob[*(i+1) == '<']) tipo = OP_DESP_IZQ;
+        else if (blob[*(i+1) == '=']) tipo = OP_MENOR_IGUAL;
+        else tipo = OP_MENOR_QUE;
+    }
+    else if (blob[*i] == '>') {
+        if (blob[*(i+1) == '>']) tipo = OP_DESP_DER;
+        else if (blob[*(i+1) == '=']) tipo = OP_MAYOR_IGUAL;
+        else tipo = OP_MAYOR_QUE;
+    }
+    else if (blob[*i] == '=') tipo = OP_IGUAL;
+    else if (blob[*i] == ',') tipo = SIMB_SEPARADOR;
+    else if (blob[*i] == '(') tipo = SIMB_PARENTESIS_AP;
+    else if (blob[*i] == ')') tipo = SIMB_PARENTESIS_CI;
+    // No debe haber más opciones, ¿verdad?
+
+    // Crear objeto
+    *sim = lex_simbolo_create();
+    if (*sim == NULL) {
+        return COD_MALLOC_FALLO;
+    }
+    (*sim)->tipo = SIMB_OPERADOR;
+    (*sim)->subtipo = tipo;
+    return COD_OK;
+}
+
 int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
     // Variables a utilizar
     enum Lily_Error err;
@@ -270,13 +319,13 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
             } else return err;
         }
         if (lex_esoperador(blob[i])) {
-            // Es probablemente un operador
+            // Es ~probablemente~ un operador
             err = lex_modo_operador(blob, &i, &sim);
             if (err == COD_OK) {
                 nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
                 if (nodo == NULL) return COD_MALLOC_FALLO;
                 continue;
-            } else if (err != COD_A_LEXICO_RECON_ERRONEO) return err;
+            } else return err;
         }
         if (isalpha(blob[i])){
             // Es un número hexadecimal xxxxh, mnemónico, etiqueta
