@@ -180,7 +180,13 @@ enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo*
     // Obtener valor
     long* valor = (long*) malloc(sizeof(long));
     for (size_t j = strlen(valor_texto); j > 0; j--) {
-        *valor = valor_texto[j-1]*pow((tipo==0?10:tipo), strlen(valor_texto)-j);
+        long potencia;
+        const int exponente = (int) (strlen(valor_texto)-j); // FIX: no deberíamos aceptar números mayores a 20 dígitos en cualquier caso
+        if (tipo == 16) potencia = pow16(exponente);
+        else if (tipo == 8) potencia = pow8(exponente);
+        else if (tipo == 2) potencia = pow2(exponente);
+        else potencia = pow10(exponente);
+        *valor = valor_texto[j-1] * potencia;
     }
     *sim = lex_simbolo_create();
     if (*sim == NULL) {

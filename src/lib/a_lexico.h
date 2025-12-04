@@ -13,8 +13,9 @@
 #include <string.h>
 
 #include "../common/cadena.h"
-#include "../common/lde.h"
 #include "../common/error.h"
+#include "../common/lde.h"
+#include "../common/pow.h"
 
 #include "../lib/a_lexico_ctipos.h"
 #include "../lib/a_lexico_directivas.h"
