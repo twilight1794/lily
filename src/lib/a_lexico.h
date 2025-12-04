@@ -95,7 +95,7 @@ struct Lex_Simbolo {
  * Crea un objeto para símbolos
  * @return Un objeto para símbolo nuevo
  */
-struct Lex_Simbolo* lex_simbolo_create();
+struct Lex_Simbolo* lex_simbolo_create(void);
 
 // Modos del analizador léxico
 /**
@@ -145,7 +145,7 @@ enum Lily_Error lex_modo_objeto(const char* blob, size_t* i, struct Lex_Simbolo*
  * @param tipo Caracter que abrió la cadena: comilla simple o doble
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo** sim, const char tipo);
+enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo** sim);
 
 /*
  * @brief Modo número

@@ -42,7 +42,7 @@ char* lex_directivas[] = {
     "PROC",
     // Miscelánea
     "END",
-    0
+    NULL
 };
 
 #endif

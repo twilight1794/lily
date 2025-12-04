@@ -1,6 +1,6 @@
 #include "../lib/a_lexico.h"
 
-struct Lex_Simbolo* lex_simbolo_create() {
+struct Lex_Simbolo* lex_simbolo_create(void) {
     return calloc(1, sizeof(struct Lex_Simbolo));
 }
 
@@ -28,9 +28,8 @@ enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbo
         return COD_A_LEXICO_RECON_ERRONEO;
     }
     // Comparar por cada directiva posible
-    const char* cad_directiva = lex_directivas[0];
-    while (cad_directiva != 0) {
-        if (!strcmp(cad_directiva, cad_tentativa)) {
+    for (size_t j = 0; lex_directivas[j] != NULL; j++) {
+        if (!strcmp(lex_directivas[j], cad_tentativa)) {
             // Directiva encontrada
             *sim = lex_simbolo_create();
             if (*sim == NULL) {
@@ -41,7 +40,6 @@ enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbo
             (*sim)->valor = cad_tentativa;
             return COD_OK;
         }
-        cad_directiva++;
     }
 
     // No hubo resultados :(
@@ -105,7 +103,7 @@ enum Lily_Error lex_modo_objeto(const char* blob, size_t* i, struct Lex_Simbolo*
     return COD_OK;
 }
 
-enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo** sim, const char tipo) {
+enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
     const size_t i_inicial = *i;
     (*i)++; // Saltamos las comillas
 
@@ -245,7 +243,7 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
         if (lex_esblanco(blob[i])) while (lex_esblanco(blob[i])) i++; // Espacios en blanco
         if (blob[i] == 0x27 || blob[i] == 0x22) {
             // Es una cadena
-            err = lex_modo_cadena(blob, &i, &sim, blob[i]);
+            err = lex_modo_cadena(blob, &i, &sim);
             if (err == COD_OK) {
                 nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
                 if (nodo == NULL) return COD_MALLOC_FALLO;
