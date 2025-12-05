@@ -10,7 +10,9 @@ void lex_modo_comentario(const char* blob, size_t* i) {
 }
 
 enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
-    const size_t i_inicial = *i;
+    // Comprobar antes si esto pudiera ser un número decimal
+    if (isdigit(blob[*(i+1)])) return COD_A_LEXICO_RECON_ERRONEO;
+
     (*i)++; // Nos saltamos el punto
 
     // Obtener cadena a comparar
@@ -23,9 +25,9 @@ enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbo
         c = blob[*i];
     }
     // Ver razón de fin: solo debe detenerse en blanco o fin de archivo
-    if (!lex_esblanco(c) && c != 0) {
-        *i = i_inicial;
-        return COD_A_LEXICO_RECON_ERRONEO;
+    if (!strlen(cad_tentativa)) {
+        if (c == 0) return COD_A_LEXICO_FIN_INESPERADO;
+        return COD_A_LEXICO_CARACTER_INVALIDO;
     }
     // Comparar por cada directiva posible
     for (size_t j = 0; lex_directivas[j] != NULL; j++) {
@@ -168,10 +170,7 @@ enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo*
         }
     }
     // Ver razón de fin: solo debe detenerse si hay después operador, en blanco o fin de archivo
-    if (!lex_esblanco(c) && !lex_esoperador(c) && c != 0) {
-        *i = i_inicial;
-        return COD_A_LEXICO_CARACTER_INVALIDO;
-    } else if (c == '.' && punto) {
+    if ((c == '.' && punto) || (!lex_esblanco(c) && !lex_esoperador(c) && c != 0)) {
         free(valor_texto);
         return COD_A_LEXICO_CARACTER_INVALIDO;
     }
@@ -205,29 +204,50 @@ enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbol
     else if (blob[*i] == '*') tipo = OP_MULTI;
     else if (blob[*i] == '/') tipo = OP_DIV;
     //OP_MODULO,
-    else if (blob[*i] == '.') tipo = OP_MIEMBRO; // NOTE: ¿oportunidad para implementar números?
+    else if (blob[*i] == '.') tipo = OP_MIEMBRO;
     else if (blob[*i] == '&') {
-        if (blob[*(i+1)] == '&') tipo = OP_LOG_AND;
+        if (blob[*(i+1)] == '&') {
+            tipo = OP_LOG_AND;
+            (*i)++;
+        }
         else tipo = OP_BIT_AND;
     }
     else if (blob[*i] == '|') {
-        if (blob[*(i+1)] == '|') tipo = OP_LOG_OR;
+        if (blob[*(i+1)] == '|') {
+            tipo = OP_LOG_OR;
+            (*i)++;
+        }
         else tipo = OP_BIT_OR;
     }
     else if (blob[*i] == '^') tipo = OP_BIT_XOR;
     else if (blob[*i] == '~') tipo = OP_BIT_NOT;
     else if (blob[*i] == '!') {
-        if (blob[*(i+1)] == '=') tipo = OP_DIF;
+        if (blob[*(i+1)] == '=') {
+            tipo = OP_DIF;
+            (*i)++;
+        }
         else tipo = OP_LOG_NEG;
     }
     else if (blob[*i] == '<') {
-        if (blob[*(i+1) == '<']) tipo = OP_DESP_IZQ;
-        else if (blob[*(i+1) == '=']) tipo = OP_MENOR_IGUAL;
+        if (blob[*(i+1) == '<']) {
+            tipo = OP_DESP_IZQ;
+            (*i)++;
+        }
+        else if (blob[*(i+1) == '=']) {
+            tipo = OP_MENOR_IGUAL;
+            (*i)++;
+        }
         else tipo = OP_MENOR_QUE;
     }
     else if (blob[*i] == '>') {
-        if (blob[*(i+1) == '>']) tipo = OP_DESP_DER;
-        else if (blob[*(i+1) == '=']) tipo = OP_MAYOR_IGUAL;
+        if (blob[*(i+1) == '>']) {
+            tipo = OP_DESP_DER;
+            (*i)++;
+        }
+        else if (blob[*(i+1) == '=']) {
+            tipo = OP_MAYOR_IGUAL;
+            (*i)++;
+        }
         else tipo = OP_MAYOR_QUE;
     }
     else if (blob[*i] == '=') tipo = OP_IGUAL;
@@ -235,12 +255,11 @@ enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbol
     else if (blob[*i] == '(') tipo = SIMB_PARENTESIS_AP;
     else if (blob[*i] == ')') tipo = SIMB_PARENTESIS_CI;
     // No debe haber más opciones, ¿verdad?
+    (*i)++;
 
     // Crear objeto
     *sim = lex_simbolo_create();
-    if (*sim == NULL) {
-        return COD_MALLOC_FALLO;
-    }
+    if (*sim == NULL) return COD_MALLOC_FALLO;
     (*sim)->tipo = SIMB_OPERADOR;
     (*sim)->subtipo = tipo;
     return COD_OK;
@@ -263,7 +282,6 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
         }
         if (blob[i] == '.') {
             // Es una directiva
-            // NOTE: considerar en el futuro números decimales que comiencen por punto
             err = lex_modo_directiva(blob, &i, &sim);
             if (err == COD_OK) {
                 nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
@@ -309,7 +327,7 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
                 continue;
             } else return err;
         }
-        if (isdigit(blob[i])) {
+        if (isdigit(blob[i]) || blob[i] == '.') {
             // Es un número decimal
             err = lex_modo_numero(blob, &i, &sim, 0);
             if (err == COD_OK) {
