@@ -265,6 +265,37 @@ enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbol
     return COD_OK;
 }
 
+enum Lily_Error lex_modo_ambiguo(const char* blob, size_t* i, struct Lex_Simbolo** sim) {
+    // Obtener cadena a analizar
+    char* cad_tentativa = Cadena_Create();
+    if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
+    bool tiene_guion = false;
+    bool tiene_colon = false;
+    while (isalpha(blob[*i]) || isdigit(blob[*i]) || blob[*i] == '_') {
+        if (blob[*i] == '_') tiene_guion = true;
+        Cadena_Add(cad_tentativa, blob+(*i));
+        (*i)++;
+    }
+    if (blob[*i] == ':') {
+        tiene_colon = true;
+        (*i)++;
+    }
+    // Excluir mnemónico inválido
+    if (tiene_guion && !tiene_colon) {
+        free(cad_tentativa);
+        return COD_A_LEXICO_MNEMONICO_INVALIDO;
+    }
+    // Crear objeto
+    *sim = lex_simbolo_create();
+    if (*sim == NULL) {
+        free(cad_tentativa);
+        return COD_MALLOC_FALLO;
+    }
+    (*sim)->tipo = tiene_colon?SIMB_ETI:SIMB_MNEMO;
+    (*sim)->valor = cad_tentativa;
+    return COD_OK;
+}
+
 int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
     // Variables a utilizar
     enum Lily_Error err;
@@ -346,7 +377,7 @@ int lex_lexico(const char* blob, struct LDE_LDE* simbolos) {
             } else return err;
         }
         if (isalpha(blob[i])){
-            // Es un número hexadecimal xxxxh, mnemónico, etiqueta
+            // Es un mnemónico o etiqueta
             err = lex_modo_ambiguo(blob, &i, &sim);
             if (err == COD_OK) {
                 nodo = LDE_Insert(simbolos, LDE_Size(simbolos), (void*) sim);
