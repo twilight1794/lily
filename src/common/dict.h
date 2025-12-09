@@ -50,7 +50,7 @@ struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor, 
  * @param clave Clave a devolver
  * @return Nodo que contiene la clave, o NULL si hubo un error o no existe la clave
  */
-struct Dict_Nodo* Dict_Get(struct Dict_Dict* dict, const char* clave);
+struct Dict_Nodo* Dict_Get(const struct Dict_Dict* dict, const char* clave);
 
 /**
  * Quita una clave del diccionario
@@ -65,6 +65,6 @@ int Dict_Remove(struct Dict_Dict* dict, const char* clave);
  * @param dict Diccionario a manipular
  * @return Número de elementos del diccionario
  */
-size_t Dict_Size(struct Dict_Dict* dict);
+size_t Dict_Size(const struct Dict_Dict* dict);
 
 #endif

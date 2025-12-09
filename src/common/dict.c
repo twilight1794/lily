@@ -55,7 +55,7 @@ struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor, 
     return nuevo;
 }
 
-struct Dict_Nodo* Dict_Get(struct Dict_Dict* dict, const char* clave){
+struct Dict_Nodo* Dict_Get(const struct Dict_Dict* dict, const char* clave){
     struct Dict_Nodo* nodo = dict->raiz;
     int comp;
     while (nodo != NULL && ((comp = strcmp(clave, nodo->clave)), comp)){
@@ -104,6 +104,6 @@ int Dict_Remove(struct Dict_Dict* dict, const char* clave){
     return 0;
 }
 
-size_t Dict_Size(struct Dict_Dict* dict){
+size_t Dict_Size(const struct Dict_Dict* dict){
     return dict->tamano;
 }

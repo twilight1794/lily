@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include "../../src/common/dict.h"
 
-void print_nodo(struct Dict_Nodo* nodo){
+void print_nodo(const struct Dict_Nodo* nodo){
     printf("(%p) Eti: %s, Val: %s, Izq: %p, Der: %p, padre: %p\n", (void *) nodo, nodo->clave, (char *) nodo->valor, (void *) nodo->izquierda, (void *) nodo->derecha, (void *) nodo->padre);
-    return;
 }
 
 int main(void){
