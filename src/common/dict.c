@@ -22,10 +22,9 @@ void Dict_IntercambiarNodos(struct Dict_Dict* dict, struct Dict_Nodo* u, struct 
     else if (u == u->padre->izquierda) u->padre->izquierda = v;
     else u->padre->derecha = v;
     if (v != NULL) v->padre = u->padre;
-    return;
 }
 
-struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor){
+struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor, void** valor_ant){
     int comp;
     struct Dict_Nodo* padre = NULL;
     struct Dict_Nodo* nodo = dict->raiz;
@@ -34,9 +33,15 @@ struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor){
         comp = strcmp(clave, nodo->clave);
         if (comp < 0) nodo = nodo->izquierda;
         else if (comp > 0) nodo = nodo->derecha;
-        else return NULL; // Clave es igual
+        else {
+            // La clave ya existe
+            if (valor_ant != NULL) *valor_ant = nodo->valor;
+            nodo->valor = valor;
+            return nodo;
+        }
     }
     struct Dict_Nodo* nuevo = Dict_Nodo_Create();
+    if (nuevo == NULL) return NULL;
     nuevo->padre = padre;
     nuevo->clave = clave;
     nuevo->valor = valor;
@@ -52,8 +57,8 @@ struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor){
 
 struct Dict_Nodo* Dict_Get(struct Dict_Dict* dict, const char* clave){
     struct Dict_Nodo* nodo = dict->raiz;
-    while (nodo != NULL && strcmp(clave, nodo->clave)){
-        int comp = strcmp(clave, nodo->clave);
+    int comp;
+    while (nodo != NULL && ((comp = strcmp(clave, nodo->clave)), comp)){
         if (comp < 0) nodo = nodo->izquierda;
         else if (comp > 0) nodo = nodo->derecha;
     }
