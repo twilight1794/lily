@@ -2,6 +2,7 @@
 
 struct Dict_Dict* Dict_Create(void){
     struct Dict_Dict* obj = (struct Dict_Dict*) calloc(1, sizeof(struct Dict_Dict));
+    if (obj == NULL) return NULL;
     obj->raiz = NULL;
     obj->tamano = 0;
     return obj;
@@ -9,6 +10,7 @@ struct Dict_Dict* Dict_Create(void){
 
 struct Dict_Nodo* Dict_Nodo_Create(void){
     struct Dict_Nodo* obj = (struct Dict_Nodo*) calloc(1, sizeof(struct Dict_Nodo));
+    if (obj == NULL) return NULL;
     obj->padre = NULL;
     obj->izquierda = NULL;
     obj->derecha = NULL;

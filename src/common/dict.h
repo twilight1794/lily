@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * Objeto para almacenar un elemento de un diccionario
+ */
 struct Dict_Nodo {
     struct Dict_Nodo* padre;
     struct Dict_Nodo* izquierda;
@@ -17,10 +20,15 @@ struct Dict_Nodo {
     void* valor;
 };
 
+/*
+ * Objeto base para almacenar un diccionario
+ */
 struct Dict_Dict {
     struct Dict_Nodo* raiz;
     size_t tamano;
 };
+
+// Operaciones base
 
 /**
  * Crea un diccionario vacío
@@ -39,7 +47,7 @@ struct Dict_Nodo* Dict_Nodo_Create(void);
  * @param dict Diccionario a manipular
  * @param clave Clave a añadir
  * @param valor Valor a añadir
- * @param valor_ant Puntero para almacenar el valor actual de la clave, si fuera diferente de NULL, y si existiera
+ * @param[out] valor_ant Puntero para almacenar el valor actual de la clave, si fuera diferente de NULL, y si existiera
  * @return Nodo recién insertado, o NULL si hubo un error
  */
 struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor, void** valor_ant);
