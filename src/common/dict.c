@@ -109,3 +109,11 @@ int Dict_Remove(struct Dict_Dict* dict, const char* clave){
 size_t Dict_Size(const struct Dict_Dict* dict){
     return dict->tamano;
 }
+
+struct Dict_Iterador* Dict_Crear_Iterador(const struct Dict_Dict* dict){
+    struct Dict_Iterador* obj = (struct Dict_Iterador*) malloc(sizeof(struct Dict_Iterador));
+    if (obj == NULL) return NULL;
+    obj->dict = dict;
+    obj->nodo = dict->raiz;
+    return obj;
+}

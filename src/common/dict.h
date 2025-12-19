@@ -75,4 +75,26 @@ int Dict_Remove(struct Dict_Dict* dict, const char* clave);
  */
 size_t Dict_Size(const struct Dict_Dict* dict);
 
+// Iteraciones
+
+struct Dict_Iterador {
+    struct Dict_Dict* dict;
+    struct Dict_Nodo* nodo;
+};
+
+/**
+ * Crea un iterador para un diccionario
+ * @param dict Diccionario a iterar
+ * @return Puntero a un iterador, o NULL si hubo un error
+ */
+struct Dict_Iterador* Dict_Crear_Iterador(const struct Dict_Dict* dict);
+
+/**
+ * Avanza un elemento en el recorrido del diccionario
+ * @param iter Iterador a utilizar
+ * @param[out] nodo Nodo devuelto
+ * @return 0 mientras haya nodos para devolver, 1 si es el último nodo, 2 si hubo un error
+ */
+int Dict_Iterar(struct Dict_Iterador* iter, struct Dict_Nodo** nodo);
+
 #endif
