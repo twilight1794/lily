@@ -115,5 +115,6 @@ struct Dict_Iterador* Dict_Crear_Iterador(const struct Dict_Dict* dict){
     if (obj == NULL) return NULL;
     obj->dict = dict;
     obj->nodo = dict->raiz;
+    obj->fin = false;
     return obj;
 }

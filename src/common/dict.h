@@ -82,7 +82,7 @@ size_t Dict_Size(const struct Dict_Dict* dict);
  * Objeto para guardar el estado de una iteración sobre un diccionario
  */
 struct Dict_Iterador {
-    struct Dict_Dict* dict; ///< @private Diccionario sobre el cual se trabajará
+    const struct Dict_Dict* dict; ///< @private Diccionario sobre el cual se trabajará
     struct Dict_Nodo* nodo; ///< @private Nodo sobre el que nos encontramos actualmente
     bool fin; ///< Indica si se ha terminado de iterar sobre el diccionario
 };
