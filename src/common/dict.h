@@ -11,6 +11,16 @@
 #include <string.h>
 
 /**
+ * Posibles estados durante una iteración
+ */
+enum Dict_Estados
+{
+    DICT_OK, ///< Se puede seguir iterando
+    DICT_ERROR, ///< Hay un error que impide iterar
+    DICT_FIN ///< Ya no hay más nodos por los qué iterar
+};
+
+/**
  * Objeto para almacenar un elemento de un diccionario
  */
 struct Dict_Nodo {

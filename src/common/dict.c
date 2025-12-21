@@ -118,3 +118,36 @@ struct Dict_Iterador* Dict_Crear_Iterador(const struct Dict_Dict* dict){
     obj->fin = false;
     return obj;
 }
+
+int Dict_Iterar(struct Dict_Iterador* iter, struct Dict_Nodo** nodo){
+    if (iter == NULL) return DICT_ERROR;
+    if (iter->dict->raiz == NULL) return DICT_FIN; // <- No hay nodos por los cuales iterar
+    if (iter->fin == true) return DICT_FIN; // <- Ya habíamos acabado
+    // Me devuevlo
+    *nodo = iter->nodo;
+    // Busco el siguiente nodo
+    if (iter->nodo->izquierda != NULL){
+        // Sigamos a la izquierda
+        iter->nodo = iter->nodo->izquierda;
+    } else if (iter->nodo->derecha != NULL){
+        // Sigamos a la derecha
+        iter->nodo = iter->nodo->derecha;
+    } else {
+        // Llegamos a una cerrada: subamos hasta encontrar dónde más podemos bajar
+        while (true) {
+            // Subir un nivel
+            struct Dict_Nodo* nodo_ant = iter->nodo;
+            iter->nodo = iter->nodo->padre;
+            // ¿Acabé de visitar?
+            if (iter->nodo == NULL) return DICT_FIN;
+            // ¿Voy a la derecha o acabé en este nivel?
+            if (iter->nodo->izquierda == nodo_ant && iter->nodo->derecha != NULL){
+                // Venía de la izquierda, voy a la derecha
+                iter->nodo = iter->nodo->derecha;
+                return DICT_OK;
+            }
+            // En este punto, ya venía de la derecha, o no puedo ir a la derecha
+        }
+    }
+    return DICT_OK;
+}
