@@ -6,6 +6,7 @@
 #ifndef LILY_C_DICT
 #define LILY_C_DICT
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -13,19 +14,19 @@
  * Objeto para almacenar un elemento de un diccionario
  */
 struct Dict_Nodo {
-    struct Dict_Nodo* padre;
-    struct Dict_Nodo* izquierda;
-    struct Dict_Nodo* derecha;
-    char* clave;
-    void* valor;
+    struct Dict_Nodo* padre; ///< @private Nodo padre del nodo. NULL si es el nodo raíz
+    struct Dict_Nodo* izquierda; ///< @private Hijo izquierdo del nodo
+    struct Dict_Nodo* derecha; ///< @private Hijo derecho del nodo
+    char* clave; ///< Clave de la entrada de diccionario
+    void* valor; ///< Valor de la entrada de diccionario
 };
 
 /*
  * Objeto base para almacenar un diccionario
  */
 struct Dict_Dict {
-    struct Dict_Nodo* raiz;
-    size_t tamano;
+    struct Dict_Nodo* raiz; ///< @private Nodo raíz del árbol asociado a este diccionario
+    size_t tamano; ///< @private Número de entradas existentes en el diccionario
 };
 
 // Operaciones base
@@ -77,9 +78,13 @@ size_t Dict_Size(const struct Dict_Dict* dict);
 
 // Iteraciones
 
+/**
+ * Objeto para guardar el estado de una iteración sobre un diccionario
+ */
 struct Dict_Iterador {
-    struct Dict_Dict* dict;
-    struct Dict_Nodo* nodo;
+    struct Dict_Dict* dict; ///< @private Diccionario sobre el cual se trabajará
+    struct Dict_Nodo* nodo; ///< @private Nodo sobre el que nos encontramos actualmente
+    bool fin; ///< Indica si se ha terminado de iterar sobre el diccionario
 };
 
 /**
