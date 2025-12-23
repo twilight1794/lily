@@ -48,7 +48,7 @@ dist/lily: src/cli/main.o lib-linux | lua-linux
 	$(CC) $(LDFLAGS)  src/cli/main.o -L dist -llily $(LDLIBS) -o $@
 
 dist/lily.exe: src/cli/main.o lib-windows | lua-windows
-	(CC) $(LDFLAGS) src/cli/main.o -L dist -llily  $(LDLIBS) -o $@
+	$(CC) $(LDFLAGS) src/cli/main.o -L dist -llily $(LDLIBS) -o $@
 
 dist/liblily.js: lua-web
 	emcc -Ilib/lua-5.4.7/src main.c lua-5.4.0/src/liblua.a -s WASM=1 -O2 -o dist/liblily.js -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
