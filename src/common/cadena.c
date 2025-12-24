@@ -1,18 +1,18 @@
 #include "cadena.h"
 
-char* Cadena_Create(void){
+char* lily_cadena_create(void) {
     return calloc(1, 1);
 }
 
-char* Cadena_Add(char* cad, const char* c){
+char* lily_cadena_add(char* cad, const char* c) {
     size_t tcar, tcad, i = 0;
     char* ncad;
     if (cad == NULL) return cad;
-    tcar = Cadena_Size_Char(c);
+    tcar = lily_cadena_size_char(c);
     tcad = strlen(cad);
     ncad = realloc(cad, tcad + tcar + 1);
     if (ncad == NULL) return cad;
-    while (i<tcar){
+    while (i<tcar) {
       ncad[tcad+i] = c[i];
       i++;
     }
@@ -20,7 +20,7 @@ char* Cadena_Add(char* cad, const char* c){
     return ncad;
 }
 
-char* Cadena_Concat(char* cad, const char* cad2){
+char* lily_cadena_concat(char* cad, const char* cad2) {
     size_t tcad, tcad2, i = 0;
     char* ncad;
     if (cad == NULL) return cad;
@@ -28,7 +28,7 @@ char* Cadena_Concat(char* cad, const char* cad2){
     tcad2 = strlen(cad2);
     ncad = realloc(cad, tcad + tcad2 + 1);
     if (ncad == NULL) return cad;
-    while (i<tcad2){
+    while (i<tcad2) {
       ncad[tcad+i] = cad2[i];
       i++;
     }
@@ -36,7 +36,7 @@ char* Cadena_Concat(char* cad, const char* cad2){
     return ncad;
 }
 
-char* Cadena_Remove(char* cad){
+char* lily_cadena_remove(char* cad) {
     size_t tcad;
     char* ncad;
     if (cad == NULL) return cad;
@@ -47,7 +47,7 @@ char* Cadena_Remove(char* cad){
     return ncad;
 }
 
-size_t Cadena_Size_Char(const char* c){
+size_t lily_cadena_size_char(const char* c) {
   size_t n;
   if ((unsigned char) *c == 0xC0 || (unsigned char) *c == 0xC1 || (unsigned char) *c >= 0xF5) n=0;
   else if ((unsigned char) *c >= 0xF0) n=4;

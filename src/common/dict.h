@@ -11,32 +11,31 @@
 #include <string.h>
 
 /**
- * Posibles estados durante una iteración
+ * Estados para una iteración
  */
-enum Dict_Estados
-{
-    DICT_OK, ///< Se puede seguir iterando
-    DICT_ERROR, ///< Hay un error que impide iterar
-    DICT_FIN ///< Ya no hay más nodos por los qué iterar
+enum dict_estados {
+    LILY_DICT_OK, ///< Se puede seguir iterando.
+    LILY_DICT_ERROR, ///< Hay un error que impide iterar.
+    LILY_DICT_FIN ///< Ya no hay más nodos por los qué iterar.
 };
 
 /**
- * Objeto para almacenar un elemento de un diccionario
+ * Par clave-valor de un diccionario
  */
-struct Dict_Nodo {
-    struct Dict_Nodo* padre; ///< @private Nodo padre del nodo. NULL si es el nodo raíz
-    struct Dict_Nodo* izquierda; ///< @private Hijo izquierdo del nodo
-    struct Dict_Nodo* derecha; ///< @private Hijo derecho del nodo
-    char* clave; ///< Clave de la entrada de diccionario
-    void* valor; ///< Valor de la entrada de diccionario
+struct dict_nodo {
+    struct dict_nodo* padre; ///< @private Nodo padre del nodo. NULL si es el nodo raíz.
+    struct dict_nodo* izquierda; ///< @private Hijo izquierdo del nodo.
+    struct dict_nodo* derecha; ///< @private Hijo derecho del nodo.
+    char* clave; ///< Clave de la entrada de diccionario.
+    void* valor; ///< Valor de la entrada de diccionario.
 };
 
 /*
  * Objeto base para almacenar un diccionario
  */
-struct Dict_Dict {
-    struct Dict_Nodo* raiz; ///< @private Nodo raíz del árbol asociado a este diccionario
-    size_t tamano; ///< @private Número de entradas existentes en el diccionario
+struct dict_dict {
+    struct dict_nodo* raiz; ///< @private Nodo raíz del árbol asociado a este diccionario.
+    size_t tamano; ///< Número de entradas existentes en el diccionario.
 };
 
 // Operaciones base
@@ -45,13 +44,13 @@ struct Dict_Dict {
  * Crea un diccionario vacío
  * @return Puntero a un diccionario, o NULL si hubo un error
  */
-struct Dict_Dict* Dict_Create(void);
+struct dict_dict* lily_dict_create(void);
 
 /**
  * Crea un nodo de diccionario vacío
  * @return Puntero a un nodo de diccionario, o NULL si hubo un error
  */
-struct Dict_Nodo* Dict_Nodo_Create(void);
+struct dict_nodo* lily_dict_nodo_create(void);
 
 /**
  * Añade una clave al diccionario
@@ -61,7 +60,7 @@ struct Dict_Nodo* Dict_Nodo_Create(void);
  * @param[out] valor_ant Puntero para almacenar el valor actual de la clave, si fuera diferente de NULL, y si existiera
  * @return Nodo recién insertado, o NULL si hubo un error
  */
-struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor, void** valor_ant);
+struct dict_nodo* lily_dict_insert(struct dict_dict* dict, char* clave, void* valor, void** valor_ant);
 
 /**
  * Devuelve el valor de una clave del diccionario
@@ -69,32 +68,32 @@ struct Dict_Nodo* Dict_Insert(struct Dict_Dict* dict, char* clave, void* valor, 
  * @param clave Clave a devolver
  * @return Nodo que contiene la clave, o NULL si hubo un error o no existe la clave
  */
-struct Dict_Nodo* Dict_Get(const struct Dict_Dict* dict, const char* clave);
+struct dict_nodo* lily_dict_get(const struct dict_dict* dict, const char* clave);
 
 /**
  * Quita una clave del diccionario
  * @param dict Diccionario a manipular
  * @param clave Clave a eliminar
- * @return 0 si se eliminó el nodo, 1 si no
+ * @return \c LILY_DICT_OK si se eliminó el nodo, \c LILY_DICT_ERROR si no
  */
-int Dict_Remove(struct Dict_Dict* dict, const char* clave);
+enum dict_estados lily_dict_remove(struct dict_dict* dict, const char* clave);
 
 /**
  * Devuelve el número de elementos del diccionario
  * @param dict Diccionario a manipular
  * @return Número de elementos del diccionario
  */
-size_t Dict_Size(const struct Dict_Dict* dict);
+size_t lily_dict_size(const struct dict_dict* dict);
 
 // Iteraciones
 
 /**
  * Objeto para guardar el estado de una iteración sobre un diccionario
  */
-struct Dict_Iterador {
-    const struct Dict_Dict* dict; ///< @private Diccionario sobre el cual se trabajará
-    struct Dict_Nodo* nodo; ///< @private Nodo sobre el que nos encontramos actualmente
-    bool fin; ///< Indica si se ha terminado de iterar sobre el diccionario
+struct dict_iterador {
+    const struct dict_dict* dict; ///< @private Diccionario sobre el cual se trabajará.
+    struct dict_nodo* nodo; ///< @private Nodo sobre el que nos encontramos actualmente.
+    bool fin; ///< Indica si se ha terminado de iterar sobre el diccionario.
 };
 
 /**
@@ -102,14 +101,14 @@ struct Dict_Iterador {
  * @param dict Diccionario a iterar
  * @return Puntero a un iterador, o NULL si hubo un error
  */
-struct Dict_Iterador* Dict_Crear_Iterador(const struct Dict_Dict* dict);
+struct dict_iterador* lily_dict_iterador_create(const struct dict_dict* dict);
 
 /**
  * Avanza un elemento en el recorrido del diccionario
  * @param iter Iterador a utilizar
  * @param[out] nodo Nodo devuelto
- * @return 0 mientras haya nodos para devolver, 1 si es el último nodo, 2 si hubo un error
+ * @return \c LILY_DICT_OK mientras haya nodos para devolver, \c LILY_DICT_FIN si es el último nodo, \c LILY_DICT_ERROR si hubo un error
  */
-int Dict_Iterar(struct Dict_Iterador* iter, struct Dict_Nodo** nodo);
+enum dict_estados lily_dict_iterate(struct dict_iterador* iter, struct dict_nodo** nodo);
 
 #endif

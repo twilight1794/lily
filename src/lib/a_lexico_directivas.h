@@ -6,7 +6,7 @@
 #ifndef LILY_C_A_LEXICO_DIRECTIVAS
 #define LILY_C_A_LEXICO_DIRECTIVAS
 
-char* lex_directivas[] = {
+char* lily_lex_directivas[] = {
     // Definición de constantes
     "DB",
     "DWL",

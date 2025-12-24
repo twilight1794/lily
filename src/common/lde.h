@@ -9,29 +9,43 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct LDE_Nodo {
-    struct LDE_Nodo* anterior;
-    struct LDE_Nodo* posterior;
-    void* valor;
+/**
+ * Estados para LDE
+ */
+enum lily_lde_estados {
+    LILY_LDE_OK,
+    LILY_LDE_ERROR
 };
 
-struct LDE_LDE {
-    struct LDE_Nodo* inicio;
-    struct LDE_Nodo* final;
-    size_t tamano;
+/**
+ * Elemento de una lista
+ */
+struct lily_lde_nodo {
+    struct lily_lde_nodo* anterior; ///< @private Elemento antecesor en la lista. NULL si es el primero.
+    struct lily_lde_nodo* posterior; ///< @private Elemento sucesor en la lista. NULL si es el último.
+    void* valor; ///< Puntero al valor de un elemento de la lista.
+};
+
+/**
+ * Objeto base para almacenar una lista
+ */
+struct lily_lde_lde {
+    struct lily_lde_nodo* inicio; ///< Primer elemento de la lista.
+    struct lily_lde_nodo* final; ///< Último elemento de la lista.
+    size_t tamano; ///< Número de elementos de la lista.
 };
 
 /**
  * Crea una lista vacía
  * @return Puntero a una lista
  */
-struct LDE_LDE* LDE_Create(void);
+struct lily_lde_lde* lily_lde_create(void);
 
 /**
  * Crea un nodo de lista vacío
  * @return Puntero a un nodo de lista
  */
-struct LDE_Nodo* LDE_Nodo_Create(void);
+struct lily_lde_nodo* lily_lde_nodo_create(void);
 
 /**
  * Añade un valor a la lista
@@ -40,7 +54,7 @@ struct LDE_Nodo* LDE_Nodo_Create(void);
  * @param valor Valor a añadir
  * @return Nodo recién insertado
  */
-struct LDE_Nodo* LDE_Insert(struct LDE_LDE* lde, size_t pos, void* valor);
+struct lily_lde_nodo* lily_lde_insert(struct lily_lde_lde* lde, size_t pos, void* valor);
 
 /**
  * Devuelve el valor de una posición de la lista
@@ -48,21 +62,21 @@ struct LDE_Nodo* LDE_Insert(struct LDE_LDE* lde, size_t pos, void* valor);
  * @param pos Posición del valor a devolver
  * @return Nodo que contiene el valor
  */
-struct LDE_Nodo* LDE_Get(struct LDE_LDE* lde, size_t pos);
+struct lily_lde_nodo* lily_lde_get(const struct lily_lde_lde* lde, size_t pos);
 
 /**
  * Quita una clave de la lista
  * @param lde Lista a manipular
  * @param pos Posición del valor a eliminar
- * @return 0 si se eliminó el nodo, 1 si no
+ * @return \c LILY_LDE_OK si se eliminó el nodo, \c LILY_LDE_ERROR si no
  */
-int LDE_Remove(struct LDE_LDE* lde, size_t pos);
+enum lily_lde_estados lily_lde_remove(struct lily_lde_lde* lde, size_t pos);
 
 /**
  * Devuelve el número de elementos de la lista
  * @param lde Lista a manipular
  * @return Número de elementos de la lista
  */
-size_t LDE_Size(struct LDE_LDE* lde);
+size_t lily_lde_size(const struct lily_lde_lde* lde);
 
 #endif

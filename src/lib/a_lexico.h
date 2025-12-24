@@ -21,25 +21,23 @@
 #include "../lib/a_lexico_directivas.h"
 
 /**
- * @def lex_esblanco(c)
  * Comprueba si un caracter \a c es un espacio (0x20), tabulador (0x9), salto de línea (0xa), o retorno de carro (0xd)
  * @param c Caracter a analizar
  */
-#define lex_esblanco(c) (lex_ctipos[(unsigned char) c]&1)
+#define lex_esblanco(c) (lily_lex_ctipos[(unsigned char) c]&1)
 
 /**
- * @def lex_esoperador(c)
  * Comprueba si un caracter \a c puede ser parte de un operador
  * @param c Caracter a analizar
  */
-#define lex_esoperador(c) (lex_ctipos[(unsigned char) c]&2)
+#define lex_esoperador(c) (lily_lex_ctipos[(unsigned char) c]&2)
 
 // Tipos para símbolos
 
 /**
  * Tipo de símbolo
  */
-enum Lex_Tipo_Simbolo {
+enum lily_lex_tipo_simbolo {
     SIMB_INDETERMINADO,
 
     // Terminal
@@ -86,9 +84,9 @@ enum Lex_Tipo_Simbolo {
 /**
  * Estructura para guardar un símbolo léxico
  */
-struct Lex_Simbolo {
-    enum Lex_Tipo_Simbolo tipo;
-    enum Lex_Tipo_Simbolo subtipo;
+struct lily_lex_simbolo {
+    enum lily_lex_tipo_simbolo tipo;
+    enum lily_lex_tipo_simbolo subtipo;
     void* valor;
 };
 
@@ -96,7 +94,7 @@ struct Lex_Simbolo {
  * Crea un objeto para símbolos
  * @return Un objeto para símbolo nuevo
  */
-struct Lex_Simbolo* lex_simbolo_create(void);
+struct lily_lex_simbolo* lily_lex_simbolo_create(void);
 
 // Modos del analizador léxico
 /**
@@ -105,7 +103,7 @@ struct Lex_Simbolo* lex_simbolo_create(void);
  * @param blob Cadena a analizar
  * @param i Índice del puntero
  */
-void lex_modo_comentario(const char* blob, size_t* i);
+void lily_lex_modo_comentario(const char* blob, size_t* i);
 
 /**
  * @brief Modo directiva
@@ -115,7 +113,7 @@ void lex_modo_comentario(const char* blob, size_t* i);
  * @param sim Estructura para almacenar el símbolo de la directiva, o NULL si no es una directiva válida
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbolo** sim);
+enum lily_error lily_lex_modo_directiva(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
 
 /**
  * @brief Modo referencia a etiqueta
@@ -125,7 +123,7 @@ enum Lily_Error lex_modo_directiva(const char* blob, size_t* i, struct Lex_Simbo
  * @param sim Estructura para almacenar el símbolo de la referencia, o NULL si no es una referencia a etiqueta válida
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_r_etiqueta(const char* blob, size_t* i, struct Lex_Simbolo** sim);
+enum lily_error lily_lex_modo_r_etiqueta(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
 
 /*
  * @brief Modo objeto
@@ -135,7 +133,7 @@ enum Lily_Error lex_modo_r_etiqueta(const char* blob, size_t* i, struct Lex_Simb
  * @param sim Estructura para almacenar el símbolo del objeto, o NULL si no es un identificador de objeto válido
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_objeto(const char* blob, size_t* i, struct Lex_Simbolo** sim);
+enum lily_error lily_lex_modo_objeto(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
 
 /*
  * @brief Modo cadena
@@ -146,7 +144,7 @@ enum Lily_Error lex_modo_objeto(const char* blob, size_t* i, struct Lex_Simbolo*
  * @param tipo Caracter que abrió la cadena: comilla simple o doble
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo** sim);
+enum lily_error lily_lex_modo_cadena(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
 
 /*
  * @brief Modo número
@@ -157,7 +155,7 @@ enum Lily_Error lex_modo_cadena(const char* blob, size_t* i, struct Lex_Simbolo*
  * @param tipo Caracter que marca el tipo del número recibido: 'x', 'o', 'b', o 0
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo** sim, const char tipo);
+enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_lex_simbolo** sim, const char tipo);
 
 /*
  * @brief Modo operador
@@ -167,7 +165,7 @@ enum Lily_Error lex_modo_numero(const char* blob, size_t* i, struct Lex_Simbolo*
  * @param sim Estructura para almacenar el símbolo creado
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbolo** sim);
+enum lily_error lily_lex_modo_operador(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
 
 /**
  * @brief Modo ambiguo
@@ -177,7 +175,7 @@ enum Lily_Error lex_modo_operador(const char* blob, size_t* i, struct Lex_Simbol
  * @param sim Estructura para almacenar el símbolo creado, o NULL si no es un valor válido
  * @return Código de error de la operación
  */
-enum Lily_Error lex_modo_ambiguo(const char* blob, size_t* i, struct Lex_Simbolo** sim);
+enum lily_error lily_lex_modo_ambiguo(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
 
 /**
  * Función de entrada del analizador léxico
@@ -185,6 +183,6 @@ enum Lily_Error lex_modo_ambiguo(const char* blob, size_t* i, struct Lex_Simbolo
  * @param simbolos Lista de símbolos encontrados
  * @return Código de error de la operación
  */
-int lex_lexico(const char* blob, struct LDE_LDE* simbolos);
+enum lily_error lily_lex_lexico(const char* blob, struct lily_lde_lde* simbolos);
 
 #endif

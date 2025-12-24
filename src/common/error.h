@@ -1,4 +1,3 @@
-
 /**
  * @file error.h
  * Códigos de error de Lily
@@ -7,7 +6,7 @@
 #ifndef LILY_C_ERROR
 #define LILY_C_ERROR
 
-enum Lily_Error {
+enum lily_error {
     COD_OK,
     // Generales
     COD_MALLOC_FALLO, /**< [mc]alloc falló al reservar memoria */

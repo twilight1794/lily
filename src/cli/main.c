@@ -34,7 +34,7 @@ void f_help(char* name){
     puts(_(" -A<path>         Save file generated in assemble stage in <path>"));
 }
 
-void f_version(){
+void f_version(void){
     printf(_("Lily %s\n"), LILY_VERSION);
     puts(_("Copyright (C) 2024 Giovanni Alfredo Garciliano Diaz"));
     puts(_("License GNU GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>"));
@@ -46,12 +46,12 @@ int main(int argc, char **argv){
     char msg_err[100];
 
     // Configuracion de logs
-    struct Lily_Log_Config log_cfg = {
-        .use_color = true,
-        .show_date = true,
-        .show_time = true,
-        .show_file = false,
-        .level = LILY_LOG_DEBUG
+    struct lily_log_config log_cfg = {
+        .colores = true,
+        .incluir_fecha = true,
+        .incluir_hora = true,
+        .incluir_archivo = false,
+        .nivel_minimo = LILY_LOG_DEBUG
     };
 
     // Filtrar primero las opciones de ayuda y versión
@@ -71,7 +71,7 @@ int main(int argc, char **argv){
     char* archivo_listado_ruta = NULL;
     char* archivo_ensamblado_ruta = NULL;
     char* directorio_fuentes_ruta = NULL;
-    struct Dict_Dict* variables = Dict_Create();
+    struct dict_dict* variables = lily_dict_create();
     char* archivo = NULL;
 
     while ((c = getopt(argc, argv, "L:D:I:A:")) != -1){
@@ -105,17 +105,17 @@ int main(int argc, char **argv){
     char* p_archivo = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
     // Empezamos análisis
-    struct LDE_LDE* simbolos = LDE_Create();
-    int codigo = lex_lexico(p_archivo, simbolos);
+    struct lily_lde_lde* simbolos = lily_lde_create();
+    int codigo = lily_lex_lexico(p_archivo, simbolos);
     munmap(p_archivo, st.st_size);
     close(fd);
     if (codigo) return codigo;
 
-    //struct LDE_LDE* ast = LDE_Create();
+    //struct lily_lde_lde* ast = lily_lde_create();
     //codigo = z80_sintactico(simbolos, ast);
     //if (codigo) return codigo;
 
-    //struct LDE_LDE* objeto = LDE_Create();
+    //struct lily_lde_lde* objeto = lily_lde_create();
     //codigo = z80_semantico(ast, objeto);
     //if (codigo) return codigo;
 
