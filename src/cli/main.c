@@ -71,7 +71,7 @@ int main(int argc, char **argv){
     char* archivo_listado_ruta = NULL;
     char* archivo_ensamblado_ruta = NULL;
     char* directorio_fuentes_ruta = NULL;
-    struct dict_dict* variables = lily_dict_create();
+    struct lily_dict_dict* variables = lily_dict_create();
     char* archivo = NULL;
 
     while ((c = getopt(argc, argv, "L:D:I:A:")) != -1){

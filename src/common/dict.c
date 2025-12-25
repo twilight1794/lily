@@ -1,15 +1,15 @@
 #include "dict.h"
 
-struct dict_dict* lily_dict_create(void) {
-    struct dict_dict* obj = (struct dict_dict*) calloc(1, sizeof(struct dict_dict));
+struct lily_dict_dict* lily_dict_create(void) {
+    struct lily_dict_dict* obj = (struct lily_dict_dict*) calloc(1, sizeof(struct lily_dict_dict));
     if (obj == NULL) return NULL;
     obj->raiz = NULL;
     obj->tamano = 0;
     return obj;
 }
 
-struct dict_nodo* lily_dict_nodo_create(void) {
-    struct dict_nodo* obj = (struct dict_nodo*) calloc(1, sizeof(struct dict_nodo));
+struct lily_dict_nodo* lily_dict_nodo_create(void) {
+    struct lily_dict_nodo* obj = (struct lily_dict_nodo*) calloc(1, sizeof(struct lily_dict_nodo));
     if (obj == NULL) return NULL;
     obj->padre = NULL;
     obj->izquierda = NULL;
@@ -19,17 +19,17 @@ struct dict_nodo* lily_dict_nodo_create(void) {
     return obj;
 }
 
-void Dict_IntercambiarNodos(struct dict_dict* dict, struct dict_nodo* u, struct dict_nodo* v) {
+void Dict_IntercambiarNodos(struct lily_dict_dict* dict, struct lily_dict_nodo* u, struct lily_dict_nodo* v) {
     if (u->padre == NULL) dict->raiz = v;
     else if (u == u->padre->izquierda) u->padre->izquierda = v;
     else u->padre->derecha = v;
     if (v != NULL) v->padre = u->padre;
 }
 
-struct dict_nodo* lily_dict_insert(struct dict_dict* dict, char* clave, void* valor, void** valor_ant) {
+struct lily_dict_nodo* lily_dict_insert(struct lily_dict_dict* dict, char* clave, void* valor, void** valor_ant) {
     int comp;
-    struct dict_nodo* padre = NULL;
-    struct dict_nodo* nodo = dict->raiz;
+    struct lily_dict_nodo* padre = NULL;
+    struct lily_dict_nodo* nodo = dict->raiz;
     while (nodo != NULL) {
         padre = nodo;
         comp = strcmp(clave, nodo->clave);
@@ -42,7 +42,7 @@ struct dict_nodo* lily_dict_insert(struct dict_dict* dict, char* clave, void* va
             return nodo;
         }
     }
-    struct dict_nodo* nuevo = lily_dict_nodo_create();
+    struct lily_dict_nodo* nuevo = lily_dict_nodo_create();
     if (nuevo == NULL) return NULL;
     nuevo->padre = padre;
     nuevo->clave = clave;
@@ -57,8 +57,8 @@ struct dict_nodo* lily_dict_insert(struct dict_dict* dict, char* clave, void* va
     return nuevo;
 }
 
-struct dict_nodo* lily_dict_get(const struct dict_dict* dict, const char* clave) {
-    struct dict_nodo* nodo = dict->raiz;
+struct lily_dict_nodo* lily_dict_get(const struct lily_dict_dict* dict, const char* clave) {
+    struct lily_dict_nodo* nodo = dict->raiz;
     int comp;
     while (nodo != NULL && ((comp = strcmp(clave, nodo->clave)), comp)) {
         if (comp < 0) nodo = nodo->izquierda;
@@ -67,18 +67,18 @@ struct dict_nodo* lily_dict_get(const struct dict_dict* dict, const char* clave)
     return nodo;
 }
 
-enum dict_estados lily_dict_remove(struct dict_dict* dict, const char* clave) {
-    struct dict_nodo* nodo = lily_dict_get(dict, clave);
+enum lily_dict_estados lily_dict_remove(struct lily_dict_dict* dict, const char* clave) {
+    struct lily_dict_nodo* nodo = lily_dict_get(dict, clave);
     if (nodo == NULL) return LILY_DICT_ERROR;
     if (nodo->izquierda == NULL) Dict_IntercambiarNodos(dict, nodo, nodo->derecha);
     else if (nodo->derecha == NULL) Dict_IntercambiarNodos(dict, nodo, nodo->izquierda);
     else {
         // Sucesor
-        struct dict_nodo* sucesor;
-        struct dict_nodo* nodo_temp = nodo;
+        struct lily_dict_nodo* sucesor;
+        struct lily_dict_nodo* nodo_temp = nodo;
         if (nodo_temp->derecha != NULL) {
             // Minimo
-            struct dict_nodo* nodo_temp2 = nodo_temp->derecha;
+            struct lily_dict_nodo* nodo_temp2 = nodo_temp->derecha;
             while (nodo_temp2->izquierda != NULL) {
                 nodo_temp2 = nodo_temp2->izquierda;
             }
@@ -106,12 +106,12 @@ enum dict_estados lily_dict_remove(struct dict_dict* dict, const char* clave) {
     return LILY_DICT_OK;
 }
 
-size_t lily_dict_size(const struct dict_dict* dict) {
+size_t lily_dict_size(const struct lily_dict_dict* dict) {
     return dict->tamano;
 }
 
-struct dict_iterador* lily_dict_iterador_create(const struct dict_dict* dict) {
-    struct dict_iterador* obj = (struct dict_iterador*) malloc(sizeof(struct dict_iterador));
+struct lily_dict_iterador* lily_dict_iterador_create(const struct lily_dict_dict* dict) {
+    struct lily_dict_iterador* obj = (struct lily_dict_iterador*) malloc(sizeof(struct lily_dict_iterador));
     if (obj == NULL) return NULL;
     obj->dict = dict;
     obj->nodo = dict->raiz;
@@ -119,7 +119,7 @@ struct dict_iterador* lily_dict_iterador_create(const struct dict_dict* dict) {
     return obj;
 }
 
-enum dict_estados lily_dict_iterate(struct dict_iterador* iter, struct dict_nodo** nodo) {
+enum lily_dict_estados lily_dict_iterate(struct lily_dict_iterador* iter, struct lily_dict_nodo** nodo) {
     if (iter == NULL) return LILY_DICT_ERROR;
     if (iter->dict->raiz == NULL) return LILY_DICT_FIN; // <- No hay nodos por los cuales iterar
     if (iter->fin == true) return LILY_DICT_FIN; // <- Ya habíamos acabado
@@ -136,7 +136,7 @@ enum dict_estados lily_dict_iterate(struct dict_iterador* iter, struct dict_nodo
         // Llegamos a una cerrada: subamos hasta encontrar dónde más podemos bajar
         while (true) {
             // Subir un nivel
-            struct dict_nodo* nodo_ant = iter->nodo;
+            struct lily_dict_nodo* nodo_ant = iter->nodo;
             iter->nodo = iter->nodo->padre;
             // ¿Acabé de visitar?
             if (iter->nodo == NULL) return LILY_DICT_FIN;
