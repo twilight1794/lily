@@ -12,14 +12,14 @@ LUADIR := lib/lua-5.4.8
 # -----END USER CONFIGURATION-----
 
 TARGETS := linux windows lib-linux lib-windows web
-.PHONY: all $(TARGETS) build install-windows install-linux remove-linux remove-windows doxy clean lua-linux lua-win lua-web
+.PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean lua-linux lua-windows lua-web test-windows test-linux
 
 all: linux windows web
 linux: dist/lily
 windows: dist/lily.exe
-lib-linux: build dist/liblily.so
-lib-windows: build dist/liblily.dll
-web: build dist/liblily.js
+lib-linux: dist/liblily.so
+lib-windows: dist/liblily.dll
+web: dist/liblily.js
 
 lua-linux:
 	cd $(LUADIR)/src && make
@@ -38,10 +38,10 @@ src/cli/main.o: src/cli/main.c
 src/lib/a_lexico.o: src/lib/a_lexico.c
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | lua-linux
+dist/liblily.so: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | dist lua-linux
 	$(CC) -shared -fPIC $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/liblily.dll: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | lua-windows
+dist/liblily.dll: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | dist lua-windows
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/lily: src/cli/main.o lib-linux | lua-linux
@@ -50,10 +50,10 @@ dist/lily: src/cli/main.o lib-linux | lua-linux
 dist/lily.exe: src/cli/main.o lib-windows | lua-windows
 	$(CC) $(LDFLAGS) src/cli/main.o -L dist -llily $(LDLIBS) -o $@
 
-dist/liblily.js: lua-web
+dist/liblily.js: | dist lua-web
 	emcc -Ilib/lua-5.4.7/src main.c lua-5.4.0/src/liblua.a -s WASM=1 -O2 -o dist/liblily.js -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
 
-build:
+dist:
 	mkdir -p dist
 
 install-linux:
