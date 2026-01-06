@@ -69,7 +69,7 @@ struct lily_dict_nodo* lily_dict_get(const struct lily_dict_dict* dict, const ch
 
 enum lily_dict_estados lily_dict_remove(struct lily_dict_dict* dict, const char* clave) {
     struct lily_dict_nodo* nodo = lily_dict_get(dict, clave);
-    if (nodo == NULL) return LILY_DICT_ERROR;
+    if (nodo == NULL) return LILY_DICT_NO_EXISTE;
     if (nodo->izquierda == NULL) Dict_IntercambiarNodos(dict, nodo, nodo->derecha);
     else if (nodo->derecha == NULL) Dict_IntercambiarNodos(dict, nodo, nodo->izquierda);
     else {
