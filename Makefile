@@ -44,10 +44,10 @@ dist/liblily.so: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/co
 dist/liblily.dll: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | dist lua-windows
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/lily: src/cli/main.o lib-linux | lua-linux
-	$(CC) $(LDFLAGS)  src/cli/main.o -L dist -llily $(LDLIBS) -o $@
+dist/lily: src/cli/main.o lib-linux
+	$(CC) $(LDFLAGS) src/cli/main.o -L dist -llily $(LDLIBS) -o $@
 
-dist/lily.exe: src/cli/main.o lib-windows | lua-windows
+dist/lily.exe: src/cli/main.o lib-windows
 	$(CC) $(LDFLAGS) src/cli/main.o -L dist -llily $(LDLIBS) -o $@
 
 dist/liblily.js: | dist lua-web
@@ -80,3 +80,17 @@ doxy:
 clean:
 	$(RM) dist/*
 	find . -regex .*\\.o -delete
+
+lib/munit/munit.o: lib/munit/munit.c
+
+test/common/dict.o: test/common/dict.c
+test/main.o: test/main.c
+
+dist/test: lib/munit/munit.o test/main.o test/common/dict.o lib-linux
+	$(CC) $(LDFLAGS) lib/munit/munit.o test/main.o test/common/dict.o -L dist -llily $(LDLIBS) -o $@
+
+dist/test.exe: lib/munit/munit.o test/main.o test/common/dict.o lib-windows
+	$(CC) $(LDFLAGS) lib/munit/munit.o test/main.o test/common/dict.o -L dist -llily $(LDLIBS) -o $@
+
+test-linux: dist/test
+test-windows: dist/test.exe
