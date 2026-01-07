@@ -76,6 +76,7 @@ struct lily_dict_nodo* lily_dict_get(const struct lily_dict_dict* dict, const ch
  * @param dict Diccionario a manipular
  * @param clave Clave a eliminar
  * @return \c LILY_DICT_OK si se eliminó el nodo, \c LILY_DICT_NO_EXISTE si el nodo solicitado no se encontró, \c LILY_DICT_ERROR si hubo algún error
+ * @note El nodo asociado a la clave \a clave será liberado, y cualquier puntero que haga referencia a él será inválido
  */
 enum lily_dict_estados lily_dict_remove(struct lily_dict_dict* dict, const char* clave);
 

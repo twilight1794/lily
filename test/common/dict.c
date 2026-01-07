@@ -45,10 +45,6 @@ MunitResult lily_dict_test_insercion_eliminacion_tamano(const MunitParameter par
     munit_assert_size(lily_dict_size(dict), ==, 1);
     munit_assert_int(LILY_DICT_OK, ==, lily_dict_remove(dict, "nombre"));
     munit_assert_size(lily_dict_size(dict), ==, 0);
-    free(nodo1);
-    free(nodo2);
-    free(nodo3);
-    free(dict);
     return MUNIT_OK;
 }
 
