@@ -65,6 +65,14 @@ static MunitTest lily_dict_test_tests[] = {
         MUNIT_TEST_OPTION_NONE,
         NULL,
     },
+    {
+        "/lily_dict_iteracion",
+        lily_dict_test_iteracion,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 

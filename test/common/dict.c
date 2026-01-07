@@ -89,3 +89,32 @@ MunitResult lily_dict_test_eliminacion_inexistente(const MunitParameter params[]
     free(dict);
     return MUNIT_OK;
 }
+
+MunitResult lily_dict_test_iteracion(const MunitParameter params[], void *user_data) {
+    bool visitados[3] = { false, false, false };
+    struct lily_dict_nodo* nodos[] = { NULL, NULL, NULL };
+    struct lily_dict_dict* dict = lily_dict_create();
+    munit_assert_not_null(dict);
+    nodos[0] = lily_dict_insert(dict, "nombre", "Nina", NULL);
+    munit_assert_not_null(nodos[0]);
+    nodos[1] = lily_dict_insert(dict, "apellido", "Simonetti", NULL);
+    munit_assert_not_null(nodos[1]);
+    nodos[2] = lily_dict_insert(dict, "fnac", "30 ago 1996", NULL);
+    munit_assert_not_null(nodos[2]);
+    struct lily_dict_iterador* it = lily_dict_iterador_create(dict);
+    enum lily_dict_estados e;
+    do {
+        struct lily_dict_nodo* nodo;
+        e = lily_dict_iterate(it, &nodo);
+        if (nodo == nodos[0]) visitados[0] = true;
+        else if (nodo == nodos[1]) visitados[1] = true;
+        else if (nodo == nodos[2]) visitados[2] = true;
+        else return MUNIT_FAIL;
+    } while (e == LILY_DICT_OK);
+    munit_assert_int(e, ==, LILY_DICT_FIN);
+    munit_assert_int(visitados[0], ==, true);
+    munit_assert_int(visitados[1], ==, true);
+    munit_assert_int(visitados[2], ==, true);
+
+    return MUNIT_OK;
+}

@@ -93,4 +93,6 @@ dist/test.exe: lib/munit/munit.o test/main.o test/common/dict.o lib-windows
 	$(CC) $(LDFLAGS) lib/munit/munit.o test/main.o test/common/dict.o -L dist -llily $(LDLIBS) -o $@
 
 test-linux: dist/test
+	LD_LIBRARY_PATH=dist dist/test
 test-windows: dist/test.exe
+	dist/test.exe
