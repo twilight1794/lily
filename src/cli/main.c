@@ -17,7 +17,15 @@
 
 #define _(STRING) gettext(STRING)
 
-#define LILY_VERSION "1.0"
+#ifndef LILY_VERSION
+#define LILY_VERSION "???"
+#endif
+#ifndef LILY_COMMIT
+#define LILY_COMMIT "???"
+#endif
+#ifndef LILY_MODIFICADO
+#define LILY_MODIFICADO ""
+#endif
 
 void f_help(char* name){
     printf(_("Usage: %s [<params>] <file>\n\n"), name);
@@ -35,7 +43,7 @@ void f_help(char* name){
 }
 
 void f_version(void){
-    printf(_("Lily %s\n"), LILY_VERSION);
+    printf(_("Lily %s (commit %s%s)\n"), LILY_VERSION, LILY_COMMIT, LILY_MODIFICADO);
     puts(_("Copyright (C) 2024 Giovanni Alfredo Garciliano Diaz"));
     puts(_("License GNU GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>"));
     puts(_("This is free software: you are free to change and redistribute it"));

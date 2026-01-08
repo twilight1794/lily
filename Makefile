@@ -11,6 +11,10 @@ MANDIR := /usr/local/share/man/man1
 LUADIR := lib/lua-5.4.8
 # -----END USER CONFIGURATION-----
 
+V_LILY_VERSION=$(shell git tag --points-at HEAD)
+V_LILY_COMMIT=$(shell git rev-parse HEAD|cut -c 1-8)
+V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; else echo ''; fi)
+
 TARGETS := linux windows lib-linux lib-windows web
 .PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean lua-linux lua-windows lua-web test-windows test-linux
 
@@ -34,6 +38,7 @@ src/common/cadena.o: src/common/cadena.c
 src/common/dict.o: src/common/dict.c
 src/common/lde.o: src/common/lde.c
 src/common/log.o: src/common/log.c
+src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\"
 src/cli/main.o: src/cli/main.c
 src/lib/a_lexico.o: src/lib/a_lexico.c
 src/web/main.o: src/web/main.c
