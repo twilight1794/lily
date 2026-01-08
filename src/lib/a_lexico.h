@@ -33,7 +33,6 @@
 #define lex_esoperador(c) (lily_lex_ctipos[(unsigned char) c]&2)
 
 // Tipos para símbolos
-
 /**
  * Tipo de símbolo
  */
@@ -95,6 +94,15 @@ struct lily_lex_simbolo {
  * @return Un objeto para símbolo nuevo
  */
 struct lily_lex_simbolo* lily_lex_simbolo_create(void);
+
+/**
+ * Estructura para almacenar detalles sobre dónde ocurrió un error
+ */
+struct lily_lex_error_ctx {
+    enum lily_lex_tipo_simbolo tipo; //< Tipo tentativo del símbolo que se estaba generando
+    size_t i_inicial; //< Posición en \a blob del símbolo tentativo
+    size_t i_desp; //< Desplazamiento desde \a i_inicial hasta el valor actual de \a i
+};
 
 // Modos del analizador léxico
 /**
@@ -181,8 +189,9 @@ enum lily_error lily_lex_modo_ambiguo(const char* blob, size_t* i, struct lily_l
  * Función de entrada del analizador léxico
  * @param blob Cadena de texto que contiene el código fuente del archivo principal
  * @param simbolos Lista de símbolos encontrados
+ * @param [out] error_ctx Posición del puntero en \a blob al momento de salir de la función, si \a error_ctx no es \c NULL
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_lexico(const char* blob, struct lily_lde_lde* simbolos);
+enum lily_error lily_lex_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_lex_error_ctx* error_ctx);
 
 #endif
