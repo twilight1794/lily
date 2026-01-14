@@ -29,6 +29,144 @@
 #define LILY_MODIFICADO ""
 #endif
 
+#define MSG_BUFFER 255
+
+// Configuración de logs
+static struct lily_log_config log_cfg = {
+    .colores = true,
+    .incluir_fecha = true,
+    .incluir_hora = true,
+    .incluir_archivo = false,
+    .nivel_minimo = LILY_LOG_DEBUG
+};
+static char msg_err[MSG_BUFFER+1];
+static enum lily_error estado;
+
+void f_help(char* prog_name);
+void f_version(void);
+enum lily_error parse_define_param(char* arg, struct lily_dict_dict* dict);
+
+int main(int argc, char **argv){
+    // Si no hay parámetros, no hay qué seguir
+    if (argc == 1) {
+        f_help(argv[0]);
+        return 0;
+    }
+
+    char* archivo_listado_ruta = NULL;
+    struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
+    char* directorio_fuentes_ruta = NULL;
+    char* archivo = NULL;
+
+    // Parámetros
+    int c;
+    //opterr = 0;
+    int longopt_idx = 0;
+    static struct option longopt_lista[] = {
+        { "listing", required_argument, NULL, 'L' },
+        { "define", required_argument, NULL, 'D' },
+        { "include",required_argument, NULL, 'I' },
+        { "interactive", no_argument, NULL, 'i' },
+        { "output", required_argument, NULL, 'o' },
+        { "architecture", required_argument, NULL, 'x' },
+        { "warning", required_argument, NULL, 'W' },
+        { "error", required_argument, NULL, 'E' },
+        { "option", required_argument, NULL, 'O' },
+        { "pedantic", no_argument, NULL, 'p' },
+        { "superpedantic", no_argument, NULL, 'P' },
+        { "input-format", required_argument, NULL, 'f' },
+        { "output-format", required_argument, NULL, 'F' },
+        { "stage", required_argument, NULL, 's' },
+        { "logging", required_argument, NULL, 'l' },
+        { "help", no_argument, NULL, 'h' },
+        { "version", no_argument, NULL, 'v' },
+        { NULL, 0, NULL, 0 }
+    };
+    while ((c = getopt_long(argc, argv, "L:D:I:io:x:W:E:O:pPf:F:s:l:hv", longopt_lista, &longopt_idx)) != -1) {
+        switch (c) {
+            case 'L':
+                archivo_listado_ruta = optarg;
+                break;
+            case 'D':
+                parse_define_param(optarg, &macros);
+                if (estado != COD_OK) return estado;
+                break;
+            case 'I':
+                directorio_fuentes_ruta = optarg;
+                break;
+            case 'i':
+                break;
+            case 'o':
+                break;
+            case 'x':
+                break;
+            case 'W':
+                break;
+            case 'E':
+                break;
+            case 'O':
+                break;
+            case 'p':
+                break;
+            case 'P':
+                break;
+            case 'f':
+                break;
+            case 'F':
+                break;
+            case 's':
+                break;
+            case 'l':
+                break;
+            case 'h':
+                f_help(argv[0]);
+                return 0;
+            case 'v':
+                f_version();
+                return 0;
+            default:
+                snprintf(msg_err, MSG_BUFFER, _("The argument '%c' was not recognized."), c);
+                log_fatal(&log_cfg, msg_err);
+                exit(EXIT_FAILURE);
+        }
+    };
+
+    // Listas de archivos
+    // FIX: Por ahora, un solo archivo
+    if (optind == argc){
+        log_error(&log_cfg, _("An input file was not specified."));
+        exit(EXIT_FAILURE);
+    } else archivo = argv[optind++];
+
+    // Abrimos archivo
+    int fd = open(archivo, O_RDONLY);
+    if (fd == -1){
+        snprintf(msg_err, 99, _("File %s cannot be open."), archivo);
+        log_fatal(&log_cfg, msg_err);
+        exit(EXIT_FAILURE);
+    }
+    struct stat st;
+    fstat(fd, &st);
+    char* p_archivo = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+    // Empezamos análisis
+    struct lily_lde_lde* simbolos = lily_lde_create();
+    int codigo = 0;/*lily_lex_lexico(p_archivo, simbolos);*/
+    munmap(p_archivo, st.st_size);
+    close(fd);
+    if (codigo) return codigo;
+
+    //struct lily_lde_lde* ast = lily_lde_create();
+    //codigo = z80_sintactico(simbolos, ast);
+    //if (codigo) return codigo;
+
+    //struct lily_lde_lde* objeto = lily_lde_create();
+    //codigo = z80_semantico(ast, objeto);
+    //if (codigo) return codigo;
+
+    return 0;
+}
+
 void f_help(char* name) {
     printf(_("Usage: %s [<params>] <file>\n\n"), name);
     puts(_("Key: P (preprocessor), A (assembly),"));
@@ -80,142 +218,25 @@ void f_version(void){
     puts(_("home page: <https://github.com/twilight1794/lily/>"));
 }
 
-int main(int argc, char **argv){
-    char msg_err[100];
-    enum lily_error estado;
-
-    // Configuracion de logs
-    struct lily_log_config log_cfg = {
-        .colores = true,
-        .incluir_fecha = true,
-        .incluir_hora = true,
-        .incluir_archivo = false,
-        .nivel_minimo = LILY_LOG_DEBUG
-    };
-
-    // Si no hay parámetros, no hay qué
-    if (argc == 1) {
-        f_help(argv[0]);
-        return 0;
-    }
-
-    char* archivo_listado_ruta = NULL;
-    struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
-    char* directorio_fuentes_ruta = NULL;
-    char* archivo = NULL;
-
-    while ((c = getopt(argc, argv, "L:D:I:A:")) != -1){
-        if (c == 'L') archivo_listado_ruta = optarg;
-        else if (c == 'D') ; // Hasta implementar bien los diccionarios
-        else if (c == 'I') directorio_fuentes_ruta = optarg;
-        else if (c == 'A') archivo_ensamblado_ruta = optarg;
-        else {
-            snprintf(msg_err, 99, _("The argument %c was not recognized."), c);
-            log_fatal(&log_cfg, msg_err);
-            exit(EXIT_FAILURE);
-    // Parámetros
-    int c;
-    //opterr = 0;
-    int longopt_idx = 0;
-    static struct option longopt_lista[] = {
-        { "listing", required_argument, NULL, 'L' },
-        { "define", required_argument, NULL, 'D' },
-        { "include",required_argument, NULL, 'I' },
-        { "interactive", no_argument, NULL, 'i' },
-        { "output", required_argument, NULL, 'o' },
-        { "architecture", required_argument, NULL, 'x' },
-        { "warning", required_argument, NULL, 'W' },
-        { "error", required_argument, NULL, 'E' },
-        { "option", required_argument, NULL, 'O' },
-        { "pedantic", no_argument, NULL, 'p' },
-        { "superpedantic", no_argument, NULL, 'P' },
-        { "input-format", required_argument, NULL, 'f' },
-        { "output-format", required_argument, NULL, 'F' },
-        { "stage", required_argument, NULL, 's' },
-        { "logging", required_argument, NULL, 'l' },
-        { "help", no_argument, NULL, 'h' },
-        { "version", no_argument, NULL, 'v' },
-        { NULL, 0, NULL, 0 }
-    };
-    while ((c = getopt_long(argc, argv, "L:D:I:io:x:W:E:O:pPf:F:s:l:hv", longopt_lista, &longopt_idx)) != -1) {
-        switch (c) {
-            case 'L':
-                archivo_listado_ruta = optarg;
-                break;
-            case 'D':
-                break;
-            case 'I':
-                directorio_fuentes_ruta = optarg;
-                break;
-            case 'i':
-                break;
-            case 'o':
-                break;
-            case 'x':
-                break;
-            case 'W':
-                break;
-            case 'E':
-                break;
-            case 'O':
-                break;
-            case 'p':
-                break;
-            case 'P':
-                break;
-            case 'f':
-                break;
-            case 'F':
-                break;
-            case 's':
-                break;
-            case 'l':
-                break;
-            case 'h':
-                f_help(argv[0]);
-                return 0;
-            case 'v':
-                f_version();
-                return 0;
-            default:
-                snprintf(msg_err, 99, _("The argument '%c' was not recognized."), c);
-                log_fatal(&log_cfg, msg_err);
-                exit(EXIT_FAILURE);
+enum lily_error parse_define_param(char* arg, struct lily_dict_dict* dict) {
+    char* i = arg;
+    char* define_nombre = arg;
+    char* define_valor = NULL;
+    // Obtener nombre
+    while (*i != 0) {
+        if (*i == '=') {
+            *i = 0;
+            define_valor = ++i;
+            break;
         }
-    };
-
-    // Listas de archivos
-    // FIX: Por ahora, un solo archivo
-    if (optind == argc){
-        log_error(&log_cfg, _("An input file was not specified."));
-        exit(EXIT_FAILURE);
-    } else archivo = argv[optind++];
-
-    // Abrimos archivo
-    int fd = open(archivo, O_RDONLY);
-    if (fd == -1){
-        snprintf(msg_err, 99, _("File %s cannot be open."), archivo);
-        log_fatal(&log_cfg, msg_err);
-        exit(EXIT_FAILURE);
+        i++;
     }
-    struct stat st;
-    fstat(fd, &st);
-    char* p_archivo = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-
-    // Empezamos análisis
-    struct lily_lde_lde* simbolos = lily_lde_create();
-    int codigo = 0;/*lily_lex_lexico(p_archivo, simbolos);*/
-    munmap(p_archivo, st.st_size);
-    close(fd);
-    if (codigo) return codigo;
-
-    //struct lily_lde_lde* ast = lily_lde_create();
-    //codigo = z80_sintactico(simbolos, ast);
-    //if (codigo) return codigo;
-
-    //struct lily_lde_lde* objeto = lily_lde_create();
-    //codigo = z80_semantico(ast, objeto);
-    //if (codigo) return codigo;
-
-    return 0;
+    const struct lily_dict_nodo* define_nodo = lily_dict_insert(dict, define_nombre, define_valor, NULL);
+    if (define_nodo == NULL) {
+        snprintf(msg_err, MSG_BUFFER, _("Error while adding macro \"%s\"."), define_nombre);
+        log_fatal(&log_cfg, msg_err);
+        return COD_MALLOC_FALLO;
+    }
+    //log_debug();
+    return COD_OK;
 }
