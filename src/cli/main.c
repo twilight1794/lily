@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +12,7 @@
 #include <libintl.h>
 
 #include "../common/dict.h"
+#include "../common/error.h"
 #include "../common/lde.h"
 #include "../common/log.h"
 #include "../lib/a_lexico.h"
@@ -80,6 +82,7 @@ void f_version(void){
 
 int main(int argc, char **argv){
     char msg_err[100];
+    enum lily_error estado;
 
     // Configuracion de logs
     struct lily_log_config log_cfg = {
@@ -90,24 +93,15 @@ int main(int argc, char **argv){
         .nivel_minimo = LILY_LOG_DEBUG
     };
 
-    // Filtrar primero las opciones de ayuda y versión
-    if (argc == 1 || !strcmp(argv[1], "-h")) {
+    // Si no hay parámetros, no hay qué
+    if (argc == 1) {
         f_help(argv[0]);
-        return 0;
-    } else if (!strcmp(argv[1], "-v")){
-        f_version();
         return 0;
     }
 
-    // Parámetros
-    int c;
-    opterr = 0;
-
-    unsigned char opts = 0;
     char* archivo_listado_ruta = NULL;
-    char* archivo_ensamblado_ruta = NULL;
+    struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
     char* directorio_fuentes_ruta = NULL;
-    struct lily_dict_dict* variables = lily_dict_create();
     char* archivo = NULL;
 
     while ((c = getopt(argc, argv, "L:D:I:A:")) != -1){
@@ -119,8 +113,76 @@ int main(int argc, char **argv){
             snprintf(msg_err, 99, _("The argument %c was not recognized."), c);
             log_fatal(&log_cfg, msg_err);
             exit(EXIT_FAILURE);
+    // Parámetros
+    int c;
+    //opterr = 0;
+    int longopt_idx = 0;
+    static struct option longopt_lista[] = {
+        { "listing", required_argument, NULL, 'L' },
+        { "define", required_argument, NULL, 'D' },
+        { "include",required_argument, NULL, 'I' },
+        { "interactive", no_argument, NULL, 'i' },
+        { "output", required_argument, NULL, 'o' },
+        { "architecture", required_argument, NULL, 'x' },
+        { "warning", required_argument, NULL, 'W' },
+        { "error", required_argument, NULL, 'E' },
+        { "option", required_argument, NULL, 'O' },
+        { "pedantic", no_argument, NULL, 'p' },
+        { "superpedantic", no_argument, NULL, 'P' },
+        { "input-format", required_argument, NULL, 'f' },
+        { "output-format", required_argument, NULL, 'F' },
+        { "stage", required_argument, NULL, 's' },
+        { "logging", required_argument, NULL, 'l' },
+        { "help", no_argument, NULL, 'h' },
+        { "version", no_argument, NULL, 'v' },
+        { NULL, 0, NULL, 0 }
+    };
+    while ((c = getopt_long(argc, argv, "L:D:I:io:x:W:E:O:pPf:F:s:l:hv", longopt_lista, &longopt_idx)) != -1) {
+        switch (c) {
+            case 'L':
+                archivo_listado_ruta = optarg;
+                break;
+            case 'D':
+                break;
+            case 'I':
+                directorio_fuentes_ruta = optarg;
+                break;
+            case 'i':
+                break;
+            case 'o':
+                break;
+            case 'x':
+                break;
+            case 'W':
+                break;
+            case 'E':
+                break;
+            case 'O':
+                break;
+            case 'p':
+                break;
+            case 'P':
+                break;
+            case 'f':
+                break;
+            case 'F':
+                break;
+            case 's':
+                break;
+            case 'l':
+                break;
+            case 'h':
+                f_help(argv[0]);
+                return 0;
+            case 'v':
+                f_version();
+                return 0;
+            default:
+                snprintf(msg_err, 99, _("The argument '%c' was not recognized."), c);
+                log_fatal(&log_cfg, msg_err);
+                exit(EXIT_FAILURE);
         }
-    }
+    };
 
     // Listas de archivos
     // FIX: Por ahora, un solo archivo
@@ -142,7 +204,7 @@ int main(int argc, char **argv){
 
     // Empezamos análisis
     struct lily_lde_lde* simbolos = lily_lde_create();
-    int codigo = lily_lex_lexico(p_archivo, simbolos);
+    int codigo = 0;/*lily_lex_lexico(p_archivo, simbolos);*/
     munmap(p_archivo, st.st_size);
     close(fd);
     if (codigo) return codigo;
