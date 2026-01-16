@@ -31,6 +31,21 @@
 
 #define MSG_BUFFER 255
 
+enum lily_main_estricto {
+    LILY_MAIN_RELAJADO,
+    LILY_MAIN_ESTRICTO,
+    LILY_MAIN_SUPERESTRICTO,
+};
+
+enum lily_main_etapa {
+    LILY_MAIN_INDETERMINADO,
+    LILY_MAIN_PREPROCESADO,
+    LILY_MAIN_ENSAMBLADO,
+    LILY_MAIN_ENLAZADO,
+    LILY_MAIN_DESENSAMBLADO,
+    LILY_MAIN_EJECUCION,
+};
+
 // Configuración de logs
 static struct lily_log_config log_cfg = {
     .colores = true,
@@ -42,9 +57,9 @@ static struct lily_log_config log_cfg = {
 static char msg_err[MSG_BUFFER+1];
 static enum lily_error estado;
 
-void f_help(char* prog_name);
+void f_help(char* name);
 void f_version(void);
-enum lily_error parse_define_param(char* arg, struct lily_dict_dict* dict);
+struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict);
 
 int main(int argc, char **argv){
     // Si no hay parámetros, no hay qué seguir
@@ -56,7 +71,19 @@ int main(int argc, char **argv){
     char* archivo_listado_ruta = NULL;
     struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
     char* directorio_fuentes_ruta = NULL;
+    bool interactivo = false;
+    char* archivo_salida = NULL;
     char* archivo = NULL;
+    char* arquitectura = NULL;
+    struct lily_lde_lde avisos = { .inicio = NULL, .final = NULL, .tamano = 0 };
+    struct lily_lde_lde avisos_no = { .inicio = NULL, .final = NULL, .tamano = 0 };
+    struct lily_lde_lde errores = { .inicio = NULL, .final = NULL, .tamano = 0 };
+    struct lily_lde_lde errores_no = { .inicio = NULL, .final = NULL, .tamano = 0 };
+    struct lily_dict_dict opciones = { .raiz = NULL, .tamano = 0 };
+    char* formato_entrada = NULL;
+    char* formato_salida = NULL;
+    enum lily_main_etapa etapa = LILY_MAIN_INDETERMINADO;
+    enum lily_main_estricto estricto = LILY_MAIN_RELAJADO;
 
     // Parámetros
     int c;
@@ -83,51 +110,96 @@ int main(int argc, char **argv){
         { NULL, 0, NULL, 0 }
     };
     while ((c = getopt_long(argc, argv, "L:D:I:io:x:W:E:O:pPf:F:s:l:hv", longopt_lista, &longopt_idx)) != -1) {
+        struct lily_dict_nodo* opt_nodo; // <- para D
+        bool es_negativo; // <- para W,E
         switch (c) {
             case 'L':
                 archivo_listado_ruta = optarg;
                 break;
             case 'D':
-                parse_define_param(optarg, &macros);
-                if (estado != COD_OK) return estado;
+                opt_nodo = obt_param_valorado(optarg, &macros);
+                if (opt_nodo == NULL) {
+                    snprintf(msg_err, MSG_BUFFER, _("Error while adding macro \"%s\"."), optarg);
+                    log_fatal(&log_cfg, msg_err);
+                    return COD_MALLOC_FALLO;
+                }
                 break;
             case 'I':
                 directorio_fuentes_ruta = optarg;
                 break;
             case 'i':
+                interactivo = true;
                 break;
             case 'o':
+                archivo_salida = optarg;
                 break;
             case 'x':
+                arquitectura = optarg;
                 break;
             case 'W':
-                break;
             case 'E':
+                es_negativo = !strncmp("no", optarg, 2);
+                struct lily_lde_lde *arr;
+                if (!es_negativo) arr = (c=='W'?&avisos_no:&errores_no);
+                else arr = (c=='W'?&avisos:&errores);
+                const struct lily_lde_nodo* nodo = lily_lde_insert(arr, arr->tamano, optarg+(es_negativo?2:0));
+                if (nodo == NULL) {
+                    snprintf(msg_err, MSG_BUFFER, _("Error while adding %s \"%s\"."), (c=='W'?"warning":"error"), optarg);
+                    log_fatal(&log_cfg, msg_err);
+                    return COD_MALLOC_FALLO;
+                }
                 break;
             case 'O':
+                opt_nodo = obt_param_valorado(optarg, &opciones);
+                if (opt_nodo == NULL) {
+                    snprintf(msg_err, MSG_BUFFER, _("Error while adding option \"%s\"."), optarg);
+                    log_fatal(&log_cfg, msg_err);
+                    return COD_MALLOC_FALLO;
+                }
                 break;
             case 'p':
+                estricto = LILY_MAIN_ESTRICTO;
                 break;
             case 'P':
+                estricto = LILY_MAIN_SUPERESTRICTO;
                 break;
             case 'f':
+                formato_entrada = optarg;
                 break;
             case 'F':
+                formato_salida = optarg;
                 break;
             case 's':
+                if (!strcmp(optarg, "p")) log_cfg.nivel_minimo = LILY_MAIN_PREPROCESADO;
+                else if (!strcmp(optarg, "a")) log_cfg.nivel_minimo = LILY_MAIN_ENSAMBLADO;
+                else if (!strcmp(optarg, "l")) log_cfg.nivel_minimo = LILY_MAIN_ENLAZADO;
+                else if (!strcmp(optarg, "d")) log_cfg.nivel_minimo = LILY_MAIN_DESENSAMBLADO;
+                else if (!strcmp(optarg, "e")) log_cfg.nivel_minimo = LILY_MAIN_EJECUCION;
+                else {
+                    snprintf(msg_err, MSG_BUFFER, _("The value \"%s\" for parameter stage was not recognized"), optarg);
+                    log_error(&log_cfg, msg_err);
+                }
                 break;
             case 'l':
+                if (!strcmp(optarg, "debug")) log_cfg.nivel_minimo = LILY_LOG_DEBUG;
+                else if (!strcmp(optarg, "info")) log_cfg.nivel_minimo = LILY_LOG_INFO;
+                else if (!strcmp(optarg, "warn")) log_cfg.nivel_minimo = LILY_LOG_WARN;
+                else if (!strcmp(optarg, "error")) log_cfg.nivel_minimo = LILY_LOG_ERROR;
+                else if (!strcmp(optarg, "fatal")) log_cfg.nivel_minimo = LILY_LOG_FATAL;
+                else {
+                    snprintf(msg_err, MSG_BUFFER, _("The value \"%s\" for parameter logging was not recognized"), optarg);
+                    log_error(&log_cfg, msg_err);
+                }
                 break;
             case 'h':
                 f_help(argv[0]);
-                return 0;
+                return COD_OK;
             case 'v':
                 f_version();
-                return 0;
+                return COD_OK;
             default:
-                snprintf(msg_err, MSG_BUFFER, _("The argument '%c' was not recognized."), c);
-                log_fatal(&log_cfg, msg_err);
-                exit(EXIT_FAILURE);
+                snprintf(msg_err, MSG_BUFFER, _("The parameter '%c' was not recognized."), c);
+                log_error(&log_cfg, msg_err);
         }
     };
 
@@ -207,7 +279,7 @@ void f_help(char* name) {
     puts(_("\nFor more info, see the man pages."));
 }
 
-void f_version(void){
+void f_version(void) {
     printf(_("Lily %s (commit %s%s)\n"), LILY_VERSION, LILY_COMMIT, LILY_MODIFICADO);
     puts(_("Copyright (C) 2024-2026 Giovanni Alfredo Garciliano Diaz"));
     puts(_("License GNU GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>"));
@@ -218,7 +290,7 @@ void f_version(void){
     puts(_("home page: <https://github.com/twilight1794/lily/>"));
 }
 
-enum lily_error parse_define_param(char* arg, struct lily_dict_dict* dict) {
+struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict) {
     char* i = arg;
     char* define_nombre = arg;
     char* define_valor = NULL;
@@ -231,12 +303,5 @@ enum lily_error parse_define_param(char* arg, struct lily_dict_dict* dict) {
         }
         i++;
     }
-    const struct lily_dict_nodo* define_nodo = lily_dict_insert(dict, define_nombre, define_valor, NULL);
-    if (define_nodo == NULL) {
-        snprintf(msg_err, MSG_BUFFER, _("Error while adding macro \"%s\"."), define_nombre);
-        log_fatal(&log_cfg, msg_err);
-        return COD_MALLOC_FALLO;
-    }
-    //log_debug();
-    return COD_OK;
+    return lily_dict_insert(dict, define_nombre, define_valor, NULL);
 }
