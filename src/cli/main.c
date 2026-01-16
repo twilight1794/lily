@@ -87,7 +87,7 @@ int main(int argc, char **argv){
 
     // Parámetros
     int c;
-    //opterr = 0;
+    opterr = 0;
     int longopt_idx = 0;
     static struct option longopt_lista[] = {
         { "listing", required_argument, NULL, 'L' },
@@ -198,7 +198,10 @@ int main(int argc, char **argv){
                 f_version();
                 return COD_OK;
             default:
-                snprintf(msg_err, MSG_BUFFER, _("The parameter '%c' was not recognized."), c);
+                if (optopt) {
+                    snprintf(msg_err, MSG_BUFFER, _("The parameter '%c' was not recognized."), optopt);
+                } else
+                    snprintf(msg_err, MSG_BUFFER, _("The parameter '%s' was not recognized."), argv[longopt_idx+1]);
                 log_error(&log_cfg, msg_err);
         }
     };
