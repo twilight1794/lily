@@ -60,6 +60,8 @@ static enum lily_error estado;
 void f_help(char* name);
 void f_version(void);
 struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict);
+char* obt_extension(const char *nombre);
+char* obt_etapa_str(enum lily_main_etapa etapa);
 
 int main(int argc, char **argv){
     // Si no hay parámetros, no hay qué seguir
@@ -72,8 +74,8 @@ int main(int argc, char **argv){
     struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
     char* directorio_fuentes_ruta = NULL;
     bool interactivo = false;
+    char* archivo_entrada = NULL;
     char* archivo_salida = NULL;
-    char* archivo = NULL;
     char* arquitectura = NULL;
     struct lily_lde_lde avisos = { .inicio = NULL, .final = NULL, .tamano = 0 };
     struct lily_lde_lde avisos_no = { .inicio = NULL, .final = NULL, .tamano = 0 };
@@ -82,7 +84,8 @@ int main(int argc, char **argv){
     struct lily_dict_dict opciones = { .raiz = NULL, .tamano = 0 };
     char* formato_entrada = NULL;
     char* formato_salida = NULL;
-    enum lily_main_etapa etapa = LILY_MAIN_INDETERMINADO;
+    enum lily_main_etapa etapa_inicial = LILY_MAIN_INDETERMINADO;
+    enum lily_main_etapa etapa_final = LILY_MAIN_INDETERMINADO;
     enum lily_main_estricto estricto = LILY_MAIN_RELAJADO;
 
     // Parámetros
@@ -170,14 +173,30 @@ int main(int argc, char **argv){
                 formato_salida = optarg;
                 break;
             case 's':
-                if (!strcmp(optarg, "p")) log_cfg.nivel_minimo = LILY_MAIN_PREPROCESADO;
-                else if (!strcmp(optarg, "a")) log_cfg.nivel_minimo = LILY_MAIN_ENSAMBLADO;
-                else if (!strcmp(optarg, "l")) log_cfg.nivel_minimo = LILY_MAIN_ENLAZADO;
-                else if (!strcmp(optarg, "d")) log_cfg.nivel_minimo = LILY_MAIN_DESENSAMBLADO;
-                else if (!strcmp(optarg, "e")) log_cfg.nivel_minimo = LILY_MAIN_EJECUCION;
+                if (!strcmp(optarg, "p")) {
+                    etapa_inicial = LILY_MAIN_PREPROCESADO;
+                    etapa_final = LILY_MAIN_PREPROCESADO;
+                }
+                else if (!strcmp(optarg, "a")) {
+                    etapa_inicial = LILY_MAIN_ENSAMBLADO;
+                    etapa_final = LILY_MAIN_ENSAMBLADO;
+                }
+                else if (!strcmp(optarg, "l")) {
+                    etapa_inicial = LILY_MAIN_ENLAZADO;
+                    etapa_final = LILY_MAIN_ENLAZADO;
+                }
+                else if (!strcmp(optarg, "d")) {
+                    etapa_inicial = LILY_MAIN_DESENSAMBLADO;
+                    etapa_final = LILY_MAIN_DESENSAMBLADO;
+                }
+                else if (!strcmp(optarg, "e")) {
+                    etapa_inicial = LILY_MAIN_EJECUCION;
+                    etapa_final = LILY_MAIN_EJECUCION;
+                }
                 else {
                     snprintf(msg_err, MSG_BUFFER, _("The value \"%s\" for parameter stage was not recognized"), optarg);
-                    log_error(&log_cfg, msg_err);
+                    log_fatal(&log_cfg, msg_err);
+                    exit(EXIT_FAILURE);
                 }
                 break;
             case 'l':
@@ -209,20 +228,71 @@ int main(int argc, char **argv){
     // Listas de archivos
     // FIX: Por ahora, un solo archivo
     if (optind == argc){
-        log_error(&log_cfg, _("An input file was not specified."));
+        log_fatal(&log_cfg, _("An input file was not specified."));
         exit(EXIT_FAILURE);
-    } else archivo = argv[optind++];
+    } else archivo_entrada = argv[optind++];
 
     // Abrimos archivo
-    int fd = open(archivo, O_RDONLY);
+    int fd = open(archivo_entrada, O_RDONLY);
     if (fd == -1){
-        snprintf(msg_err, 99, _("File %s cannot be open."), archivo);
+        snprintf(msg_err, 99, _("File %s cannot be open."), archivo_entrada);
         log_fatal(&log_cfg, msg_err);
         exit(EXIT_FAILURE);
     }
     struct stat st;
     fstat(fd, &st);
     char* p_archivo = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+    // Determinar operación inicial y final
+    /// Parámetro origen->origen, destino, arriba en la lectura de argumentos
+    /// Extensión origen->origen
+    if (etapa_inicial == LILY_MAIN_INDETERMINADO) {
+        char* extension = obt_extension(archivo_entrada);
+        if (!strcmp(extension, "asm")) etapa_inicial = LILY_MAIN_PREPROCESADO;
+        else if (!strcmp(extension, "s")) etapa_inicial = LILY_MAIN_ENSAMBLADO;
+        else if (!strcmp(extension, "o")) etapa_inicial = LILY_MAIN_ENLAZADO;
+        else if (!strcmp(extension, "com")) etapa_inicial = LILY_MAIN_EJECUCION;
+    }
+    /// Extensión destino->destino, origen si no determinado
+    if (etapa_final == LILY_MAIN_INDETERMINADO && archivo_salida != NULL) {
+        char* extension = obt_extension(archivo_salida);
+        if (!strcmp(extension, "s")) {
+            etapa_final = LILY_MAIN_PREPROCESADO;
+            if (etapa_inicial == LILY_MAIN_INDETERMINADO) etapa_inicial = LILY_MAIN_PREPROCESADO;
+        }
+        else if (!strcmp(extension, "o")) {
+            etapa_final = LILY_MAIN_ENSAMBLADO;
+            if (etapa_inicial == LILY_MAIN_INDETERMINADO) etapa_inicial = LILY_MAIN_PREPROCESADO;
+        }
+        else if (!strcmp(extension, "com")) {
+            etapa_final = LILY_MAIN_ENLAZADO;
+            if (etapa_inicial == LILY_MAIN_INDETERMINADO) etapa_inicial = LILY_MAIN_ENLAZADO;
+        }
+    }
+    /// Consecuente->destino
+    if (etapa_inicial != LILY_MAIN_INDETERMINADO &&
+        etapa_final == LILY_MAIN_INDETERMINADO &&
+        archivo_salida == NULL) {
+        char* extension = obt_extension(archivo_entrada);
+        if (etapa_inicial == LILY_MAIN_PREPROCESADO) etapa_final = LILY_MAIN_ENSAMBLADO;
+        else if (etapa_inicial == LILY_MAIN_ENSAMBLADO) etapa_final = LILY_MAIN_ENSAMBLADO;
+        else if (etapa_inicial == LILY_MAIN_ENLAZADO) etapa_final = LILY_MAIN_ENLAZADO;
+        else if (etapa_inicial == LILY_MAIN_EJECUCION) etapa_final = LILY_MAIN_EJECUCION;
+    }
+
+    // En este punto, ya debemos saber qué haremos
+    if (etapa_inicial == LILY_MAIN_INDETERMINADO) {
+        log_fatal(&log_cfg, _("Initial stage cannot be determined."));
+        exit(EXIT_FAILURE);
+    }
+    snprintf(msg_err, 99, _("Initial stage set to %s"), obt_etapa_str(etapa_inicial));
+    log_info(&log_cfg, msg_err);
+    if (etapa_final < LILY_MAIN_ENSAMBLADO || etapa_final < etapa_inicial) {
+        log_fatal(&log_cfg, _("Final stage cannot be determined."));
+        exit(EXIT_FAILURE);
+    }
+    snprintf(msg_err, 99, _("Final stage set to %s"), obt_etapa_str(etapa_final));
+    log_info(&log_cfg, msg_err);
 
     // Empezamos análisis
     struct lily_lde_lde* simbolos = lily_lde_create();
@@ -239,7 +309,7 @@ int main(int argc, char **argv){
     //codigo = z80_semantico(ast, objeto);
     //if (codigo) return codigo;
 
-    return 0;
+    return codigo;
 }
 
 void f_help(char* name) {
@@ -307,4 +377,26 @@ struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict
         i++;
     }
     return lily_dict_insert(dict, define_nombre, define_valor, NULL);
+}
+
+char* obt_extension(const char *nombre) {
+    const char* punto = strrchr(nombre, '.');
+    if (punto == NULL || punto == nombre) return nombre + strlen(nombre);
+    return punto+1;
+}
+
+char* obt_etapa_str(enum lily_main_etapa etapa) {
+    switch (etapa) {
+    case LILY_MAIN_PREPROCESADO:
+        return _("preprocessing");
+    case LILY_MAIN_ENSAMBLADO:
+        return _("assembly");
+    case LILY_MAIN_ENLAZADO:
+        return _("linking");
+    case LILY_MAIN_DESENSAMBLADO:
+        return _("disassembly");
+    case LILY_MAIN_EJECUCION:
+        return _("execution");
+    }
+    return "";
 }
