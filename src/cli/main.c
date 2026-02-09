@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +47,6 @@ enum lily_main_etapa {
     LILY_MAIN_EJECUCION,
 };
 
-// Configuración de logs
 static struct lily_log_config log_cfg = {
     .colores = true,
     .incluir_fecha = true,
@@ -61,6 +61,7 @@ void f_help(char* name);
 void f_version(void);
 struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict);
 char* obt_extension(const char *nombre);
+void obt_nombre_archivo(char* nombre, enum lily_main_etapa etapa, char* archivo_salida);
 char* obt_etapa_str(enum lily_main_etapa etapa);
 
 int main(int argc, char **argv){
@@ -233,15 +234,15 @@ int main(int argc, char **argv){
     } else archivo_entrada = argv[optind++];
 
     // Abrimos archivo
-    int fd = open(archivo_entrada, O_RDONLY);
-    if (fd == -1){
+    int archivo_entrada_fd = open(archivo_entrada, O_RDONLY);
+    if (archivo_entrada_fd == -1){
         snprintf(msg_err, 99, _("File %s cannot be open."), archivo_entrada);
         log_fatal(&log_cfg, msg_err);
         exit(EXIT_FAILURE);
     }
-    struct stat st;
-    fstat(fd, &st);
-    char* p_archivo = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    struct stat archivo_entrada_st;
+    fstat(archivo_entrada_fd, &archivo_entrada_st);
+    char* archivo_entrada_p = (char*) mmap(NULL, archivo_entrada_st.st_size, PROT_READ, MAP_SHARED, archivo_entrada_fd, 0);
 
     // Determinar operación inicial y final
     /// Parámetro origen->origen, destino, arriba en la lectura de argumentos
@@ -273,7 +274,6 @@ int main(int argc, char **argv){
     if (etapa_inicial != LILY_MAIN_INDETERMINADO &&
         etapa_final == LILY_MAIN_INDETERMINADO &&
         archivo_salida == NULL) {
-        char* extension = obt_extension(archivo_entrada);
         if (etapa_inicial == LILY_MAIN_PREPROCESADO) etapa_final = LILY_MAIN_ENSAMBLADO;
         else if (etapa_inicial == LILY_MAIN_ENSAMBLADO) etapa_final = LILY_MAIN_ENSAMBLADO;
         else if (etapa_inicial == LILY_MAIN_ENLAZADO) etapa_final = LILY_MAIN_ENLAZADO;
@@ -285,20 +285,32 @@ int main(int argc, char **argv){
         log_fatal(&log_cfg, _("Initial stage cannot be determined."));
         exit(EXIT_FAILURE);
     }
-    snprintf(msg_err, 99, _("Initial stage set to %s"), obt_etapa_str(etapa_inicial));
+    snprintf(msg_err, 99, _("Initial stage set to %s."), obt_etapa_str(etapa_inicial));
     log_info(&log_cfg, msg_err);
     if (etapa_final < LILY_MAIN_ENSAMBLADO || etapa_final < etapa_inicial) {
         log_fatal(&log_cfg, _("Final stage cannot be determined."));
         exit(EXIT_FAILURE);
     }
-    snprintf(msg_err, 99, _("Final stage set to %s"), obt_etapa_str(etapa_final));
+    snprintf(msg_err, 99, _("Final stage set to %s."), obt_etapa_str(etapa_final));
+    log_info(&log_cfg, msg_err);
+
+    // Determinar nombre de archivo destino, si no existe
+    if (archivo_salida == NULL) {
+        archivo_salida = (char*) calloc(strlen(archivo_entrada)+4, 1);
+        if (archivo_salida == NULL) {
+            log_fatal(&log_cfg, _("Error while determining output filename."));
+            exit(EXIT_FAILURE);
+        }
+        obt_nombre_archivo(archivo_entrada, etapa_final, archivo_salida);
+    }
+    snprintf(msg_err, 99, _("Output file: '%s'."), archivo_salida);
     log_info(&log_cfg, msg_err);
 
     // Empezamos análisis
-    struct lily_lde_lde* simbolos = lily_lde_create();
-    int codigo = 0;/*lily_lex_lexico(p_archivo, simbolos);*/
-    munmap(p_archivo, st.st_size);
-    close(fd);
+    //struct lily_lde_lde* simbolos = lily_lde_create();
+    int codigo = 0;/*lily_lex_lexico(archivo_entrada_p, simbolos);*/
+    munmap(archivo_entrada_p, archivo_entrada_st.st_size);
+    close(archivo_entrada_fd);
     if (codigo) return codigo;
 
     //struct lily_lde_lde* ast = lily_lde_create();
@@ -380,9 +392,24 @@ struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict
 }
 
 char* obt_extension(const char *nombre) {
-    const char* punto = strrchr(nombre, '.');
+    char* punto = strrchr(nombre, '.');
     if (punto == NULL || punto == nombre) return nombre + strlen(nombre);
     return punto+1;
+}
+
+void obt_nombre_archivo(char* nombre, enum lily_main_etapa etapa, char* archivo_salida) {
+    char* punto = strrchr(nombre, '.');
+    ptrdiff_t nombre_tam;
+    if (punto == NULL || punto == nombre) nombre_tam = (ptrdiff_t) strlen(nombre);
+    else nombre_tam = punto - nombre;
+    // Copiar nombre base
+    memcpy(archivo_salida, nombre, nombre_tam);
+    // Colocar extensión
+    if (etapa == LILY_MAIN_PREPROCESADO) strcpy(archivo_salida+nombre_tam, ".s");
+    else if (etapa == LILY_MAIN_ENSAMBLADO) strcpy(archivo_salida+nombre_tam, ".o");
+    else if (etapa == LILY_MAIN_ENLAZADO) strcpy(archivo_salida+nombre_tam, "");
+    else if (etapa == LILY_MAIN_DESENSAMBLADO) strcpy(archivo_salida+nombre_tam, ".s");
+    return;
 }
 
 char* obt_etapa_str(enum lily_main_etapa etapa) {
