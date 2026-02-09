@@ -130,17 +130,17 @@ enum lily_error lily_lex_modo_cadena(const char* blob, size_t* i, struct lily_le
 enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_lex_simbolo** sim, const char tipo) {
     bool punto = false;
     char* valor_texto = lily_cadena_create();
-    if (tipo == 16) {
+    if (tipo == 'x') {
         while (isxdigit(blob[*i])) {
             lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
         }
-    } else if (tipo == 8) {
+    } else if (tipo == 'o') {
         while (blob[*i] > '0' && blob[*i] <= '7') {
             lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
         }
-    } else if (tipo == 2) {
+    } else if (tipo == 'b') {
         while (blob[*i] == '0' || blob[*i] == '1') {
             lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
@@ -157,14 +157,15 @@ enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_le
         free(valor_texto);
         return COD_A_LEXICO_CARACTER_INVALIDO;
     }
+
     // Obtener valor
     long* valor = (long*) malloc(sizeof(long));
     for (size_t j = strlen(valor_texto); j > 0; j--) {
         long potencia;
         const int exponente = (int) (strlen(valor_texto)-j); // FIX: no deberíamos aceptar números mayores a 20 dígitos en cualquier caso
-        if (tipo == 16) potencia = pow16(exponente);
-        else if (tipo == 8) potencia = pow8(exponente);
-        else if (tipo == 2) potencia = pow2(exponente);
+        if (tipo == 'x') potencia = pow16(exponente);
+        else if (tipo == 'o') potencia = pow8(exponente);
+        else if (tipo == 'b') potencia = pow2(exponente);
         else potencia = pow10(exponente);
         *valor = valor_texto[j-1] * potencia;
     }
@@ -362,7 +363,7 @@ enum lily_error lily_lex_lexico(const char* blob, struct lily_lde_lde* simbolos,
             }
             break;
         }
-        if (blob[i] == '0' && blob[i + 1] == 'x') {
+        if (blob[i] == '0' && (blob[i + 1] == 'x' || blob[i + 1] == 'o' || blob[i + 1] == 'b')) {
             // Es un número en otra base
             tipo_tentativo = SIMB_NUMERO;
             i_inicial = i;
