@@ -7,6 +7,7 @@ struct lily_lex_simbolo* lily_lex_simbolo_create(void) {
 void lily_lex_modo_comentario(const char* blob, size_t* i) {
     do (*i)++;
     while (blob[*i] != '\n' && blob[*i] != 0);
+    (*i)++;
 }
 
 enum lily_error lily_lex_modo_directiva(const char* blob, size_t* i, struct lily_lex_simbolo** sim) {
