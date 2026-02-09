@@ -342,7 +342,11 @@ enum lily_error lily_lex_lexico(const char* blob, struct lily_lde_lde* simbolos,
             }
            break;
         }
-        if (lex_esblanco(blob[i])) while (lex_esblanco(blob[i])) i++; // Espacios en blanco
+        if (lex_esblanco(blob[i])) {
+            // Espacios en blanco
+            while (lex_esblanco(blob[i])) i++;
+            continue;
+        }
         if (blob[i] == 0x27 || blob[i] == 0x22) {
             // Es una cadena
             tipo_tentativo = (blob[i] == 0x27)?SIMB_CADENA_SIMPLE:SIMB_CADENA_NUL;
