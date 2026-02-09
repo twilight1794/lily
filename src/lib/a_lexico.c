@@ -160,6 +160,7 @@ enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_le
 
     // Obtener valor
     long* valor = (long*) malloc(sizeof(long));
+    *valor = 0;
     for (size_t j = strlen(valor_texto); j > 0; j--) {
         long potencia;
         const int exponente = (int) (strlen(valor_texto)-j); // FIX: no deberíamos aceptar números mayores a 20 dígitos en cualquier caso
@@ -167,7 +168,11 @@ enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_le
         else if (tipo == 'o') potencia = pow8(exponente);
         else if (tipo == 'b') potencia = pow2(exponente);
         else potencia = pow10(exponente);
-        *valor = valor_texto[j-1] * potencia;
+        long valor_digito;
+        if (tipo == 'x' && valor_texto[j-1] >= 97) valor_digito = valor_texto[j-1] - 0x57;
+        else if (tipo == 'x' && valor_texto[j-1] >= 65) valor_digito = valor_texto[j-1] - 0x37;
+        else valor_digito = valor_texto[j-1] - 0x30;
+        *valor += valor_digito * potencia;
     }
     *sim = lily_lex_simbolo_create();
     if (*sim == NULL) {
