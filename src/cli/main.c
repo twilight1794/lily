@@ -307,11 +307,21 @@ int main(int argc, char **argv){
     log_info(&log_cfg, msg_err);
 
     // Empezamos análisis
-    //struct lily_lde_lde* simbolos = lily_lde_create();
-    int codigo = 0;/*lily_lex_lexico(archivo_entrada_p, simbolos);*/
+
+    /// Análisis léxico
+    struct lily_lde_lde* simbolos = lily_lde_create();
+    struct lily_lex_error_ctx ctx;
+    int codigo = lily_lex_lexico(archivo_entrada_p, simbolos, &ctx);
+    snprintf(msg_err, MSG_BUFFER, _("lily_lex_lexico: %d."), codigo);
+    log_info(&log_cfg, msg_err);
+    if (codigo != COD_OK) {
+        char caracter_prob = archivo_entrada_p[ctx.i_inicial + ctx.i_desp];
+        snprintf(msg_err, MSG_BUFFER, _("type=%d, initial_i=%u, offset_i=%u (0x%x \"%c\")."), ctx.tipo, ctx.i_inicial, ctx.i_desp, caracter_prob, isprint(caracter_prob)?caracter_prob:'?');
+        log_info(&log_cfg, msg_err);
+    }
+
     munmap(archivo_entrada_p, archivo_entrada_st.st_size);
     close(archivo_entrada_fd);
-    if (codigo) return codigo;
 
     //struct lily_lde_lde* ast = lily_lde_create();
     //codigo = z80_sintactico(simbolos, ast);
