@@ -236,7 +236,7 @@ int main(int argc, char **argv){
     // Abrimos archivo
     int archivo_entrada_fd = open(archivo_entrada, O_RDONLY);
     if (archivo_entrada_fd == -1){
-        snprintf(msg_err, 99, _("File %s cannot be open."), archivo_entrada);
+        snprintf(msg_err, MSG_BUFFER, _("File %s cannot be open."), archivo_entrada);
         log_fatal(&log_cfg, msg_err);
         exit(EXIT_FAILURE);
     }
@@ -285,13 +285,13 @@ int main(int argc, char **argv){
         log_fatal(&log_cfg, _("Initial stage cannot be determined."));
         exit(EXIT_FAILURE);
     }
-    snprintf(msg_err, 99, _("Initial stage set to %s."), obt_etapa_str(etapa_inicial));
+    snprintf(msg_err, MSG_BUFFER, _("Initial stage set to %s."), obt_etapa_str(etapa_inicial));
     log_info(&log_cfg, msg_err);
     if (etapa_final < LILY_MAIN_ENSAMBLADO || etapa_final < etapa_inicial) {
         log_fatal(&log_cfg, _("Final stage cannot be determined."));
         exit(EXIT_FAILURE);
     }
-    snprintf(msg_err, 99, _("Final stage set to %s."), obt_etapa_str(etapa_final));
+    snprintf(msg_err, MSG_BUFFER, _("Final stage set to %s."), obt_etapa_str(etapa_final));
     log_info(&log_cfg, msg_err);
 
     // Determinar nombre de archivo destino, si no existe
@@ -303,7 +303,7 @@ int main(int argc, char **argv){
         }
         obt_nombre_archivo(archivo_entrada, etapa_final, archivo_salida);
     }
-    snprintf(msg_err, 99, _("Output file: '%s'."), archivo_salida);
+    snprintf(msg_err, MSG_BUFFER, _("Output file: '%s'."), archivo_salida);
     log_info(&log_cfg, msg_err);
 
     // Empezamos análisis
