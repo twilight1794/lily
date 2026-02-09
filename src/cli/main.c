@@ -315,7 +315,7 @@ int main(int argc, char **argv){
     snprintf(msg_err, MSG_BUFFER, _("lily_lex_lexico: %d."), codigo);
     log_info(&log_cfg, msg_err);
     if (codigo != COD_OK) {
-        char caracter_prob = archivo_entrada_p[ctx.i_inicial + ctx.i_desp];
+        char caracter_prob = archivo_entrada_p[ctx.i_desp];
         snprintf(msg_err, MSG_BUFFER, _("type=%d, initial_i=%u, offset_i=%u (0x%x \"%c\")."), ctx.tipo, ctx.i_inicial, ctx.i_desp, caracter_prob, isprint(caracter_prob)?caracter_prob:'?');
         log_info(&log_cfg, msg_err);
     }
