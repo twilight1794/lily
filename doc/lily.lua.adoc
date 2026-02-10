@@ -6,21 +6,22 @@ detalle, lo que hacemos a través de archivos de descripción escritos en tablas
 de Lua. Aquí se describe la estructura que debe tener dicha tabla de Lua para
 ser reconocidas por el hipervisor.
 
-== ``string`` __id__
-Contiene un identificador para el procesador.
+== `string` _id_
+Contiene un identificador para el microprocesador definido. Éste será único en
+el sistema, y seráusado, entre otros lugares, en la directiva `CPU` de Lily.
 
-== ``table`` __registros__
-La tabla registros contiene todos los registros utilizados por el
+== `table` _registros_
+La tabla _registros_ contiene todos los registros utilizados por el
 microprocesador. Es una tabla asociativa: cada índice corresponderá al nombre de
 un registro reconocido, y contendrá una tabla que tendrá especificadas las
 siguientes propiedades:
 
- ``tamano``:: Entero, tamaño en bits del registro.
- ``desplazamiento``:: Entero, ubicación del registro en la matriz de bits. Se ha
+ `tamano`:: Entero, tamaño en bits del registro.
+ `desplazamiento`:: Entero, ubicación del registro en la matriz de bits. Se ha
  de notar que varios registros pueden solaparse, y eso se controla con esta
  propiedad.
 
-== ``table`` __operandos__
+== `table` _operandos_
 La tabla operandos contiene funciones para reconocer y obtener valores por cada
 tipo de operando que un mnemónico pueda requerir. Es una tabla asociativa, cada
 índice corresponde a un identificador para el tipo a definir, mientras que el
@@ -36,8 +37,8 @@ devolverá el primer tipo que haga coincidencia. Dado que éstas se procesan seg
 el orden en el que fueron agregadas en el código Lua, recomendamos incluir antes
 las definiciones más específicas, y después, las más generales.
 
-== ``table`` __ensamble__
-La tabla ensamble contiene todos los mnemónicos del conjunto de
+== `table` _ensamble_
+La tabla __ensamble__ contiene todos los mnemónicos del conjunto de
 instrucciones. Es una tabla asociativa, cada índice corresponde a un mnemónico
 reconocido, y el tipo del valor asociado a cada clave puede variar, dependiendo
 de su función, pero normalmente, será una tabla que contendrá varias duplas,
@@ -58,6 +59,60 @@ Además, si un mnemónico no admite parámetros, pueden usarse como valor
 cualquiera de los tres tipos descritos directamente, en vez de especificar una
 opción con una lista de parámetros vacía.
 
-== ``table`` __opcodes__
+== Tablas de opcodes
+La tabla anterior consiste en una lista de mnemónicos para generar listas de
+bytes, el código máquina que será ejecutado. De forma contraria, las dos tablas
+siguientes consisten en identificar secuencias de bytes para un propósito
+específico: ejecutar una función, en el caso de la tabla _opcodes_, o generar un
+mnemónico y sus parámetros, si hubiera, en el caso de la tabla _desensamble_.
+Por esta razón, la estructura de las dos tablas siguientes es prácticamente la
+misma, variando solamente en el tipo del _elemento de resultado_, que se
+describirá en la sección de su tabla correspondiente. A continuación se
+describirá la estructura general de estas tablas.
 
-== ``table`` __desensamble__
+=== Lista de casos
+Una lista de casos es un array que contiene otros arrays, cada uno de éstos
+conteniendo un _caso_ para comparar una secuencia de bytes. Si esta secuencia
+coincide parcialmente, se seleccionará este caso, y el proceso de búsqueda
+continuará. Las tablas _opcodes_ y _desensamble_ son listas de casos.
+
+=== Caso
+Un caso es un array de dos elementos o partes: un _elemento de coincidencia_, que
+Lily usará para ver si hay una coincidencia parcial con la secuencia de bytes
+que está buscando (desde el inicio de la secuencia a buscar, o desde el punto en
+el que concluyó la búsqueda anterior de esta secuencia), y un _elemento de
+resultado_, que sirve para determinar la acción a realizar de haber una
+coincidencia.
+
+El elemento de coincidencia es un elemento de cualquiera de los siguientes
+tipos:
+
+ `List<int>`:: una lista de bytes contra los cuales comparar.
+ `function(int)`:: una función que recibirá un byte, y que devolverá un valor
+booleano, que indica si el valor coincide o no.
+
+Si el valor del elemento de coincidencia encuentra una coincidencia parcial,
+entonces se seleccionará el elemento de resultado, y la acción dependerá del
+tipo de elemento:
+
+  Lista de casos:: en este caso, se entiende que la búsqueda de coincidencias no
+ha terminado porque faltan bytes por coincidir. Este elemento se vuelve entonces
+en la nueva lista de casos a procesar. Diremos en este caso que el elemento de
+resultado es *no terminal*.
+  Cualquier otro tipo:: dependerá del propósito de la tabla. Estos tipos se
+describen en detalle en su tabla corespondiente. Diremos en este caso que el
+elemento de resultado es *terminal*.
+
+== `table` _opcodes_
+La tabla _opcodes_ es una _lista de casos_, donde cada elemento de resultado
+terminal será una función variádica que recibirá la lista de bytes, y que Lily
+ejecutará. Esta función no devolverá ningún valor, que será ignorado.
+
+== `table` _desensamble_
+La tabla _desensamble_ es una _lista de casos_, donde cada elemento de resultado
+terminal puede ser de cualquiera de los siguientes tipos:
+
+`char*`:: una cadena que representará la conversión a lenguaje ensamblador de
+la secuencia de bytes.
+ `function(...)`:: una función variádica, que recibirá como argumento los bytes
+coincididos, y devolverá una cadena que representará la secuencia de bytes.

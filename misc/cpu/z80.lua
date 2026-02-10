@@ -25,7 +25,7 @@ dd_vals = {
     { 3, 'SP' },
 }
 
--- 
+--
 return {
     id = "zilog.z80",
     registros = {
@@ -137,6 +137,11 @@ return {
             tamano = 1,
             desplazamiento = 15
         },
+        -- Registros de uso interno
+        IM = {
+            tamano = 8,
+            desplazamiento = 196
+        }
     },
     grupos = {
         r = "(a|b|c|d|e|h|l)",
@@ -610,7 +615,7 @@ return {
             },
         },
         DEC = {},
-        -- Grupo de propòsito general y control de CPU
+        -- Grupo de propósito general y control de CPU
         DAA = { 0x27 },
         CPL = { 0x2f },
         NEG = { 0xed, 0x44 },
@@ -628,7 +633,7 @@ return {
                 elseif im == 2 then v = 3 end
             return { 0xed, 70+v } end
         },
-        -- Grupo de rotaciòn y desplazamiento
+        -- Grupo de rotación y desplazamiento
         RLCA = { 0x7 },
         RLA = { 0x17 },
         RRCA = { 0xf },
@@ -819,9 +824,67 @@ return {
         OTDR = { 0xed, 0xbb },
     },
     opcodes = {
-        
+        -- Grupo de carga de 8 bits
+        -- Grupo de carga de 16 bits
+        -- Grupo de búsqueda, intercambio y transferencia
+        -- Grupo aritmético de 8 bits
+        -- Grupo aritmético de 16 bits
+        -- Grupo de propósito general y control de CPU
+        {
+            { 0x76 }, -- HALT
+            function ()
+                lily.detener()
+            end
+        },
+        {
+            { 0xed },
+            {
+                {
+                    function (byte)
+                        return byte == 0x46 or byte == 0x56 or byte == 0x5e
+                    end,
+                    function (...)
+                        local args = {...}
+                        lily.escribir_registro('mi', math.floor(args[2]/10))
+                    end
+                }
+            }
+        }
+
+        -- Grupo de rotación y desplazamiento
+        -- Grupo de bits
+        -- Grupo de salto
+        -- Grupo de llamada y retorno
+        -- Grupo de E/S
     },
     desensamble = {
-        
+        -- Grupo de carga de 8 bits
+        -- Grupo de carga de 16 bits
+        -- Grupo de búsqueda, intercambio y transferencia
+        -- Grupo aritmético de 8 bits
+        -- Grupo aritmético de 16 bits
+        -- Grupo de propósito general y control de CPU
+        {
+            { 0x76 },
+            "HALT"
+        },
+        {
+            { 0xed },
+            {
+                {
+                    function (byte)
+                        return byte == 0x46 or byte == 0x56 or byte == 0x5e
+                    end,
+                    function (...)
+                        return "IM " .. math.floor(({...})[1]/10)-7
+                    end
+                }
+            }
+        }
+        -- Grupo de rotación y desplazamiento
+        -- Grupo de bits
+        -- Grupo de salto
+        -- Grupo de llamada y retorno
+        -- Grupo de E/S
     }
 }
