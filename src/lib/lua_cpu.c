@@ -1,6 +1,6 @@
 #include "lua_cpu.h"
 
-enum lily_error lily_lua_cpu_cargar(char* nombre){
+enum lily_error lily_lua_cpu_cargar(char* codigo){
     // Cargar definición arquitectura a utilizar
     // FIX: por ahora, solo archivos de usuario
     lua_State* L = luaL_newstate();
@@ -11,7 +11,7 @@ enum lily_error lily_lua_cpu_cargar(char* nombre){
     luaopen_table(L);
     luaopen_math(L);
 
-    if (luaL_dostring(L, arquitectura) == LUA_OK) {
+    if (luaL_dostring(L, codigo) == LUA_OK) {
         lua_gettable(L, -1);
         printf("establa: %d\n", lua_istable(L, -1));
         printf("esnumero: %d\n", lua_isnumber(L, -1));
