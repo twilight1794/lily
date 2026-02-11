@@ -11,9 +11,6 @@
 #include <unistd.h>
 
 #include <libintl.h>
-#include "../../lib/lua-5.4.8/src/lua.h"
-#include "../../lib/lua-5.4.8/src/lualib.h"
-#include "../../lib/lua-5.4.8/src/lauxlib.h"
 
 #include "../common/defs.h"
 #include "../common/dict.h"
@@ -21,6 +18,7 @@
 #include "../common/lde.h"
 #include "../common/log.h"
 #include "../lib/a_lexico.h"
+#include "../lib/lua_cpu.h"
 
 #ifndef LILY_VERSION
 #define LILY_VERSION "???"
@@ -323,28 +321,20 @@ int main(int argc, char **argv){
     //struct lily_lde_lde* objeto = lily_lde_create();
     //codigo = z80_semantico(ast, objeto);
     //if (codigo) return codigo;
-
-    // Cargar definición arquitectura a utilizar
-    // FIX: por ahora, solo archivos de usuario
-    lua_State* L = luaL_newstate();
-    luaopen_base(L);
-    luaopen_package(L);
-    luaopen_string(L);
-    luaopen_utf8(L);
-    luaopen_table(L);
-    luaopen_math(L);
-
-    if (luaL_dofile(L, arquitectura) == LUA_OK) {
-        lua_gettable(L, -1);
-        printf("establa: %d\n", lua_istable(L, -1));
-        printf("esnumero: %d\n", lua_isnumber(L, -1));
-        lua_pop(L, lua_gettop(L));
-    } else {
-        puts(lua_tostring(L, lua_gettop(L)));
-        lua_pop(L, lua_gettop(L));
+    
+    
+    // Cargar archivo de definiciones
+    int archivo_arquitectura_fd = open(arquitectura, O_RDONLY);
+    if (archivo_arquitectura_fd == -1) {
+        log_fatal_gen(_("File %s cannot be open."), archivo_arquitectura);
+        exit(EXIT_FAILURE);
     }
-
-    lua_close(L);
+    struct stat archivo_arquitectura_st;
+    fstat(archivo_arquitectura_fd, &archivo_arquitectura_st);
+    char* archivo_arquitectura_p = (char*) mmap(NULL, archivo_arquitectura_st.st_size, PROT_READ, MAP_SHARED, archivo_arquitectura_fd, 0);
+    lily_lua_cpu_cargar(archivo_arquitectura_p);
+    munmap(archivo_arquitectura_p, archivo_arquitectura_st.st_size);
+    close(archivo_arquitectura_fd);
 
     return codigo;
 }

@@ -41,12 +41,13 @@ src/common/log.o: src/common/log.c
 src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\"
 src/cli/main.o: src/cli/main.c
 src/lib/a_lexico.o: src/lib/a_lexico.c
+src/lib/lua_cpu.o: src/lib/lua_cpu.c
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | dist lua-linux
+dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o | dist lua-linux
 	$(CC) -shared -fPIC $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/liblily.dll: src/lib/a_lexico.o src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o | dist lua-windows
+dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o | dist lua-windows
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/lily: src/cli/main.o lib-linux
