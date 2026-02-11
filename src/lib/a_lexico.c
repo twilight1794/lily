@@ -39,6 +39,7 @@ enum lily_error lily_lex_modo_directiva(const char* blob, size_t* i, struct lily
             }
             (*sim)->tipo = SIMB_DIRECTIVA;
             (*sim)->valor = cad_tentativa;
+            log_debug_gen(_("a_lexico: +directiva '%s'"), (char*) (*sim)->valor);
             return COD_OK;
         }
     }
@@ -74,6 +75,7 @@ enum lily_error lily_lex_modo_r_etiqueta(const char* blob, size_t* i, struct lil
     }
     (*sim)->tipo = SIMB_VARIABLE;
     (*sim)->valor = cad_tentativa;
+    log_debug_gen(_("a_lexico: +variable '%s'"), (char*) (*sim)->valor);
     return COD_OK;
 }
 
@@ -95,6 +97,7 @@ enum lily_error lily_lex_modo_objeto(const char* blob, size_t* i, struct lily_le
     }
     (*sim)->tipo = SIMB_OBJETO;
     (*sim)->valor = cad_tentativa;
+    log_debug_gen(_("a_lexico: +objeto '%s'"), (char*) (*sim)->valor);
     return COD_OK;
 }
 
@@ -124,6 +127,7 @@ enum lily_error lily_lex_modo_cadena(const char* blob, size_t* i, struct lily_le
     }
     (*sim)->tipo = (blob[*i] == 0x27)?SIMB_CADENA_SIMPLE:SIMB_CADENA_NUL;
     (*sim)->valor = contenido;
+    log_debug_gen(_("a_lexico: +cadena '%s'"), (char*) (*sim)->valor);
     return COD_OK;
 }
 
@@ -181,6 +185,7 @@ enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_le
     }
     (*sim)->tipo = SIMB_NUMERO;
     (*sim)->valor = (void*) valor;
+    log_debug_gen(_("a_lexico: +número '%s'"), valor_texto);
     free(valor_texto);
     return COD_OK;
 }
@@ -251,6 +256,7 @@ enum lily_error lily_lex_modo_operador(const char* blob, size_t* i, struct lily_
     if (*sim == NULL) return COD_MALLOC_FALLO;
     (*sim)->tipo = SIMB_OPERADOR;
     (*sim)->subtipo = tipo;
+    log_debug_gen(_("a_lexico: +operador %d"), (*sim)->subtipo);
     return COD_OK;
 }
 
@@ -282,6 +288,7 @@ enum lily_error lily_lex_modo_ambiguo(const char* blob, size_t* i, struct lily_l
     }
     (*sim)->tipo = tiene_colon?SIMB_ETI:SIMB_MNEMO;
     (*sim)->valor = cad_tentativa;
+    log_debug_gen(_("a_lexico: +%s %s"), tiene_colon?"etiqueta":"mnemo" SEP (char*) (*sim)->valor);
     return COD_OK;
 }
 

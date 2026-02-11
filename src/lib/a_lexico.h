@@ -16,10 +16,13 @@
 #include "../common/defs.h"
 #include "../common/error.h"
 #include "../common/lde.h"
+#include "../common/log.h"
 #include "../common/pow.h"
 
 #include "../lib/a_lexico_ctipos.h"
 #include "../lib/a_lexico_directivas.h"
+
+#include <libintl.h>
 
 /**
  * Comprueba si un caracter \a c es un espacio (0x20), tabulador (0x9), salto de línea (0xa), o retorno de carro (0xd)
