@@ -44,7 +44,7 @@ enum lily_main_etapa {
     LILY_MAIN_EJECUCION,
 };
 
-struct lily_log_config lily_log_cfg = {
+struct lily_log_config lily_log_conf = {
     .colores = true,
     .incluir_fecha = true,
     .incluir_hora = true,
@@ -195,12 +195,12 @@ int main(int argc, char **argv){
                 }
                 break;
             case 'l':
-                if (!strcmp(optarg, "debug")) lily_log_cfg.nivel_minimo = LILY_LOG_DEBUG;
-                else if (!strcmp(optarg, "info")) lily_log_cfg.nivel_minimo = LILY_LOG_INFO;
-                else if (!strcmp(optarg, "warn")) lily_log_cfg.nivel_minimo = LILY_LOG_WARN;
-                else if (!strcmp(optarg, "error")) lily_log_cfg.nivel_minimo = LILY_LOG_ERROR;
-                else if (!strcmp(optarg, "fatal")) lily_log_cfg.nivel_minimo = LILY_LOG_FATAL;
-                else if (!strcmp(optarg, "none")) lily_log_cfg.nivel_minimo = LILY_LOG_NONE;
+                if (!strcmp(optarg, "debug")) lily_log_conf.nivel_minimo = LILY_LOG_DEBUG;
+                else if (!strcmp(optarg, "info")) lily_log_conf.nivel_minimo = LILY_LOG_INFO;
+                else if (!strcmp(optarg, "warn")) lily_log_conf.nivel_minimo = LILY_LOG_WARN;
+                else if (!strcmp(optarg, "error")) lily_log_conf.nivel_minimo = LILY_LOG_ERROR;
+                else if (!strcmp(optarg, "fatal")) lily_log_conf.nivel_minimo = LILY_LOG_FATAL;
+                else if (!strcmp(optarg, "none")) lily_log_conf.nivel_minimo = LILY_LOG_NONE;
                 else {
                     log_error_gen(_("The value \"%s\" for parameter logging was not recognized"), optarg);
                 }
