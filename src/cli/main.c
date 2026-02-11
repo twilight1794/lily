@@ -12,13 +12,12 @@
 
 #include <libintl.h>
 
+#include "../common/defs.h"
 #include "../common/dict.h"
 #include "../common/error.h"
 #include "../common/lde.h"
 #include "../common/log.h"
 #include "../lib/a_lexico.h"
-
-#define _(STRING) gettext(STRING)
 
 #ifndef LILY_VERSION
 #define LILY_VERSION "???"
@@ -29,9 +28,6 @@
 #ifndef LILY_MODIFICADO
 #define LILY_MODIFICADO ""
 #endif
-
-//v Para pasar comas a macros
-#define SEP ,
 
 enum lily_main_estricto {
     LILY_MAIN_RELAJADO,

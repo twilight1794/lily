@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "../common/cadena.h"
+#include "../common/defs.h"
 #include "../common/error.h"
 #include "../common/lde.h"
 #include "../common/pow.h"
