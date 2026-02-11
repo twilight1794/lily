@@ -3,7 +3,7 @@ TARGET := all
 
 CC := gcc
 CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99
-LDLIBS := -lm
+LDLIBS := -Llib/lua-5.4.8/src -lm
 RM := rm -rf
 BINDIR := /usr/local/bin
 LIBDIR := /usr/local/lib
@@ -44,10 +44,10 @@ src/lib/a_lexico.o: src/lib/a_lexico.c
 src/lib/lua_cpu.o: src/lib/lua_cpu.c
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o | dist lua-linux
+dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o -llua.a | dist lua-linux
 	$(CC) -shared -fPIC $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o | dist lua-windows
+dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o -llua.a | dist lua-windows
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/lily: src/cli/main.o lib-linux
@@ -57,7 +57,7 @@ dist/lily.exe: src/cli/main.o lib-windows
 	$(CC) $(LDFLAGS) src/cli/main.o -L dist -llily $(LDLIBS) -o $@
 
 dist/liblily.js: | dist lua-web
-	emcc -Ilib/lua-5.4.7/src main.c lua-5.4.0/src/liblua.a -s WASM=1 -O2 -o dist/liblily.js -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
+	emcc -Ilib/lua-5.4.8/src main.c lua-5.4.8/src/liblua.a -s WASM=1 -O2 -o dist/liblily.js -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
 
 dist:
 	mkdir -p dist
