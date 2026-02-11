@@ -1,7 +1,7 @@
 -- Especificación del microprocesador Intel 8086
 
 return {
-    id = "intel.8086"
+    id = "intel.8086",
     registros = {
         AL = {
             tamano = 8,

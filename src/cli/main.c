@@ -11,6 +11,9 @@
 #include <unistd.h>
 
 #include <libintl.h>
+#include "../../lib/lua-5.4.8/src/lua.h"
+#include "../../lib/lua-5.4.8/src/lualib.h"
+#include "../../lib/lua-5.4.8/src/lauxlib.h"
 
 #include "../common/defs.h"
 #include "../common/dict.h"
@@ -87,7 +90,7 @@ int main(int argc, char **argv){
     enum lily_main_etapa etapa_final = LILY_MAIN_INDETERMINADO;
     enum lily_main_estricto estricto = LILY_MAIN_RELAJADO;
 
-    // Parámetros
+    // Análisis de parámetros
     int c;
     opterr = 0;
     int longopt_idx = 0;
@@ -320,6 +323,28 @@ int main(int argc, char **argv){
     //struct lily_lde_lde* objeto = lily_lde_create();
     //codigo = z80_semantico(ast, objeto);
     //if (codigo) return codigo;
+
+    // Cargar definición arquitectura a utilizar
+    // FIX: por ahora, solo archivos de usuario
+    lua_State* L = luaL_newstate();
+    luaopen_base(L);
+    luaopen_package(L);
+    luaopen_string(L);
+    luaopen_utf8(L);
+    luaopen_table(L);
+    luaopen_math(L);
+
+    if (luaL_dofile(L, arquitectura) == LUA_OK) {
+        lua_gettable(L, -1);
+        printf("establa: %d\n", lua_istable(L, -1));
+        printf("esnumero: %d\n", lua_isnumber(L, -1));
+        lua_pop(L, lua_gettop(L));
+    } else {
+        puts(lua_tostring(L, lua_gettop(L)));
+        lua_pop(L, lua_gettop(L));
+    }
+
+    lua_close(L);
 
     return codigo;
 }
