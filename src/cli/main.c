@@ -30,7 +30,8 @@
 #define LILY_MODIFICADO ""
 #endif
 
-#define MSG_BUFFER 255
+//v Para pasar comas a macros
+#define SEP ,
 
 enum lily_main_estricto {
     LILY_MAIN_RELAJADO,
@@ -47,20 +48,21 @@ enum lily_main_etapa {
     LILY_MAIN_EJECUCION,
 };
 
-static struct lily_log_config log_cfg = {
+struct lily_log_config lily_log_cfg = {
     .colores = true,
     .incluir_fecha = true,
     .incluir_hora = true,
     .incluir_archivo = false,
     .nivel_minimo = LILY_LOG_DEBUG
 };
-static char msg_err[MSG_BUFFER+1];
-static enum lily_error estado;
+bool lily_log_msg_null;
+char* lily_log_msg_buffer;
+enum lily_error estado;
 
 void f_help(char* name);
 void f_version(void);
 struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict);
-char* obt_extension(const char *nombre);
+char* obt_extension(char *nombre);
 void obt_nombre_archivo(char* nombre, enum lily_main_etapa etapa, char* archivo_salida);
 char* obt_etapa_str(enum lily_main_etapa etapa);
 
@@ -123,8 +125,7 @@ int main(int argc, char **argv){
             case 'D':
                 opt_nodo = obt_param_valorado(optarg, &macros);
                 if (opt_nodo == NULL) {
-                    snprintf(msg_err, MSG_BUFFER, _("Error while adding macro \"%s\"."), optarg);
-                    log_fatal(&log_cfg, msg_err);
+                    log_fatal_gen(_("Error while adding macro \"%s\"."), optarg);
                     return COD_MALLOC_FALLO;
                 }
                 break;
@@ -148,16 +149,14 @@ int main(int argc, char **argv){
                 else arr = (c=='W'?&avisos:&errores);
                 const struct lily_lde_nodo* nodo = lily_lde_insert(arr, arr->tamano, optarg+(es_negativo?2:0));
                 if (nodo == NULL) {
-                    snprintf(msg_err, MSG_BUFFER, _("Error while adding %s \"%s\"."), (c=='W'?"warning":"error"), optarg);
-                    log_fatal(&log_cfg, msg_err);
+                    log_fatal_gen(_("Error while adding %s \"%s\"."), (c=='W'?"warning":"error") SEP optarg);
                     return COD_MALLOC_FALLO;
                 }
                 break;
             case 'O':
                 opt_nodo = obt_param_valorado(optarg, &opciones);
                 if (opt_nodo == NULL) {
-                    snprintf(msg_err, MSG_BUFFER, _("Error while adding option \"%s\"."), optarg);
-                    log_fatal(&log_cfg, msg_err);
+                    log_fatal_gen(_("Error while adding option \"%s\"."), optarg);
                     return COD_MALLOC_FALLO;
                 }
                 break;
@@ -195,20 +194,19 @@ int main(int argc, char **argv){
                     etapa_final = LILY_MAIN_EJECUCION;
                 }
                 else {
-                    snprintf(msg_err, MSG_BUFFER, _("The value \"%s\" for parameter stage was not recognized"), optarg);
-                    log_fatal(&log_cfg, msg_err);
+                    log_fatal_gen(_("The value \"%s\" for parameter stage was not recognized"), optarg);
                     exit(EXIT_FAILURE);
                 }
                 break;
             case 'l':
-                if (!strcmp(optarg, "debug")) log_cfg.nivel_minimo = LILY_LOG_DEBUG;
-                else if (!strcmp(optarg, "info")) log_cfg.nivel_minimo = LILY_LOG_INFO;
-                else if (!strcmp(optarg, "warn")) log_cfg.nivel_minimo = LILY_LOG_WARN;
-                else if (!strcmp(optarg, "error")) log_cfg.nivel_minimo = LILY_LOG_ERROR;
-                else if (!strcmp(optarg, "fatal")) log_cfg.nivel_minimo = LILY_LOG_FATAL;
+                if (!strcmp(optarg, "debug")) lily_log_cfg.nivel_minimo = LILY_LOG_DEBUG;
+                else if (!strcmp(optarg, "info")) lily_log_cfg.nivel_minimo = LILY_LOG_INFO;
+                else if (!strcmp(optarg, "warn")) lily_log_cfg.nivel_minimo = LILY_LOG_WARN;
+                else if (!strcmp(optarg, "error")) lily_log_cfg.nivel_minimo = LILY_LOG_ERROR;
+                else if (!strcmp(optarg, "fatal")) lily_log_cfg.nivel_minimo = LILY_LOG_FATAL;
+                else if (!strcmp(optarg, "none")) lily_log_cfg.nivel_minimo = LILY_LOG_NONE;
                 else {
-                    snprintf(msg_err, MSG_BUFFER, _("The value \"%s\" for parameter logging was not recognized"), optarg);
-                    log_error(&log_cfg, msg_err);
+                    log_error_gen(_("The value \"%s\" for parameter logging was not recognized"), optarg);
                 }
                 break;
             case 'h':
@@ -219,25 +217,26 @@ int main(int argc, char **argv){
                 return COD_OK;
             default:
                 if (optopt) {
-                    snprintf(msg_err, MSG_BUFFER, _("The parameter '%c' was not recognized."), optopt);
-                } else
-                    snprintf(msg_err, MSG_BUFFER, _("The parameter '%s' was not recognized."), argv[longopt_idx+1]);
-                log_error(&log_cfg, msg_err);
+                    lily_log_gen_msg(_("The parameter '%c' was not recognized."), optopt);
+                } else {
+                    lily_log_gen_msg(_("The parameter '%s' was not recognized."), argv[longopt_idx+1]);
+                }
+                log_error(lily_log_msg_buffer);
+                free(lily_log_msg_buffer);
         }
     };
 
     // Listas de archivos
     // FIX: Por ahora, un solo archivo
     if (optind == argc){
-        log_fatal(&log_cfg, _("An input file was not specified."));
+        log_fatal(_("An input file was not specified."));
         exit(EXIT_FAILURE);
     } else archivo_entrada = argv[optind++];
 
     // Abrimos archivo
     int archivo_entrada_fd = open(archivo_entrada, O_RDONLY);
-    if (archivo_entrada_fd == -1){
-        snprintf(msg_err, MSG_BUFFER, _("File %s cannot be open."), archivo_entrada);
-        log_fatal(&log_cfg, msg_err);
+    if (archivo_entrada_fd == -1) {
+        log_fatal_gen(_("File %s cannot be open."), archivo_entrada);
         exit(EXIT_FAILURE);
     }
     struct stat archivo_entrada_st;
@@ -282,29 +281,26 @@ int main(int argc, char **argv){
 
     // En este punto, ya debemos saber qué haremos
     if (etapa_inicial == LILY_MAIN_INDETERMINADO) {
-        log_fatal(&log_cfg, _("Initial stage cannot be determined."));
+        log_fatal(_("Initial stage cannot be determined."));
         exit(EXIT_FAILURE);
     }
-    snprintf(msg_err, MSG_BUFFER, _("Initial stage set to %s."), obt_etapa_str(etapa_inicial));
-    log_info(&log_cfg, msg_err);
+    log_info_gen(_("Initial stage set to %s."), obt_etapa_str(etapa_inicial));
     if (etapa_final < LILY_MAIN_ENSAMBLADO || etapa_final < etapa_inicial) {
-        log_fatal(&log_cfg, _("Final stage cannot be determined."));
+        log_fatal(_("Final stage cannot be determined."));
         exit(EXIT_FAILURE);
     }
-    snprintf(msg_err, MSG_BUFFER, _("Final stage set to %s."), obt_etapa_str(etapa_final));
-    log_info(&log_cfg, msg_err);
+    log_info_gen(_("Final stage set to %s."), obt_etapa_str(etapa_final));
 
     // Determinar nombre de archivo destino, si no existe
     if (archivo_salida == NULL) {
         archivo_salida = (char*) calloc(strlen(archivo_entrada)+4, 1);
         if (archivo_salida == NULL) {
-            log_fatal(&log_cfg, _("Error while determining output filename."));
+            log_fatal(_("Error while determining output filename."));
             exit(EXIT_FAILURE);
         }
         obt_nombre_archivo(archivo_entrada, etapa_final, archivo_salida);
     }
-    snprintf(msg_err, MSG_BUFFER, _("Output file: '%s'."), archivo_salida);
-    log_info(&log_cfg, msg_err);
+    log_info_gen(_("Output file: '%s'."), archivo_salida)
 
     // Empezamos análisis
 
@@ -312,12 +308,10 @@ int main(int argc, char **argv){
     struct lily_lde_lde* simbolos = lily_lde_create();
     struct lily_lex_error_ctx ctx;
     int codigo = lily_lex_lexico(archivo_entrada_p, simbolos, &ctx);
-    snprintf(msg_err, MSG_BUFFER, _("lily_lex_lexico: %d."), codigo);
-    log_info(&log_cfg, msg_err);
+    log_info_gen(_("lily_lex_lexico: %d."), codigo);
     if (codigo != COD_OK) {
         char caracter_prob = archivo_entrada_p[ctx.i_desp];
-        snprintf(msg_err, MSG_BUFFER, _("type=%d, initial_i=%u, offset_i=%u (0x%x \"%c\")."), ctx.tipo, ctx.i_inicial, ctx.i_desp, caracter_prob, isprint(caracter_prob)?caracter_prob:'?');
-        log_info(&log_cfg, msg_err);
+        log_info_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx.tipo SEP ctx.i_inicial SEP ctx.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?')
     }
 
     munmap(archivo_entrada_p, archivo_entrada_st.st_size);
@@ -401,7 +395,7 @@ struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict
     return lily_dict_insert(dict, define_nombre, define_valor, NULL);
 }
 
-char* obt_extension(const char *nombre) {
+char* obt_extension(char *nombre) {
     char* punto = strrchr(nombre, '.');
     if (punto == NULL || punto == nombre) return nombre + strlen(nombre);
     return punto+1;
@@ -419,7 +413,6 @@ void obt_nombre_archivo(char* nombre, enum lily_main_etapa etapa, char* archivo_
     else if (etapa == LILY_MAIN_ENSAMBLADO) strcpy(archivo_salida+nombre_tam, ".o");
     else if (etapa == LILY_MAIN_ENLAZADO) strcpy(archivo_salida+nombre_tam, "");
     else if (etapa == LILY_MAIN_DESENSAMBLADO) strcpy(archivo_salida+nombre_tam, ".s");
-    return;
 }
 
 char* obt_etapa_str(enum lily_main_etapa etapa) {
