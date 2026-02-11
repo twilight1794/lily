@@ -12,7 +12,7 @@ void lily_lex_modo_comentario(const char* blob, size_t* i) {
 
 enum lily_error lily_lex_modo_directiva(const char* blob, size_t* i, struct lily_lex_simbolo** sim) {
     // Comprobar antes si esto pudiera ser un número decimal
-    if (isdigit(blob[*(i+1)])) return COD_A_LEXICO_RECON_ERRONEO;
+    if (isdigit(blob[(*i)+1])) return COD_A_LEXICO_RECON_ERRONEO;
 
     (*i)++; // Nos saltamos el punto
 
@@ -109,7 +109,7 @@ enum lily_error lily_lex_modo_cadena(const char* blob, size_t* i, struct lily_le
     // Las cadenas son agnósticas: todo lo que esté entre la primera comilla, y otra comilla de la misma clase, es considerado tal cual parte de la cadena, a excepción de los caracteres 0x0a y 0x00. Por ahora, tampoco hay secuencias de escape.
     char* contenido = lily_cadena_create();
     if (contenido == NULL) return COD_MALLOC_FALLO;
-    while (blob[*i] != 0x0a && blob[*i] != 0 && blob[*i] == comilla_inicial) {
+    while (blob[*i] != 0x0a && blob[*i] != 0 && blob[*i] != comilla_inicial) {
         lily_cadena_add(contenido, blob+(*i));
         (*i)++;
     }
@@ -119,15 +119,16 @@ enum lily_error lily_lex_modo_cadena(const char* blob, size_t* i, struct lily_le
         free(contenido);
         return COD_A_LEXICO_FIN_INESPERADO;
     }
+    (*i)++;
     // Terminamos la cadena bien
     *sim = lily_lex_simbolo_create();
     if (*sim == NULL) {
         free(contenido);
         return COD_MALLOC_FALLO;
     }
-    (*sim)->tipo = (blob[*i] == 0x27)?SIMB_CADENA_SIMPLE:SIMB_CADENA_NUL;
+    (*sim)->tipo = (comilla_inicial == 0x27)?SIMB_CADENA_SIMPLE:SIMB_CADENA_NUL;
     (*sim)->valor = contenido;
-    log_debug_gen(_("a_lexico: +cadena '%s'"), (char*) (*sim)->valor);
+    log_debug_gen(_("a_lexico: +cadena %c%s%c"), comilla_inicial SEP (char*) (*sim)->valor SEP comilla_inicial);
     return COD_OK;
 }
 

@@ -32,6 +32,7 @@ char* lily_lex_directivas[] = {
     // Inclusión de archivos
     "INC",
     // Control de ensamblado
+    "CPU",
     "ORG",
     "STOP",
     // Estructuras de datos
