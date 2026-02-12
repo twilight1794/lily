@@ -3,13 +3,12 @@ TARGET := all
 
 CC := gcc
 CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99
-LDFLAGS := -Llib/lua-5.4.8/src -Ldist
-LDLIBS := -llua -lm
+LDFLAGS := -Ldist
+LDLIBS := -lm
 RM := rm -rf
 BINDIR := /usr/local/bin
 LIBDIR := /usr/local/lib
 MANDIR := /usr/local/share/man/man1
-LUADIR := lib/lua-5.4.8
 # -----END USER CONFIGURATION-----
 
 V_LILY_VERSION=$(shell git tag --points-at HEAD)
@@ -17,7 +16,7 @@ V_LILY_COMMIT=$(shell git rev-parse HEAD|cut -c 1-8)
 V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; else echo ''; fi)
 
 TARGETS := linux windows lib-linux lib-windows web
-.PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean lua-linux lua-windows lua-web test-windows test-linux
+.PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean test-windows test-linux
 
 all: linux windows web
 linux: dist/lily
@@ -26,29 +25,20 @@ lib-linux: dist/liblily.so
 lib-windows: dist/liblily.dll
 web: dist/liblily.js
 
-lua-linux:
-	cd $(LUADIR)/src && make
-
-lua-windows:
-	cd $(LUADIR)/src && make mingw
-
-lua-web:
-	cd $(LUADIR)/src && make generic CC='emcc -s WASM=1'
-
-src/common/cadena.o: src/common/cadena.c
-src/common/dict.o: src/common/dict.c
-src/common/lde.o: src/common/lde.c
-src/common/log.o: src/common/log.c
+src/common/cadena.o: src/common/cadena.c src/common/cadena.h
+src/common/dict.o: src/common/dict.c src/common/dict.h
+src/common/lde.o: src/common/lde.c src/common/lde.h
+src/common/log.o: src/common/log.c src/common/log.h
 src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\"
 src/cli/main.o: src/cli/main.c
-src/lib/a_lexico.o: src/lib/a_lexico.c
-src/lib/lua_cpu.o: src/lib/lua_cpu.c
+src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h src/lib/a_lexico_directivas.h
+src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o | dist lua-linux
+dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o
 	$(CC) -shared -fPIC $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o | dist lua-windows
+dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/lily: src/cli/main.o lib-linux
@@ -57,8 +47,8 @@ dist/lily: src/cli/main.o lib-linux
 dist/lily.exe: src/cli/main.o lib-windows
 	$(CC) $(LDFLAGS) src/cli/main.o -llily $(LDLIBS) -o $@
 
-dist/liblily.js: | dist lua-web
-	emcc -Ilib/lua-5.4.8/src main.c lua-5.4.8/src/liblua.a -s WASM=1 -O2 -o dist/liblily.js -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
+dist/liblily.js: | dist
+	emcc main.c libluawasm.a -s WASM=1 -O2 -o $@ -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
 
 dist:
 	mkdir -p dist

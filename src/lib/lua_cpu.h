@@ -9,9 +9,9 @@
 #include "../common/defs.h"
 #include "../common/error.h"
 
-#include "../../lib/lua-5.4.8/src/lua.h"
-#include "../../lib/lua-5.4.8/src/lualib.h"
-#include "../../lib/lua-5.4.8/src/lauxlib.h"
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
 
 enum lily_error lily_lua_cpu_cargar(char* nombre);
 
