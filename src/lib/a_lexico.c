@@ -1,9 +1,5 @@
 #include "../lib/a_lexico.h"
 
-struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void) {
-    return calloc(1, sizeof(struct lily_a_lexico_simbolo));
-}
-
 void lily_a_lexico_modo_comentario(const char* blob, size_t* i) {
     do (*i)++;
     while (blob[*i] != '\n' && blob[*i] != 0);

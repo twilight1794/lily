@@ -82,4 +82,16 @@ char lily_a_lexico_ctipos[] = {
     0, // DEL
 };
 
+/**
+ * Comprueba si un caracter \a c es un espacio (0x20), tabulador (0x9), salto de línea (0xa), o retorno de carro (0xd)
+ * @param c Caracter a analizar
+ */
+#define lex_esblanco(c) (lily_a_lexico_ctipos[(unsigned char) c]&1)
+
+/**
+ * Comprueba si un caracter \a c puede ser parte de un operador
+ * @param c Caracter a analizar
+ */
+#define lex_esoperador(c) (lily_a_lexico_ctipos[(unsigned char) c]&2)
+
 #endif

@@ -17,6 +17,10 @@ enum lily_error {
     COD_A_LEXICO_MNEMONICO_INVALIDO, /**< El mnemónico es inválido */
     COD_A_LEXICO_CARACTER_INVALIDO, /**< Caracter inválido durante el procesamiento de un tipo */
     COD_A_LEXICO_FIN_INESPERADO, /**< El archivo terminó antes de lo esperado */
+    // lib/a_sintactico.h
+    COD_A_SINTACTICO_CPU_NO_ESPECIFICADO, /**< No se ha especificado la directiva CPU cuando se ha requerido */
+    COD_A_SINTACTICO_FIN_INESPERADO, /**< La lista de símbolos terminó antes de lo esperado */
+    COD_A_SINTACTICO_NO_CADENA_NUL, /**< Se esperaba una cadena nul, pero el símbolo no era */
     // lib/lua_cpu.h
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */
     COD_LUA_CPU_DESC_NO_ID, /**< El miembro "id" no existe en el objeto de descripción */

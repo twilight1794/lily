@@ -18,6 +18,7 @@
 #include "../common/lde.h"
 #include "../common/log.h"
 #include "../lib/a_lexico.h"
+#include "../lib/a_sintactico.h"
 #include "../lib/lua_cpu.h"
 
 #ifndef LILY_VERSION
@@ -314,8 +315,11 @@ int main(int argc, char **argv){
     munmap(archivo_entrada_p, archivo_entrada_st.st_size); // Ya no necesitamos más el archivo
     close(archivo_entrada_fd);
 
-    //struct lily_lde_lde* ast = lily_lde_create();
-    //codigo = z80_sintactico(simbolos, ast);
+    // Análisis sintáctico
+    struct lily_lde_lde* ast = lily_lde_create();
+    struct lily_a_sintactico_ctx ctx_sintactico;
+    estado = lily_a_sintactico(simbolos, ast, &ctx_sintactico);
+    log_info_gen(_("lily_a_sintactico: %d."), estado);
     //if (codigo) return codigo;
 
     //struct lily_lde_lde* objeto = lily_lde_create();
