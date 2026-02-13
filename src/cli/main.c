@@ -324,6 +324,7 @@ int main(int argc, char **argv){
 
 
     // Cargar archivo de definiciones
+    // FIX: por ahora, solo archivos de usuario
     int archivo_arquitectura_fd = open(arquitectura, O_RDONLY);
     if (archivo_arquitectura_fd == -1) {
         log_fatal_gen(_("File %s cannot be open."), arquitectura);

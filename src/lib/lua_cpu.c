@@ -2,10 +2,11 @@
 
 lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx *error_ctx) {
     // Cargar definición arquitectura a utilizar
-    // FIX: por ahora, solo archivos de usuario
     lua_State* L = luaL_newstate();
+    // FIX: hay qué quitar algunas bibliotecas porque tienen funciones peligrosas, y reimplementar las que pudieran ser útiles:
+    // Para base: assert, error, getmetatable, ipairs, next, pairs, print, setmetatable, tonumber, tostring, type
+    // Para package: analizar si deberíamos permitir cargar un archivo externo
     luaopen_base(L);
-    luaopen_package(L);
     luaopen_string(L);
     luaopen_utf8(L);
     luaopen_table(L);
