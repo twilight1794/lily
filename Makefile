@@ -36,7 +36,7 @@ src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/web/main.o: src/web/main.c
 
 dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o
-	$(CC) -shared -fPIC $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(CC) -shared -fPIC $(LDFLAGS) $^ -llua $(LDLIBS) -o $@
 
 dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/lua_cpu.o
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
