@@ -335,7 +335,8 @@ int main(int argc, char **argv){
     char* archivo_arquitectura_p = (char*) mmap(NULL, archivo_arquitectura_st.st_size, PROT_READ, MAP_SHARED, archivo_arquitectura_fd, 0);
     struct lily_lua_cpu_error_ctx lua_cpu_ctx;
     lua_cpu_ctx.codigo = COD_OK;
-    lily_lua_cpu_cargar(archivo_arquitectura_p, &lua_cpu_ctx);
+    lua_State* L = lily_lua_cpu_cargar(archivo_arquitectura_p, &lua_cpu_ctx);
+    lily_lua_cpu_ensamblar(L, NULL, NULL, &lua_cpu_ctx);
     printf("lua_cpu_cargar: %d\n", lua_cpu_ctx.codigo);
     munmap(archivo_arquitectura_p, archivo_arquitectura_st.st_size);
     close(archivo_arquitectura_fd);

@@ -116,3 +116,49 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
 
     return L;
 }
+
+char* lily_lua_cpu_ensamblar(lua_State* L, const char* mnemo, void** params, struct lily_lua_cpu_error_ctx *error_ctx) {
+    //char* bytes = lily_cadena_create();
+    lua_pushstring(L, "ensamble");
+    lua_gettable(L, -2);
+    /*lua_pushstring(L, mnemo);
+    lua_gettable(L, -2); // No hay validación: en este punto, todos los mnemónicos deben existir
+    // Determinar tipo de mnemónico
+    if (lua_isfunction(L, -1)) {
+        printf("%s es de tipo función\n", mnemo);
+        // Atajo: función
+        // ...
+    } else {
+        // En este punto puede ser: List<int>, Tuple<char*, function>, List<Tuple<Params, Value>>
+        int tipo_tentativo = lua_geti(L, -1, 1);
+        if (tipo_tentativo == LUA_TNUMBER) printf("%s es de tipo List<int>\n", mnemo);
+        else if (tipo_tentativo == LUA_TSTRING) printf("%s es de tipo Tuple<char*, funcion>\n", mnemo);
+        else if (tipo_tentativo == LUA_TTABLE) printf("%s es de tipo List<Tuple<Params, Value>>\n", mnemo);
+    }
+    lua_pop(L, 3);*/
+
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        if (lua_type(L, -2) != LUA_TSTRING) {
+            puts("Esto pasa?");
+            lua_pop(L, 1); /* pop the value */
+            continue;
+        }
+        char* elmnemo = lua_tostring(L, -2);
+        if (lua_isfunction(L, -1)) {
+            printf("%s es de tipo función\n", elmnemo);
+            // Atajo: función
+            // ...
+        } else {
+            // En este punto puede ser: List<int>, Tuple<char*, function>, List<Tuple<Params, Value>>
+            int tipo_tentativo = lua_geti(L, -1, 1);
+            if (tipo_tentativo == LUA_TNUMBER) printf("%s es de tipo List<int>\n", elmnemo);
+            else if (tipo_tentativo == LUA_TSTRING) printf("%s es de tipo Tuple<char*, funcion>\n", elmnemo);
+            else if (tipo_tentativo == LUA_TTABLE) printf("%s es de tipo List<Tuple<Params, Value>>\n", elmnemo);
+        }
+        lua_pop(L, 2);
+    }
+
+    return NULL;
+    //return bytes;
+}
