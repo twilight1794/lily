@@ -303,12 +303,12 @@ int main(int argc, char **argv){
 
     /// Análisis léxico
     struct lily_lde_lde* simbolos = lily_lde_create();
-    struct lily_a_lexico_estado_ctx ctx;
-    estado = lily_a_lexico(archivo_entrada_p, simbolos, &ctx);
+    struct lily_a_lexico_ctx ctx_lexico;
+    estado = lily_a_lexico(archivo_entrada_p, simbolos, &ctx_lexico);
     log_info_gen(_("lily_a_lexico: %d."), estado);
     if (estado != COD_OK) {
-        char caracter_prob = archivo_entrada_p[ctx.i_desp];
-        log_info_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx.tipo SEP ctx.i_inicial SEP ctx.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?')
+        char caracter_prob = archivo_entrada_p[ctx_lexico.i_desp];
+        log_info_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx_lexico.tipo SEP ctx_lexico.i_inicial SEP ctx_lexico.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?')
     }
 
     munmap(archivo_entrada_p, archivo_entrada_st.st_size); // Ya no necesitamos más el archivo

@@ -293,7 +293,7 @@ enum lily_error lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, struct l
     return COD_OK;
 }
 
-enum lily_error lily_a_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_a_lexico_estado_ctx* error_ctx) {
+enum lily_error lily_a_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_a_lexico_ctx* ctx) {
     // Variables a utilizar
     enum lily_error cod = COD_OK;
     enum lily_a_lexico_tipo_simbolo tipo_tentativo;
@@ -443,10 +443,10 @@ enum lily_error lily_a_lexico(const char* blob, struct lily_lde_lde* simbolos, s
         }
     } while (blob[i] != 0);
 
-    if (cod != COD_OK && error_ctx != NULL) {
-        error_ctx->tipo = tipo_tentativo;
-        error_ctx->i_inicial = i_inicial;
-        error_ctx->i_desp = i;
+    if (cod != COD_OK && ctx != NULL) {
+        ctx->tipo = tipo_tentativo;
+        ctx->i_inicial = i_inicial;
+        ctx->i_desp = i;
     }
     return cod;
 }

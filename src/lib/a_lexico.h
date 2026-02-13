@@ -100,9 +100,9 @@ struct lily_a_lexico_simbolo {
 struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void);
 
 /**
- * Estructura para almacenar detalles sobre dónde ocurrió un error, si lo hubo
+ * Estructura para almacenar detalles sobre la ejecución del análisis léxico
  */
-struct lily_a_lexico_estado_ctx {
+struct lily_a_lexico_ctx {
     enum lily_a_lexico_tipo_simbolo tipo; //< Tipo tentativo del símbolo que se estaba generando
     size_t i_inicial; //< Posición en \a blob del símbolo tentativo
     size_t i_desp; //< Desplazamiento desde \a i_inicial hasta el valor actual de \a i
@@ -192,10 +192,10 @@ enum lily_error lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, struct l
 /**
  * Función de entrada del analizador léxico
  * @param blob Cadena de texto que contiene el código fuente del archivo principal
- * @param simbolos Lista de símbolos encontrados
- * @param [out] error_ctx Estado de la ejecución al momento de salir de la función, si \a error_ctx no es \c NULL
- * @return Código de error de la operación
+ * @param [out] simbolos Lista de símbolos encontrados
+ * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
+ * @return Código de estado de la operación
  */
-enum lily_error lily_a_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_a_lexico_estado_ctx* error_ctx);
+enum lily_error lily_a_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_a_lexico_ctx* ctx);
 
 #endif
