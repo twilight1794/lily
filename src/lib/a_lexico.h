@@ -193,7 +193,7 @@ enum lily_error lily_lex_modo_ambiguo(const char* blob, size_t* i, struct lily_l
  * Función de entrada del analizador léxico
  * @param blob Cadena de texto que contiene el código fuente del archivo principal
  * @param simbolos Lista de símbolos encontrados
- * @param [out] error_ctx Posición del puntero en \a blob al momento de salir de la función, si \a error_ctx no es \c NULL
+ * @param [out] error_ctx Estado de la ejecución al momento de salir de la función, si \a error_ctx no es \c NULL
  * @return Código de error de la operación
  */
 enum lily_error lily_lex_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_lex_error_ctx* error_ctx);
