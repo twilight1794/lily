@@ -32,7 +32,7 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
             return NULL;
         }
         const char* objeto_id = lua_tostring(L, -1);
-        lua_pop(L, -1);
+        lua_pop(L, 1);
 
         // Analizar registros
         lua_pushstring(L, "registros");
@@ -47,7 +47,7 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
             lua_close(L);
             return NULL;
         }
-        lua_pop(L, -1);
+        lua_pop(L, 1);
 
         // Analizar operandos
         lua_pushstring(L, "operandos");
@@ -62,7 +62,7 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
             lua_close(L);
             return NULL;
         }
-        lua_pop(L, -1);
+        lua_pop(L, 1);
 
         // Analizar ensamble
         lua_pushstring(L, "ensamble");
@@ -77,7 +77,7 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
             lua_close(L);
             return NULL;
         }
-        lua_pop(L, -1);
+        lua_pop(L, 1);
 
         // Analizar opcodes
         lua_pushstring(L, "opcodes");
@@ -92,7 +92,7 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
             lua_close(L);
             return NULL;
         }
-        lua_pop(L, -1);
+        lua_pop(L, 1);
 
         // Analizar desensamble
         lua_pushstring(L, "desensamble");
@@ -107,7 +107,7 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
             lua_close(L);
             return NULL;
         }
-        lua_pop(L, -1);
+        lua_pop(L, 1);
     } else {
         puts(lua_tostring(L, lua_gettop(L)));
         lua_pop(L, lua_gettop(L));

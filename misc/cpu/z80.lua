@@ -143,12 +143,7 @@ return {
             desplazamiento = 196
         }
     },
-    grupos = {
-        r = "(a|b|c|d|e|h|l)",
-        n = "%d\\+",
-        qq = "(bc|de|hl|af)",
-        m = "(hl)"
-    },
+    operandos = {},
     ensamble = {
         LD = {
             -- Grupo de carga de 8 bits
