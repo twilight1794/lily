@@ -303,15 +303,15 @@ int main(int argc, char **argv){
 
     /// Análisis léxico
     struct lily_lde_lde* simbolos = lily_lde_create();
-    struct lily_lex_error_ctx ctx;
-    int codigo = lily_lex_lexico(archivo_entrada_p, simbolos, &ctx);
-    log_info_gen(_("lily_lex_lexico: %d."), codigo);
-    if (codigo != COD_OK) {
+    struct lily_a_lexico_estado_ctx ctx;
+    estado = lily_a_lexico(archivo_entrada_p, simbolos, &ctx);
+    log_info_gen(_("lily_a_lexico: %d."), estado);
+    if (estado != COD_OK) {
         char caracter_prob = archivo_entrada_p[ctx.i_desp];
         log_info_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx.tipo SEP ctx.i_inicial SEP ctx.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?')
     }
 
-    munmap(archivo_entrada_p, archivo_entrada_st.st_size);
+    munmap(archivo_entrada_p, archivo_entrada_st.st_size); // Ya no necesitamos más el archivo
     close(archivo_entrada_fd);
 
     //struct lily_lde_lde* ast = lily_lde_create();
@@ -341,7 +341,7 @@ int main(int argc, char **argv){
     munmap(archivo_arquitectura_p, archivo_arquitectura_st.st_size);
     close(archivo_arquitectura_fd);
 
-    return codigo;
+    return estado;
 }
 
 void f_help(char* name) {

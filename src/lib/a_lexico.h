@@ -3,8 +3,8 @@
  * Analizador léxico del preprocesador Lily
  */
 
-#ifndef LILY_C_A_LEX
-#define LILY_C_A_LEX
+#ifndef LILY_L_A_LEXICO
+#define LILY_L_A_LEXICO
 
 #include <ctype.h>
 #include <math.h>
@@ -28,19 +28,19 @@
  * Comprueba si un caracter \a c es un espacio (0x20), tabulador (0x9), salto de línea (0xa), o retorno de carro (0xd)
  * @param c Caracter a analizar
  */
-#define lex_esblanco(c) (lily_lex_ctipos[(unsigned char) c]&1)
+#define lex_esblanco(c) (lily_a_lexico_ctipos[(unsigned char) c]&1)
 
 /**
  * Comprueba si un caracter \a c puede ser parte de un operador
  * @param c Caracter a analizar
  */
-#define lex_esoperador(c) (lily_lex_ctipos[(unsigned char) c]&2)
+#define lex_esoperador(c) (lily_a_lexico_ctipos[(unsigned char) c]&2)
 
 // Tipos para símbolos
 /**
  * Tipo de símbolo
  */
-enum lily_lex_tipo_simbolo {
+enum lily_a_lexico_tipo_simbolo {
     SIMB_INDETERMINADO,
 
     // Terminal
@@ -87,9 +87,9 @@ enum lily_lex_tipo_simbolo {
 /**
  * Estructura para guardar un símbolo léxico
  */
-struct lily_lex_simbolo {
-    enum lily_lex_tipo_simbolo tipo;
-    enum lily_lex_tipo_simbolo subtipo;
+struct lily_a_lexico_simbolo {
+    enum lily_a_lexico_tipo_simbolo tipo;
+    enum lily_a_lexico_tipo_simbolo subtipo;
     void* valor;
 };
 
@@ -97,13 +97,13 @@ struct lily_lex_simbolo {
  * Crea un objeto para símbolos
  * @return Un objeto para símbolo nuevo
  */
-struct lily_lex_simbolo* lily_lex_simbolo_create(void);
+struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void);
 
 /**
- * Estructura para almacenar detalles sobre dónde ocurrió un error
+ * Estructura para almacenar detalles sobre dónde ocurrió un error, si lo hubo
  */
-struct lily_lex_error_ctx {
-    enum lily_lex_tipo_simbolo tipo; //< Tipo tentativo del símbolo que se estaba generando
+struct lily_a_lexico_estado_ctx {
+    enum lily_a_lexico_tipo_simbolo tipo; //< Tipo tentativo del símbolo que se estaba generando
     size_t i_inicial; //< Posición en \a blob del símbolo tentativo
     size_t i_desp; //< Desplazamiento desde \a i_inicial hasta el valor actual de \a i
 };
@@ -115,7 +115,7 @@ struct lily_lex_error_ctx {
  * @param blob Cadena a analizar
  * @param i Índice del puntero
  */
-void lily_lex_modo_comentario(const char* blob, size_t* i);
+void lily_a_lexico_modo_comentario(const char* blob, size_t* i);
 
 /**
  * @brief Modo directiva
@@ -125,7 +125,7 @@ void lily_lex_modo_comentario(const char* blob, size_t* i);
  * @param sim Estructura para almacenar el símbolo de la directiva, o NULL si no es una directiva válida
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_modo_directiva(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
+enum lily_error lily_a_lexico_modo_directiva(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
 
 /**
  * @brief Modo referencia a etiqueta
@@ -135,7 +135,7 @@ enum lily_error lily_lex_modo_directiva(const char* blob, size_t* i, struct lily
  * @param sim Estructura para almacenar el símbolo de la referencia, o NULL si no es una referencia a etiqueta válida
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_modo_r_etiqueta(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
+enum lily_error lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
 
 /*
  * @brief Modo objeto
@@ -145,7 +145,7 @@ enum lily_error lily_lex_modo_r_etiqueta(const char* blob, size_t* i, struct lil
  * @param sim Estructura para almacenar el símbolo del objeto, o NULL si no es un identificador de objeto válido
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_modo_objeto(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
+enum lily_error lily_a_lexico_modo_objeto(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
 
 /*
  * @brief Modo cadena
@@ -156,7 +156,7 @@ enum lily_error lily_lex_modo_objeto(const char* blob, size_t* i, struct lily_le
  * @param tipo Caracter que abrió la cadena: comilla simple o doble
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_modo_cadena(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
+enum lily_error lily_a_lexico_modo_cadena(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
 
 /*
  * @brief Modo número
@@ -167,7 +167,7 @@ enum lily_error lily_lex_modo_cadena(const char* blob, size_t* i, struct lily_le
  * @param tipo Caracter que marca el tipo del número recibido: 'x', 'o', 'b', o 0
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_lex_simbolo** sim, const char tipo);
+enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim, const char tipo);
 
 /*
  * @brief Modo operador
@@ -177,7 +177,7 @@ enum lily_error lily_lex_modo_numero(const char* blob, size_t* i, struct lily_le
  * @param sim Estructura para almacenar el símbolo creado
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_modo_operador(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
+enum lily_error lily_a_lexico_modo_operador(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
 
 /**
  * @brief Modo ambiguo
@@ -187,7 +187,7 @@ enum lily_error lily_lex_modo_operador(const char* blob, size_t* i, struct lily_
  * @param sim Estructura para almacenar el símbolo creado, o NULL si no es un valor válido
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_modo_ambiguo(const char* blob, size_t* i, struct lily_lex_simbolo** sim);
+enum lily_error lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
 
 /**
  * Función de entrada del analizador léxico
@@ -196,6 +196,6 @@ enum lily_error lily_lex_modo_ambiguo(const char* blob, size_t* i, struct lily_l
  * @param [out] error_ctx Estado de la ejecución al momento de salir de la función, si \a error_ctx no es \c NULL
  * @return Código de error de la operación
  */
-enum lily_error lily_lex_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_lex_error_ctx* error_ctx);
+enum lily_error lily_a_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_a_lexico_estado_ctx* error_ctx);
 
 #endif

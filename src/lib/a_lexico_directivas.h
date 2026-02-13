@@ -3,10 +3,10 @@
  * Algunas definiciones para reconocer directivas del preprocesador Lily
  */
 
-#ifndef LILY_C_A_LEXICO_DIRECTIVAS
-#define LILY_C_A_LEXICO_DIRECTIVAS
+#ifndef LILY_L_A_LEXICO_DIRECTIVAS
+#define LILY_L_A_LEXICO_DIRECTIVAS
 
-char* lily_lex_directivas[] = {
+char* lily_a_lexico_directivas[] = {
     // Definición de constantes
     "DB",
     "DWL",
