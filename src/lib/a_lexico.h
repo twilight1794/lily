@@ -20,7 +20,6 @@
 #include "../common/pow.h"
 
 #include "../lib/a_lexico_ctipos.h"
-#include "../lib/a_lexico_directivas.h"
 #include "../lib/a_lexico_simbolo.h"
 
 #include <libintl.h>

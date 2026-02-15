@@ -31,7 +31,7 @@ src/common/lde.o: src/common/lde.c src/common/lde.h
 src/common/log.o: src/common/log.c src/common/log.h
 src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\"
 src/cli/main.o: src/cli/main.c
-src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h src/lib/a_lexico_directivas.h
+src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h
 src/lib/a_lexico_simbolo.o: src/lib/a_lexico_simbolo.c src/lib/a_lexico_simbolo.h
 src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
 src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h

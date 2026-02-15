@@ -15,7 +15,7 @@ enum lily_a_lexico_tipo_simbolo {
     SIMB_INDETERMINADO,
 
     // Terminal
-    SIMB_MNEMO = 1,
+    SIMB_MNEMO,
     SIMB_DIRECTIVA,
     SIMB_ETI,
     SIMB_OBJETO,
@@ -52,7 +52,46 @@ enum lily_a_lexico_tipo_simbolo {
     OP_MENOR_IGUAL,
     OP_MAYOR_IGUAL,
     OP_IGUAL,
-    OP_DIF
+    OP_DIF,
+
+    // Directivas
+    /// Definicion de constantes
+    DIR_DB = 64,
+    DIR_DWL,
+    DIR_DWM,
+    DIR_DDL,
+    DIR_DDM,
+    DIR_DQL,
+    DIR_DQM,
+    DIR_DR,
+    DIR_DRD,
+    DIR_DFS,
+    /// Definición de símbolos para el preprocesador
+    DIR_CONST,
+    DIR_VAR,
+    /// Condicionales
+    DIR_IF,
+    DIR_IFDEF,
+    DIR_IFNDEF,
+    DIR_ELSE,
+    DIR_ELIF,
+    /// Bucles
+    DIR_WHILE,
+    DIR_LOOP,
+    /// Inclusión de archivos
+    DIR_INC,
+    /// Control de ensamblado
+    DIR_CPU,
+    DIR_ORG,
+    DIR_STOP,
+    /// Estructuras de datos
+    DIR_STRUCT,
+    DIR_UNION,
+    /// Subrutinas
+    DIR_MACRO,
+    DIR_PROC,
+    /// Miscelánea
+    DIR_END
 };
 
 /**

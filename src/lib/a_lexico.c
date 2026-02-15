@@ -1,5 +1,10 @@
 #include "../lib/a_lexico.h"
 
+/**
+ * Listado de directivas, para comparar
+ */
+char* lily_a_lexico_directivas[] = { "DB", "DWL", "DWM", "DDL", "DDM", "DQL", "DQM", "DR", "DRD", "DFS", "CONST", "VAR", "IF", "IFDEF", "IFNDEF","ELSE", "ELIF", "WHILE", "LOOP", "INC", "CPU", "ORG", "STOP", "STRUCT", "UNION", "MACRO", "PROC", "END", NULL };
+
 void lily_a_lexico_modo_comentario(const char* blob, size_t* i) {
     do (*i)++;
     while (blob[*i] != '\n' && blob[*i] != 0);
@@ -34,8 +39,8 @@ enum lily_error lily_a_lexico_modo_directiva(const char* blob, size_t* i, struct
                 return COD_MALLOC_FALLO;
             }
             (*sim)->tipo = SIMB_DIRECTIVA;
-            (*sim)->valor = cad_tentativa;
-            log_debug_gen(_("a_lexico: +directiva '%s'"), (char*) (*sim)->valor);
+            (*sim)->subtipo = 64+j;
+            log_debug_gen(_("a_lexico: +directiva '%s'"), (char*) cad_tentativa);
             return COD_OK;
         }
     }
