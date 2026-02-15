@@ -161,6 +161,10 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, struct li
 
     // Obtener valor
     long* valor = (long*) malloc(sizeof(long));
+    if (valor == NULL) {
+        free(valor_texto);
+        return COD_MALLOC_FALLO;
+    }
     *valor = 0;
     for (size_t j = strlen(valor_texto); j > 0; j--) {
         long potencia;
@@ -177,6 +181,7 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, struct li
     }
     *sim = lily_a_lexico_simbolo_create();
     if (*sim == NULL) {
+        free(valor);
         free(valor_texto);
         return COD_MALLOC_FALLO;
     }
