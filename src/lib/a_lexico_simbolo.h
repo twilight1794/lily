@@ -98,9 +98,12 @@ enum lily_a_lexico_tipo_simbolo {
  * Estructura para guardar un símbolo léxico
  */
 struct lily_a_lexico_simbolo {
-    enum lily_a_lexico_tipo_simbolo tipo;
-    enum lily_a_lexico_tipo_simbolo subtipo;
-    void* valor;
+    enum lily_a_lexico_tipo_simbolo tipo; /**< Tipo del símbolo */
+    enum lily_a_lexico_tipo_simbolo subtipo; /**< Si aplica, tipo más específico del símbolo (para operadores y directivas) */
+    size_t linea; /**< Línea donde se encuentra el inicio del símbolo */
+    size_t linea_pos; /**< Índice del inicio de la línea \a linea en el blob */
+    size_t pos; /**< Índice del inicio del símbolo en el blob */
+    void* valor; /**< Valor representativo del símbolo */
 };
 
 /**

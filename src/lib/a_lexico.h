@@ -38,81 +38,104 @@ struct lily_a_lexico_ctx {
  * @brief Modo comentario
  * Descarta todo hasta encontrar un salto de línea
  * @param blob Cadena a analizar
- * @param i Índice del puntero
+ * @param [in,out] i Índice del puntero
+ * @param [out] linea Línea actual
+ * @param [out] linea_pos Índice del inicio de la línea actual en el blob
  */
-void lily_a_lexico_modo_comentario(const char* blob, size_t* i);
+void lily_a_lexico_modo_comentario(const char* blob, size_t* i, size_t* linea, size_t* linea_pos);
 
 /**
  * @brief Modo directiva
  * Comprueba si la cadena precedida por '.' es una directiva reconocida por Lily
  * @param blob Cadena a analizar
- * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo de la directiva, o NULL si no es una directiva válida
+ * @param [in,out] i Índice del puntero
+ * @param i_inicial Índice del inicio del símbolo en el blob
+ * @param linea Línea actual
+ * @param linea_pos Índice del inicio de la línea actual en el blob
+ * @param [out] sim Estructura para almacenar el símbolo de la directiva, o NULL si no es una directiva válida
  * @return Código de error de la operación
  */
-enum lily_error lily_a_lexico_modo_directiva(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
+enum lily_error lily_a_lexico_modo_directiva(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim);
 
 /**
  * @brief Modo referencia a etiqueta
  * Comprueba si la cadena precedida por '$' es una referencia a etiqueta válida
  * @param blob Cadena a analizar
- * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo de la referencia, o NULL si no es una referencia a etiqueta válida
+ * @param [in,out] i Índice del puntero
+ * @param i_inicial Índice del inicio del símbolo en el blob
+ * @param linea Línea actual
+ * @param linea_pos Índice del inicio de la línea actual en el blob
+ * @param [out] sim Estructura para almacenar el símbolo de la referencia, o NULL si no es una referencia a etiqueta válida
  * @return Código de error de la operación
  */
-enum lily_error lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
+enum lily_error lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim);
 
 /*
  * @brief Modo objeto
  * Comprueba si la cadena precedida por '%' es un identificador válido para un objeto reservado
  * @param blob Cadena a analizar
- * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo del objeto, o NULL si no es un identificador de objeto válido
+ * @param [in,out] i Índice del puntero
+ * @param i_inicial Índice del inicio del símbolo en el blob
+ * @param linea Línea actual
+ * @param linea_pos Índice del inicio de la línea actual en el blob
+ * @param [out] sim Estructura para almacenar el símbolo del objeto, o NULL si no es un identificador de objeto válido
  * @return Código de error de la operación
  */
-enum lily_error lily_a_lexico_modo_objeto(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
+enum lily_error lily_a_lexico_modo_objeto(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim);
 
 /*
  * @brief Modo cadena
  * Comprueba si la cadena precedida por ''' o '"' es una cadena válida
  * @param blob Cadena a analizar
- * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo de la cadena, o NULL si no es un identificador de objeto válido
+ * @param [in,out] i Índice del puntero
+ * @param i_inicial Índice del inicio del símbolo en el blob
+ * @param linea Línea actual
+ * @param linea_pos Índice del inicio de la línea actual en el blob
+ * @param [out] sim Estructura para almacenar el símbolo de la cadena, o NULL si no es un identificador de objeto válido
  * @param tipo Caracter que abrió la cadena: comilla simple o doble
  * @return Código de error de la operación
  */
-enum lily_error lily_a_lexico_modo_cadena(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
+enum lily_error lily_a_lexico_modo_cadena(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim);
 
 /*
  * @brief Modo número
  * Comprueba si una cadena es una constante numérica válida
  * @param blob Cadena a analizar
- * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo creado, o NULL si no es una constante numérica válido
+ * @param [in,out] i Índice del puntero
+ * @param i_inicial Índice del inicio del símbolo en el blob
+ * @param linea Línea actual
+ * @param linea_pos Índice del inicio de la línea actual en el blob
+ * @param [out] sim Estructura para almacenar el símbolo creado, o NULL si no es una constante numérica válido
  * @param tipo Caracter que marca el tipo del número recibido: 'x', 'o', 'b', o 0
  * @return Código de error de la operación
  */
-enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim, const char tipo);
+enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim, const char tipo);
 
 /*
  * @brief Modo operador
  * Comprueba si una cadena representa un operador válido
  * @param blob Cadena a analizar
- * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo creado
+ * @param [in,out] i Índice del puntero
+ * @param i_inicial Índice del inicio del símbolo en el blob
+ * @param linea Línea actual
+ * @param linea_pos Índice del inicio de la línea actual en el blob
+ * @param [out] sim Estructura para almacenar el símbolo creado
  * @return Código de error de la operación
  */
-enum lily_error lily_a_lexico_modo_operador(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
+enum lily_error lily_a_lexico_modo_operador(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim);
 
 /**
  * @brief Modo ambiguo
  * Comprueba si la cadena puede ser un identificador válido para un mnemónico, definición de etiqueta
  * @param blob Cadena a analizar
- * @param i Índice del puntero
- * @param sim Estructura para almacenar el símbolo creado, o NULL si no es un valor válido
+ * @param [in,out] i Índice del puntero
+ * @param i_inicial Índice del inicio del símbolo en el blob
+ * @param linea Línea actual
+ * @param linea_pos Índice del inicio de la línea actual en el blob
+ * @param [out] sim Estructura para almacenar el símbolo creado, o NULL si no es un valor válido
  * @return Código de error de la operación
  */
-enum lily_error lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, struct lily_a_lexico_simbolo** sim);
+enum lily_error lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim);
 
 /**
  * Función de entrada del analizador léxico
