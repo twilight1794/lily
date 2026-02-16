@@ -14,7 +14,8 @@
  */
 enum lily_lde_estados {
     LILY_LDE_OK,
-    LILY_LDE_ERROR
+    LILY_LDE_ERROR,
+    LILY_LDE_NODO_EXTRANO
 };
 
 /**
@@ -63,6 +64,15 @@ struct lily_lde_nodo* lily_lde_insert(struct lily_lde_lde* lde, size_t pos, void
  * @return Nodo que contiene el valor
  */
 struct lily_lde_nodo* lily_lde_get(const struct lily_lde_lde* lde, size_t pos);
+
+/**
+ * Devuelve la posición de un nodo en la lista
+ * @param lde Lista a manipular
+ * @param nodo Nodo a buscar
+ * @param [out] pos Posición donde se halla \a nodo
+ * @return \c LILY_LDE_OK si se encontró el valor, \c LILY_LDE_NODO_EXTRANO si el nodo no pertenece a la lista, \c LILY_LDE_ERROR en cualquier otro caso
+ */
+enum lily_lde_estados lily_lde_get_idx(const struct lily_lde_lde* lde, const struct lily_lde_nodo* nodo, size_t* pos);
 
 /**
  * Quita una clave de la lista

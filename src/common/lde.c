@@ -54,6 +54,18 @@ struct lily_lde_nodo* lily_lde_get(const struct lily_lde_lde* lde, size_t pos) {
     return nodo;
 }
 
+enum lily_lde_estados lily_lde_get_idx(const struct lily_lde_lde* lde, const struct lily_lde_nodo* nodo, size_t* pos) {
+    if (lde == NULL || nodo == NULL) return LILY_LDE_ERROR;
+    struct lily_lde_nodo* nodo_tentativo = lde->inicio;
+    for (size_t i=0; i<lde->tamano; i++) {
+        if (nodo_tentativo == nodo) {
+            *pos = i;
+            return LILY_LDE_OK;
+        }
+    }
+    return LILY_LDE_NODO_EXTRANO;
+}
+
 enum lily_lde_estados lily_lde_remove(struct lily_lde_lde* lde, size_t pos) {
     if (pos >= lde->tamano) return LILY_LDE_ERROR;
     struct lily_lde_nodo* nodo = lily_lde_get(lde, pos);
