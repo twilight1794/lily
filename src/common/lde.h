@@ -75,12 +75,20 @@ struct lily_lde_nodo* lily_lde_get(const struct lily_lde_lde* lde, size_t pos);
 enum lily_lde_estados lily_lde_get_idx(const struct lily_lde_lde* lde, const struct lily_lde_nodo* nodo, size_t* pos);
 
 /**
- * Quita una clave de la lista
+ * Quita un elemento de la lista
  * @param lde Lista a manipular
  * @param pos Posición del valor a eliminar
  * @return \c LILY_LDE_OK si se eliminó el nodo, \c LILY_LDE_ERROR si no
  */
 enum lily_lde_estados lily_lde_remove(struct lily_lde_lde* lde, size_t pos);
+
+/**
+ * Quita un nodo de la lista
+ * @param lde Lista a manipular
+ * @param nodo Nodo a eliminar
+ * @return \c LILY_LDE_OK si se eliminó el nodo, \c LILY_LDE_ERROR si no
+ */
+enum lily_lde_estados lily_lde_remove_node(struct lily_lde_lde* lde, struct lily_lde_nodo* nodo);
 
 /**
  * Devuelve el número de elementos de la lista

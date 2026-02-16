@@ -67,9 +67,12 @@ enum lily_lde_estados lily_lde_get_idx(const struct lily_lde_lde* lde, const str
 }
 
 enum lily_lde_estados lily_lde_remove(struct lily_lde_lde* lde, size_t pos) {
-    if (pos >= lde->tamano) return LILY_LDE_ERROR;
-    struct lily_lde_nodo* nodo = lily_lde_get(lde, pos);
-    if (nodo == NULL) return LILY_LDE_ERROR;
+    if (lde == NULL || pos >= lde->tamano) return LILY_LDE_ERROR;
+    return lily_lde_remove_node(lde, lily_lde_get(lde, pos));
+}
+
+enum lily_lde_estados lily_lde_remove_node(struct lily_lde_lde* lde, struct lily_lde_nodo* nodo) {
+    if (lde == NULL || nodo == NULL) return LILY_LDE_ERROR;
     if (nodo->anterior != NULL) nodo->anterior->posterior = nodo->posterior;
     else lde->inicio = nodo->posterior;
     if (nodo->posterior != NULL) nodo->posterior->anterior = nodo->anterior;
