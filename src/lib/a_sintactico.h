@@ -14,6 +14,8 @@
 #include "../common/log.h"
 #include "../lib/a_lexico_simbolo.h"
 
+#define tiene_etiqueta() instruccion->simbolo != NULL
+
 /**
  * Estructura para almacenar detalles sobre la ejecución del análisis sintáctico
  */
@@ -23,12 +25,20 @@ struct lily_a_sintactico_ctx {
 };
 
 /**
+ * Modo para procesar un mnemónico o directiva para el análisis sintáctico
+ * @param [in,out] simbolos Listado de símbolos
+ * @param [in,out] nodo Nodo desde el cual empezar a procesar en este modo
+ * @þaram [in,out] instruccion Objeto para almacenar la instrucción procesada
+ * @return Contexto del estado de la operación
+ */
+static struct lily_a_sintactico_ctx lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, struct lily_lde_nodo** nodo, struct lily_a_sintactico_instruccion* instruccion);
+
+/**
  * Función de entrada del analizador sintáctico
  * @param simbolos Lista de símbolos encontrados en el análisis léxico
  * @param [out] ast Árbol de sintaxis abstracta resultante
- * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
- * @return Código de estado de la operación
+ * @return Contexto de estado de la operación
  */
-enum lily_error lily_a_sintactico(struct lily_lde_lde* simbolos, struct lily_lde_lde* ast, struct lily_a_sintactico_ctx* ctx);
+struct lily_a_sintactico_ctx lily_a_sintactico(struct lily_lde_lde *simbolos, struct lily_lde_lde *ast);
 
 #endif

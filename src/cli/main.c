@@ -317,9 +317,8 @@ int main(int argc, char **argv){
 
     // Análisis sintáctico
     struct lily_lde_lde* ast = lily_lde_create();
-    struct lily_a_sintactico_ctx ctx_sintactico;
-    estado = lily_a_sintactico(simbolos, ast, &ctx_sintactico);
-    log_info_gen(_("lily_a_sintactico: %d."), estado);
+    struct lily_a_sintactico_ctx ctx_sintactico = lily_a_sintactico(simbolos, ast);
+    log_info_gen(_("lily_a_sintactico: %d."), ctx_sintactico.codigo);
     //if (codigo) return codigo;
 
     //struct lily_lde_lde* objeto = lily_lde_create();

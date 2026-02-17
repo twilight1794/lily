@@ -11,6 +11,7 @@ enum lily_error {
     // Generales
     COD_MALLOC_FALLO, /**< [mc]alloc falló al reservar memoria */
     COD_CARACTER_INVALIDO, /**< Caracter inválido en el archivo */
+    COD_CTX_NULO, /**< El contexto pasado a una función es nulo */
     // lib/a_lexico.h
     COD_A_LEXICO_RECON_ERRONEO, /**< La cadena no corresponde a un tipo, durante un estado de ambigüedad */
     COD_A_LEXICO_DIRECTIVA_INVALIDA, /**< La directiva especificada no existe */
@@ -18,8 +19,11 @@ enum lily_error {
     COD_A_LEXICO_CARACTER_INVALIDO, /**< Caracter inválido durante el procesamiento de un tipo */
     COD_A_LEXICO_FIN_INESPERADO, /**< El archivo terminó antes de lo esperado */
     // lib/a_sintactico.h
+    COD_A_SINTACTICO_SIN_SIMBOLOS, /**< No hubo símbolos reconocidos en el análisis léxico */
     COD_A_SINTACTICO_CPU_NO_ESPECIFICADO, /**< No se ha especificado la directiva CPU cuando se ha requerido */
     COD_A_SINTACTICO_FIN_INESPERADO, /**< La lista de símbolos terminó antes de lo esperado */
+    COD_A_SINTACTICO_SIMBOLO_INICIAL_INVALIDO, /**< El símbolo al inicio no es un mnemónico, una etiqueta, o una directiva */
+    COD_A_SINTACTICO_ETIQUETA_MULTIPLE_LINEA, /**< Hay más de una definición de etiqueta en la misma línea */
     COD_A_SINTACTICO_NO_CADENA_NUL, /**< Se esperaba una cadena nul, pero el símbolo no era */
     // lib/lua_cpu.h
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */

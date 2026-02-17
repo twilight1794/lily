@@ -8,6 +8,8 @@
 
 #include <stdlib.h>
 
+#include "../common/lde.h"
+
 /**
  * Tipo de símbolo
  */
@@ -107,9 +109,27 @@ struct lily_a_lexico_simbolo {
 };
 
 /**
- * Crea un objeto para símbolos
+ * Crea un objeto para guardar un símbolo
  * @return Un objeto para símbolo nuevo
  */
 struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void);
+
+/**
+ * Estructura para guardar un símbolo sintáctico
+ */
+struct lily_a_sintactico_instruccion {
+    struct lily_a_lexico_simbolo* etiqueta; /**< Etiqueta asociada, si existe */
+    struct lily_a_lexico_simbolo* simbolo; /**< Mnemónico o directiva asociada, si existe */
+    struct lily_lde_lde* params; /**< Lista de parámetros */
+    struct lily_lde_lde* instrucciones; /**< Para macros que agrupan instrucciones */
+    struct lily_lde_lde* instruccionesn; /**< Como \a instrucciones, pero para la rama opuesta */
+    size_t dirección; /**< Dirección de memoria asociada */
+};
+
+/**
+ * Crea un objeto para guardar una instrucción
+ * @return Un objeto para instrucción nuevo
+ */
+struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void);
 
 #endif
