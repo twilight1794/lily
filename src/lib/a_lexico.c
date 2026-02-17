@@ -218,70 +218,73 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, const siz
 
 enum lily_error lily_a_lexico_modo_operador(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim) {
     // Determinar operador involucrado
-    enum lily_a_lexico_tipo_simbolo tipo = SIMB_INDETERMINADO;
-    if (blob[*i] == '+') tipo = OP_SUMA;
-    else if (blob[*i] == '-') tipo = OP_RESTA;
-    else if (blob[*i] == '*') tipo = OP_MULTI;
-    else if (blob[*i] == '/') tipo = OP_DIV;
+    enum lily_a_lexico_tipo_simbolo tipo = SIMB_OPERADOR;
+    enum lily_a_lexico_tipo_simbolo subtipo = SIMB_INDETERMINADO;
+    if (blob[*i] == '+') subtipo = OP_SUMA;
+    else if (blob[*i] == '-') subtipo = OP_RESTA;
+    else if (blob[*i] == '*') subtipo = OP_MULTI;
+    else if (blob[*i] == '/') subtipo = OP_DIV;
     //OP_MODULO,
-    else if (blob[*i] == '.') tipo = OP_MIEMBRO;
+    else if (blob[*i] == '.') subtipo = OP_MIEMBRO;
     else if (blob[*i] == '&') {
         if (blob[*(i+1)] == '&') {
-            tipo = OP_LOG_AND;
+            subtipo = OP_LOG_AND;
             (*i)++;
         }
-        else tipo = OP_BIT_AND;
+        else subtipo = OP_BIT_AND;
     }
     else if (blob[*i] == '|') {
         if (blob[*(i+1)] == '|') {
-            tipo = OP_LOG_OR;
+            subtipo = OP_LOG_OR;
             (*i)++;
         }
-        else tipo = OP_BIT_OR;
+        else subtipo = OP_BIT_OR;
     }
-    else if (blob[*i] == '^') tipo = OP_BIT_XOR;
-    else if (blob[*i] == '~') tipo = OP_BIT_NOT;
+    else if (blob[*i] == '^') subtipo = OP_BIT_XOR;
+    else if (blob[*i] == '~') subtipo = OP_BIT_NOT;
     else if (blob[*i] == '!') {
         if (blob[*(i+1)] == '=') {
-            tipo = OP_DIF;
+            subtipo = OP_DIF;
             (*i)++;
         }
-        else tipo = OP_LOG_NEG;
+        else subtipo = OP_LOG_NEG;
     }
     else if (blob[*i] == '<') {
         if (blob[*(i+1) == '<']) {
-            tipo = OP_DESP_IZQ;
+            subtipo = OP_DESP_IZQ;
             (*i)++;
         }
         else if (blob[*(i+1) == '=']) {
-            tipo = OP_MENOR_IGUAL;
+            subtipo = OP_MENOR_IGUAL;
             (*i)++;
         }
-        else tipo = OP_MENOR_QUE;
+        else subtipo = OP_MENOR_QUE;
     }
     else if (blob[*i] == '>') {
         if (blob[*(i+1) == '>']) {
-            tipo = OP_DESP_DER;
+            subtipo = OP_DESP_DER;
             (*i)++;
         }
         else if (blob[*(i+1) == '=']) {
-            tipo = OP_MAYOR_IGUAL;
+            subtipo = OP_MAYOR_IGUAL;
             (*i)++;
         }
-        else tipo = OP_MAYOR_QUE;
+        else subtipo = OP_MAYOR_QUE;
     }
-    else if (blob[*i] == '=') tipo = OP_IGUAL;
-    else if (blob[*i] == ',') tipo = SIMB_SEPARADOR;
-    else if (blob[*i] == '(') tipo = SIMB_PARENTESIS_AP;
-    else if (blob[*i] == ')') tipo = SIMB_PARENTESIS_CI;
+    else if (blob[*i] == '=') subtipo = OP_IGUAL;
+    else if (blob[*i] == ',') tipo = subtipo = SIMB_SEPARADOR;
+    else if (blob[*i] == '(') tipo = subtipo = SIMB_PARENTESIS_AP;
+    else if (blob[*i] == ')') tipo = subtipo = SIMB_PARENTESIS_CI;
+    else if (blob[*i] == '[') tipo = subtipo = SIMB_DESPLAZAMIENTO_AP;
+    else if (blob[*i] == ']') tipo = subtipo = SIMB_DESPLAZAMIENTO_CI;
     // No debe haber más opciones, ¿verdad?
     (*i)++;
 
     // Crear objeto
     *sim = lily_a_lexico_simbolo_create();
     if (*sim == NULL) return COD_MALLOC_FALLO;
-    (*sim)->tipo = SIMB_OPERADOR;
-    (*sim)->subtipo = tipo;
+    (*sim)->tipo = tipo;
+    (*sim)->subtipo = subtipo;
     (*sim)->linea = *linea;
     (*sim)->linea_pos = *linea_pos;
     (*sim)->pos = *i_inicial;

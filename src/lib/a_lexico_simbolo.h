@@ -31,6 +31,8 @@ enum lily_a_lexico_tipo_simbolo {
     SIMB_OPERADOR, //< Superclase para todo lo siguiente
     SIMB_PARENTESIS_AP,
     SIMB_PARENTESIS_CI,
+    SIMB_DESPLAZAMIENTO_AP,
+    SIMB_DESPLAZAMIENTO_CI,
     SIMB_SEPARADOR,
 
     // Operadores
