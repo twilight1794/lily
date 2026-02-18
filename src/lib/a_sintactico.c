@@ -1,5 +1,51 @@
 #include "../lib/a_sintactico.h"
 
+static unsigned int lily_a_sintactico_precedencia(const struct lily_a_lexico_simbolo* operador) {
+    // Todos son asociativos siniestros excepto los operadores de precedencia nivel 3
+    switch (operador->subtipo) {
+        case SIMB_PARENTESIS_AP:
+        case SIMB_PARENTESIS_CI:
+        case SIMB_DESPLAZAMIENTO_AP:
+        case SIMB_DESPLAZAMIENTO_CI:
+        case OP_MIEMBRO:
+            return 1; // Asociativo siniestro
+        case OP_BIT_NOT:
+        case OP_LOG_NEG:
+            //case sizeof
+            return 2; // Asociativo diestro
+        case OP_MULTI:
+        case OP_DIV:
+        case OP_MODULO:
+            return 3; // Asociativo siniestro
+        case OP_SUMA:
+        case OP_RESTA:
+            return 4; // Asociativo siniestro
+        case OP_DESP_IZQ:
+        case OP_DESP_DER:
+            return 5;
+        case OP_MENOR_QUE:
+        case OP_MAYOR_QUE:
+        case OP_MENOR_IGUAL:
+        case OP_MAYOR_IGUAL:
+            return 6;
+        case OP_IGUAL:
+        case OP_DIF:
+            return 7;
+        case OP_BIT_AND:
+            return 8;
+        case OP_BIT_XOR:
+            return 9;
+        case OP_BIT_OR:
+            return 10;
+        case OP_LOG_AND:
+            return 11;
+        case OP_LOG_OR:
+            return 12;
+        case SIMB_SEPARADOR:
+            return 13;
+    }
+}
+
 static struct lily_a_sintactico_ctx lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, struct lily_lde_nodo** nodo, struct lily_a_sintactico_instruccion* instruccion) {
     struct lily_a_sintactico_ctx ctx = {
         .codigo = COD_OK,

@@ -25,6 +25,13 @@ struct lily_a_sintactico_ctx {
 };
 
 /**
+ * Devuelve el nivel de precedencia de un operador
+ * @param operador Operador en cuestión
+ * @return Nivel de precedencia de \a operador
+ */
+static unsigned int lily_a_sintactico_precedencia(const struct lily_a_lexico_simbolo* operador);
+
+/**
  * Modo para procesar un mnemónico o directiva para el análisis sintáctico
  * @param [in,out] simbolos Listado de símbolos
  * @param [in,out] nodo Nodo desde el cual empezar a procesar en este modo
