@@ -40,7 +40,7 @@ char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo) {
             patron = "(%lu:%lu) Directiva %s";
             buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-64]) + 1);
             if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC);
+            sprintf(buff, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-64]);
             break;
         case SIMB_ETI:
             patron = "(%lu:%lu) Etiqueta %s";
@@ -55,7 +55,7 @@ char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo) {
             sprintf(buff, patron, LC, simbolo->valor);
             break;
         case SIMB_NUMERO:
-            patron = "(%lu:%lu) Número %d";
+            patron = "(%lu:%lu) Número %ld";
             buff = (char*) malloc(snprintf(NULL, 0, patron, LC, simbolo->valor) + 1);
             if (buff == NULL) return NULL;
             sprintf(buff, patron, LC, simbolo->valor);
