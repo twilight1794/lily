@@ -14,7 +14,7 @@
 #include "../common/log.h"
 #include "../lib/a_lexico_simbolo.h"
 
-#define tiene_etiqueta() instruccion->simbolo != NULL
+#define lista_actual (lista_desplazamiento!=NULL)?lista_desplazamiento:(instruccion->params)
 
 /**
  * Estructura para almacenar detalles sobre la ejecución del análisis sintáctico

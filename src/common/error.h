@@ -25,6 +25,8 @@ enum lily_error {
     COD_A_SINTACTICO_SIMBOLO_INICIAL_INVALIDO, /**< El símbolo al inicio no es un mnemónico, una etiqueta, o una directiva */
     COD_A_SINTACTICO_ETIQUETA_MULTIPLE_LINEA, /**< Hay más de una definición de etiqueta en la misma línea */
     COD_A_SINTACTICO_NO_CADENA_NUL, /**< Se esperaba una cadena nul, pero el símbolo no era */
+    COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS, /**< Los paréntesis en la expresión no están balanceaados correctamente */
+    COD_A_SINTACTICO_PARENTESIS_VACIOS, /**< Los paréntesis no están agrupando ningún símbolo */
     // lib/lua_cpu.h
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */
     COD_LUA_CPU_DESC_NO_ID, /**< El miembro "id" no existe en el objeto de descripción */

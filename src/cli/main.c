@@ -319,6 +319,10 @@ int main(int argc, char **argv){
     struct lily_lde_lde* ast = lily_lde_create();
     struct lily_a_sintactico_ctx ctx_sintactico = lily_a_sintactico(simbolos, ast);
     log_info_gen(_("lily_a_sintactico: %d."), ctx_sintactico.codigo);
+    if (ctx_sintactico.codigo != COD_OK) {
+        log_info_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
+    }
+    return ctx_sintactico.codigo;
     //if (codigo) return codigo;
 
     //struct lily_lde_lde* objeto = lily_lde_create();

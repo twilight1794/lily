@@ -2,7 +2,7 @@
 TARGET := all
 
 CC := gcc
-CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99
+CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99 -g
 LDFLAGS := -Ldist
 LDLIBS := -lm
 RM := rm -rf
