@@ -117,6 +117,13 @@ struct lily_a_lexico_simbolo {
 struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void);
 
 /**
+ * Genera una representación en texto de \a simbolo
+ * @param simbolo Símbolo cuyos datos imprimir
+ * @return Cadena de texto con la representación en texto del objeto
+ */
+char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo);
+
+/**
  * Estructura para guardar un símbolo sintáctico
  */
 struct lily_a_sintactico_instruccion {

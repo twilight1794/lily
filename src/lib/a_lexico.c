@@ -5,6 +5,8 @@
  */
 char* lily_a_lexico_directivas[] = { "DB", "DWL", "DWM", "DDL", "DDM", "DQL", "DQM", "DR", "DRD", "DFS", "CONST", "VAR", "IF", "IFDEF", "IFNDEF","ELSE", "ELIF", "WHILE", "LOOP", "INC", "CPU", "ORG", "STOP", "STRUCT", "UNION", "MACRO", "PROC", "END", NULL };
 
+char* lily_a_lexico_operadores[] = { "+", "-", "*", "/", "%", ".", "&", "|", "^", "~", "&&", "||", "!", "<<", ">>", "<", ">", "<=", ">=", "=", "!=" };
+
 void lily_a_lexico_modo_comentario(const char* blob, size_t* i, size_t* linea, size_t* linea_pos) {
     do (*i)++;
     while (blob[*i] != '\n' && blob[*i] != 0);
