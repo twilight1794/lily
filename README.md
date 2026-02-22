@@ -2,90 +2,98 @@
 
 Este es el motor de procesamiento (backend) para el proyecto **Hexacode**. Está desarrollado en C y utiliza Lua para la definición de arquitecturas.
 
-## Requisitos Previos
+---
 
-*   Sistema Operativo: Linux
+## 🐧 Instalación en Linux (Ubuntu/Debian)
+
+### Requisitos Previos
 *   Herramientas de construcción: `build-essential` (incluye `gcc` y `make`)
 *   Control de versiones: `git`
-*   Permisos de administrador (`sudo`) para la instalación de dependencias.
 
-## Pasos de Instalación
+### Pasos
+1. **Instalar herramientas:** `sudo apt update && sudo apt install -y build-essential git`
+2. **Inicializar submódulos:** `git submodule update --init --recursive`
+3. **Instalar Lua 5.4:** `sudo ./misc/install-lua.sh`
+4. **Compilar:** `mkdir -p dist && make linux`
 
-Sigue estos pasos en orden para configurar el entorno:
+---
 
-### 1. Instalar Herramientas de Construcción (si no las tienes)
-```bash
-sudo apt update
-sudo apt install -y build-essential git
+## 🪟 Instalación en Windows (PowerShell/CMD)
+
+Para Windows, el proyecto ha sido adaptado para compilarse usando **MinGW** y **GNU Make**.
+
+### 1. Requisitos Previos (Instalación de Herramientas)
+Abre una terminal de PowerShell como administrador e instala las herramientas necesarias usando `winget`:
+
+```powershell
+# Instalar compilador GCC (MinGW)
+winget install BrechtSanders.WinLibs.POSIX.UCRT
+
+# Instalar GNU Make
+winget install GnuWin32.Make
 ```
 
-### 2. Inicializar Submódulos
-Lily utiliza submódulos para las pruebas unitarias. Ejecuta esto para descargarlos:
-```bash
-git submodule update --init --recursive
+*Nota: Es necesario reiniciar la terminal después de la instalación para que los comandos `gcc` y `mingw32-make` sean reconocidos.*
+
+### 2. Preparar Dependencias (Lua 5.4)
+Lily requiere Lua 5.4. En Windows, se debe compilar dentro del proyecto:
+
+```powershell
+mkdir deps
+cd deps
+# Descargar Lua (ejemplo con curl)
+curl.exe -L -o lua-5.4.7.tar.gz https://www.lua.org/ftp/lua-5.4.7.tar.gz
+tar.exe -xzf lua-5.4.7.tar.gz
+cd lua-5.4.7
+# Compilar Lua para Windows
+mingw32-make mingw
+cd ../..
 ```
 
-### 3. Instalar Dependencias (Lua 5.4)
-Lily requiere las bibliotecas de desarrollo de Lua 5.4. Existe un script automatizado que descarga, parchea e instala Lua:
+### 3. Archivos de Compatibilidad (Ya incluidos)
+Para que Lily funcione en Windows, se han creado/editado los siguientes archivos (incluidos en esta versión):
+*   `src/common/sys/mman.h`: Simula la gestión de memoria de Linux en Windows.
+*   `src/common/libintl.h`: Stub para funciones de traducción (gettext) en Windows.
+*   `Makefile`: Actualizado para detectar `OS=Windows_NT` y enlazar correctamente `lua54.dll`.
 
-```bash
-sudo ./misc/install-lua.sh
-```
-*Nota: Es normal ver errores relacionados con `emcc` si no tienes Emscripten instalado; estos solo afectan a la versión web, no al backend de Linux.*
+### 4. Compilación del Backend
+Desde la raíz del proyecto `lily/`, ejecuta:
 
-### 4. Actualizar el Caché de Bibliotecas
-Después de instalar Lua, es necesario que el sistema reconozca la nueva ubicación de los archivos `.so`:
-
-```bash
-sudo ldconfig
-```
-
-### 5. Compilar el Backend
-Para compilar la versión optimizada para Linux:
-
-```bash
-mkdir -p dist
-make linux
-```
-
-### 6. Ejecutar Pruebas (Opcional)
-Para verificar que todo funcione correctamente:
-```bash
-make test-linux
+```powershell
+mkdir dist
+mingw32-make windows
+# Copiar la DLL de Lua a la carpeta de salida
+cp deps/lua-5.4.7/src/lua54.dll dist/lua54.dll
 ```
 
 ---
 
-## Cómo Ejecutar
+## 🚀 Cómo Ejecutar (Windows & Linux)
 
-Para que el programa funcione, debe poder localizar su propia biblioteca compartida (`liblily.so`) que se encuentra en la carpeta `dist`.
+El programa genera un ejecutable en la carptea `dist/`.
 
-### Opción A: Ejecución Directa (Recomendado)
-```bash
-LD_LIBRARY_PATH=dist ./dist/lily [parámetros] <archivo.asm>
+### Comandos de Ejecución
+Para procesar un archivo assembly (ejemplo `SUMA.asm`):
+
+**En Windows:**
+```powershell
+./dist/lily.exe -x misc/cpu/z80.lua -s a SUMA.asm
 ```
 
-### Opción B: Configurar la ruta para la sesión actual
-Si vas a realizar muchas pruebas, puedes ejecutar esto una sola vez en tu terminal:
+**En Linux:**
 ```bash
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/dist
-```
-Luego podrás ejecutarlo simplemente como:
-```bash
-./dist/lily [parámetros] <archivo.asm>
+LD_LIBRARY_PATH=dist ./dist/lily -x misc/cpu/z80.lua -s a SUMA.asm
 ```
 
-## Ejemplo de Uso
-
-Para ensamblar un archivo:
-```bash
-LD_LIBRARY_PATH=dist ./dist/lily -s a mi_archivo.asm
-```
-
-Para entrar al modo interactivo:
-```bash
-LD_LIBRARY_PATH=dist ./dist/lily -i mi_archivo.asm
-```
+### Parámetros principales:
+*   `-x <archivo.lua>`: Especifica la arquitectura (ej. `misc/cpu/z80.lua`).
+*   `-s <etapa>`: Etapa del proceso: `p` (preproceso), `a` (ensamble), `l` (enlace), `d` (desensamble), `e` (ejecución).
+*   `-i`: Modo interactivo.
 
 ---
-*Nota: El parámetro `-s` para especificar la etapa (stage) debe ir en **minúsculas** (`p`, `a`, `l`, `d`, `e`).*
+
+## 📂 Visualización de Resultados
+Al ejecutar el ensamble (`-s a`), el programa generará un archivo de objeto (ej. `SUMA.o`). Puedes ver el rastro de la ejecución en la consola (logs) para verificar que el análisis léxico y sintáctico fue exitoso.
+
+---
+*Nota: El parámetro `-s` debe ir en **minúsculas**.*
