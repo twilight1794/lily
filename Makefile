@@ -34,13 +34,14 @@ src/cli/main.o: src/cli/main.c
 src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h
 src/lib/a_lexico_simbolo.o: src/lib/a_lexico_simbolo.c src/lib/a_lexico_simbolo.h
 src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
+src/lib/a_semantico.o: src/lib/a_semantico.c src/lib/a_semantico.h
 src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o src/lib/lua_cpu.o
+dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o
 	$(CC) -shared -fPIC $(LDFLAGS) $^ -llua $(LDLIBS) -o $@
 
-dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o src/lib/lua_cpu.o
+dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o  src/lib/a_semantico.o src/lib/lua_cpu.o
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/lily: src/cli/main.o lib-linux

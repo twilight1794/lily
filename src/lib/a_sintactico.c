@@ -205,26 +205,6 @@ struct lily_a_sintactico_ctx lily_a_sintactico(struct lily_lde_lde* simbolos, st
         return ctx;
     }
 
-    /* CPU debe ser la primera instrucción si no se ha determinado aún la arquitectura a utilizar
-    if (simbolo->tipo != SIMB_DIRECTIVA || simbolo->subtipo != DIR_CPU) {
-        ctx.codigo = COD_A_SINTACTICO_CPU_NO_ESPECIFICADO;
-        ctx.ultimo = simbolo;
-        return ctx;
-    }
-    nodo = nodo->posterior;
-    if (nodo == NULL) {
-        ctx.codigo = COD_A_SINTACTICO_FIN_INESPERADO;
-        ctx.ultimo = simbolo;
-        return ctx;
-    }
-    simbolo = (struct lily_a_lexico_simbolo*) nodo->valor;
-    if (simbolo->tipo != SIMB_CADENA_NUL) {
-        ctx.codigo = COD_A_SINTACTICO_NO_CADENA_NUL;
-        ctx.ultimo = simbolo;
-        return ctx;
-    }
-    nodo = nodo->posterior;
-    log_debug_gen("a_sintactico: cpu es \"%s\"", (char*) simbolo->valor);*/
     char* simb_cad;
     // Iterar para cada línea, mientras haya nodos
     struct lily_lde_nodo* nodo = lily_lde_get(simbolos, 0);

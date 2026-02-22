@@ -19,6 +19,7 @@
 #include "../common/log.h"
 #include "../lib/a_lexico.h"
 #include "../lib/a_sintactico.h"
+#include "../lib/a_semantico.h"
 #include "../lib/lua_cpu.h"
 
 #ifndef LILY_VERSION
@@ -322,7 +323,15 @@ int main(int argc, char **argv){
     if (ctx_sintactico.codigo != COD_OK) {
         log_info_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
     }
-    return ctx_sintactico.codigo;
+
+    // Análisis semántico
+    char* bytes = lily_cadena_create();
+    struct lily_a_semantico_ctx ctx_semantico = lily_a_semantico(simbolos, bytes);
+    log_info_gen(_("lily_a_semantico: %d."), ctx_semantico.codigo);
+    if (ctx_semantico.codigo != COD_OK) {
+        log_info_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
+    }
+    return ctx_semantico.codigo;
     //if (codigo) return codigo;
 
     //struct lily_lde_lde* objeto = lily_lde_create();
