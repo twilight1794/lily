@@ -25,6 +25,14 @@ char* lily_cadena_create(void);
 char* lily_cadena_add(char* cad, const char* c);
 
 /**
+ * Añade un byte a la cadena de caracteres, sin la validación de \c lily_cadena_add
+ * @param cad Cadena de texto a manipular
+ * @param c Caracter a añadir
+ * @return Nuevo puntero a la cadena modificada
+ */
+char* lily_cadena_add_byte(char* cad, const char c);
+
+/**
  * Concatena una cadena a la cadena de caracteres
  * @param cad Cadena de texto a manipular
  * @param cad2 Cadena de texto a concatenar

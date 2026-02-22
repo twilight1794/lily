@@ -20,6 +20,18 @@ char* lily_cadena_add(char* cad, const char* c) {
     return ncad;
 }
 
+char* lily_cadena_add_byte(char* cad, const char c) {
+    size_t tcad;
+    char* ncad;
+    if (cad == NULL) return cad;
+    tcad = strlen(cad);
+    ncad = realloc(cad, tcad + 1);
+    if (ncad == NULL) return cad;
+    ncad[tcad] = c;
+    ncad[tcad+1] = 0;
+    return ncad;
+}
+
 char* lily_cadena_concat(char* cad, const char* cad2) {
     size_t tcad, tcad2, i = 0;
     char* ncad;
