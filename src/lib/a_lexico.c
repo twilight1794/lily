@@ -213,7 +213,7 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, const siz
     (*sim)->linea = *linea;
     (*sim)->linea_pos = *linea_pos;
     (*sim)->pos = *i_inicial;
-    log_debug_gen(_("a_lexico (%lu, %lu): +número '%s'"), *linea SEP (*i_inicial)-(*linea_pos)+1 SEP valor_texto);
+    log_debug_gen(_("a_lexico (%lu, %lu): +número '%ld'"), *linea SEP (*i_inicial)-(*linea_pos)+1 SEP *valor);
     free(valor_texto);
     return COD_OK;
 }
