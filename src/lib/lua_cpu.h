@@ -9,6 +9,7 @@
 #include "../common/cadena.h"
 #include "../common/defs.h"
 #include "../common/error.h"
+#include  "a_lexico_simbolo.h"
 
 #include "lua.h"
 #include "lualib.h"

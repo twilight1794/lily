@@ -20,13 +20,14 @@ enum lily_error {
     COD_A_LEXICO_FIN_INESPERADO, /**< El archivo terminó antes de lo esperado */
     // lib/a_sintactico.h
     COD_A_SINTACTICO_SIN_SIMBOLOS, /**< No hubo símbolos reconocidos en el análisis léxico */
-    COD_A_SINTACTICO_CPU_NO_ESPECIFICADO, /**< No se ha especificado la directiva CPU cuando se ha requerido */
     COD_A_SINTACTICO_FIN_INESPERADO, /**< La lista de símbolos terminó antes de lo esperado */
     COD_A_SINTACTICO_SIMBOLO_INICIAL_INVALIDO, /**< El símbolo al inicio no es un mnemónico, una etiqueta, o una directiva */
     COD_A_SINTACTICO_ETIQUETA_MULTIPLE_LINEA, /**< Hay más de una definición de etiqueta en la misma línea */
     COD_A_SINTACTICO_NO_CADENA_NUL, /**< Se esperaba una cadena nul, pero el símbolo no era */
     COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS, /**< Los paréntesis en la expresión no están balanceaados correctamente */
     COD_A_SINTACTICO_PARENTESIS_VACIOS, /**< Los paréntesis no están agrupando ningún símbolo */
+    // lib/a_semantico.h
+    COD_A_SEMANTICO_CPU_NO_ESPECIFICADO, /**< No se ha especificado la directiva CPU cuando se ha requerido */
     // lib/lua_cpu.h
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */
     COD_LUA_CPU_DESC_NO_ID, /**< El miembro "id" no existe en el objeto de descripción */
