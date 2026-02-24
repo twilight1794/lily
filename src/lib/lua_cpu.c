@@ -167,15 +167,35 @@ lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx
     lua_createtable(L,0,5);
     /// Tipos comunes
     lua_pushlightuserdata(L, (void*) UD_TIPO_INT3);
-    lua_setfield(L, -2, "t_int3");
+    lua_setfield(L, -2, "int3");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_UINT3);
+    lua_setfield(L, -2, "uint3");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_SINT3);
+    lua_setfield(L, -2, "sint3");
     lua_pushlightuserdata(L, (void*) UD_TIPO_INT4);
-    lua_setfield(L, -2, "t_int4");
+    lua_setfield(L, -2, "int4");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_UINT4);
+    lua_setfield(L, -2, "uint4");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_SINT4);
+    lua_setfield(L, -2, "sint4");
     lua_pushlightuserdata(L, (void*) UD_TIPO_INT8);
-    lua_setfield(L, -2, "t_int8");
+    lua_setfield(L, -2, "int8");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_UINT8);
+    lua_setfield(L, -2, "uint8");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_SINT8);
+    lua_setfield(L, -2, "sint8");
     lua_pushlightuserdata(L, (void*) UD_TIPO_INT16);
-    lua_setfield(L, -2, "t_int16");
+    lua_setfield(L, -2, "int16");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_UINT16);
+    lua_setfield(L, -2, "uint16");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_SINT16);
+    lua_setfield(L, -2, "sint16");
     lua_pushlightuserdata(L, (void*) UD_TIPO_INT32);
-    lua_setfield(L, -2, "t_int32");
+    lua_setfield(L, -2, "int32");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_UINT32);
+    lua_setfield(L, -2, "uint32");
+    lua_pushlightuserdata(L, (void*) UD_TIPO_SINT32);
+    lua_setfield(L, -2, "sint32");
     /// Funciones
 
     /// Juntar todo

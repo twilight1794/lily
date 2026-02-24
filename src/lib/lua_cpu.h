@@ -17,10 +17,20 @@
 
 enum lily_lua_cpu_userdata_globales {
     UD_TIPO_INT3,
+    UD_TIPO_UINT3,
+    UD_TIPO_SINT3,
     UD_TIPO_INT4,
+    UD_TIPO_UINT4,
+    UD_TIPO_SINT4,
     UD_TIPO_INT8,
+    UD_TIPO_UINT8,
+    UD_TIPO_SINT8,
     UD_TIPO_INT16,
+    UD_TIPO_UINT16,
+    UD_TIPO_SINT16,
     UD_TIPO_INT32,
+    UD_TIPO_UINT32,
+    UD_TIPO_SINT32,
 };
 
 /**
