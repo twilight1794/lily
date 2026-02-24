@@ -1,5 +1,7 @@
 = Esquema de descripción Lily
 :toc:
+:sectlinks:
+:sectnums:
 
 Para poder trabajar con diversas arquitecturas, Lily necesita conocerlas a
 detalle, lo que hacemos a través de archivos de descripción escritos en tablas
@@ -8,29 +10,33 @@ ser reconocidas por el hipervisor.
 
 == `string` _id_
 Contiene un identificador para el microprocesador definido. Éste será único en
-el sistema, y seráusado, entre otros lugares, en la directiva `CPU` de Lily.
+el sistema, y será usado, entre otros lugares, en la directiva `CPU` de Lily.
 
 == `table` _registros_
 La tabla _registros_ contiene todos los registros utilizados por el
-microprocesador. Es una tabla asociativa: cada índice corresponderá al nombre de
-un registro reconocido, y contendrá una tabla que tendrá especificadas las
-siguientes propiedades:
+microprocesador. Es una tabla asociativa: cada índice corresponde al nombre de
+un registro reconocido, y cada valor contiene una tabla que tiene especificadas
+las siguientes propiedades:
 
  `tamano`:: Entero, tamaño en bits del registro.
  `desplazamiento`:: Entero, ubicación del registro en la matriz de bits. Se ha
  de notar que varios registros pueden solaparse, y eso se controla con esta
  propiedad.
 
-== `table` _operandos_
-La tabla operandos contiene funciones para reconocer y obtener valores por cada
-tipo de operando que un mnemónico pueda requerir. Es una tabla asociativa, cada
-índice corresponde a un identificador para el tipo a definir, mientras que el
-valor asociado será una función que acepte un solo parámetro: una cadena que
-contiene al resto de la línea que aún no ha sido procesada que contiene los
-argumentos tal cual se encuentran en el código fuente, finalizando con un
-caracter de salto de línea. Esta función deberá devolver una tupla de dos
-valores: el valor del parámetro reconocido (o `nil` si no hubo coincidencia con
-esa función), y la cadena desde la cual se seguirán extrayendo parámetros.
+== `table` _tipos_
+La tabla _tipos_ contiene definiciones de tipos personalizados para los
+parámetros de un mnemónico. Es una tabla asociativa: cada índice corresponde al
+identificador de un tipo, y cada valor contiene una función que acepta un
+parámetro &mdash;el valor del parámetro del mnemónico&mdash;, y devuelve un
+booleano, indicando si el parámetro es o no del tipo especificado.
+
+El identificador de tipo será una cadena de caracteres que coincida con la
+expresión regular en formato PCRE `[a-z0-9_]+`. Además, si el identificador
+tiene un caracter asterisco al inicio, entonces el parámetro solo coincidirá
+con el tipo si es un símbolo de desplazamiento.
+
+Existen 5 identificadores reservados por Lily, que no se pueden utilizar para
+identificar un nuevo tipo: `int3`, `int4`, `int8`, `int16`, `int32` y `obj`.
 
 Si un valor podría coincidir con más de un tipo, es importante notar que se
 devolverá el primer tipo que haga coincidencia. Dado que éstas se procesan según
@@ -43,17 +49,17 @@ instrucciones. Es una tabla asociativa, cada índice corresponde a un mnemónico
 reconocido, y el tipo del valor asociado a cada clave puede variar, dependiendo
 de su función, pero normalmente, será una tabla que contendrá varias duplas,
 representando cada una un conjunto de parámetros diferente. El primer elemento
-de esta dupla será una tupla de cadenas, donde cada cadena será un marcador de
-tipo (detallado en su sección), el segundo, un elemento de cualquiera de los
-siguientes tipos:
+de esta dupla será una tupla de cadenas, donde cada cadena será un identificador
+de tipo (detallado en <<_table_tipos,la sección de la tabla _tipos_>>), y el
+segundo, un elemento de cualquiera de  los siguientes tipos:
 
- ``function``:: una función que recibirá los parámetros y devolverá una lista de
-  enteros, representando la conversión a bytes.
- ``List<int>``:: su equivalencia en código máquina.
- ``Tuple<char*, function>``:: la cadena representa el nombre de otro mnemónico,
-de modo que se debe usar el valor definido para esta combinación de parámetros
-en dicho mnemónico. Después, se pasará la lista de bytes devuelta a la función
-para aplicar alguna transformación.
+ `function`:: una función que recibirá los parámetros y devolverá una lista de
+enteros, representando la conversión a bytes.
+ `List<int>`:: su equivalencia en código máquina.
+ `Tuple<char*, function>`:: la cadena representa el nombre de otro mnemónico, de
+modo que se debe usar el valor definido para esta combinación de parámetros en
+dicho mnemónico. Después, se pasará la lista de bytes devuelta a la función para
+aplicar alguna transformación.
 
 Además, si un mnemónico no admite parámetros, pueden usarse como valor
 cualquiera de los tres tipos descritos directamente, en vez de especificar una
@@ -77,11 +83,11 @@ coincide parcialmente, se seleccionará este caso, y el proceso de búsqueda
 continuará. Las tablas _opcodes_ y _desensamble_ son listas de casos.
 
 === Caso
-Un caso es un array de dos elementos o partes: un _elemento de coincidencia_, que
-Lily usará para ver si hay una coincidencia parcial con la secuencia de bytes
-que está buscando (desde el inicio de la secuencia a buscar, o desde el punto en
-el que concluyó la búsqueda anterior de esta secuencia), y un _elemento de
-resultado_, que sirve para determinar la acción a realizar de haber una
+Un caso es un array de dos elementos o partes: un _elemento de coincidencia_,
+que Lily usará para ver si hay una coincidencia parcial con la secuencia de
+bytes que está buscando (desde el inicio de la secuencia a buscar, o desde el
+punto en el que concluyó la búsqueda anterior de esta secuencia), y un _elemento
+de resultado_, que sirve para determinar la acción a realizar de haber una
 coincidencia.
 
 El elemento de coincidencia es un elemento de cualquiera de los siguientes
@@ -106,13 +112,13 @@ elemento de resultado es *terminal*.
 == `table` _opcodes_
 La tabla _opcodes_ es una _lista de casos_, donde cada elemento de resultado
 terminal será una función variádica que recibirá la lista de bytes, y que Lily
-ejecutará. Esta función no devolverá ningún valor, que será ignorado.
+ejecutará. Esta función no devolverá ningún valor, y si lo hace, será ignorado.
 
 == `table` _desensamble_
 La tabla _desensamble_ es una _lista de casos_, donde cada elemento de resultado
 terminal puede ser de cualquiera de los siguientes tipos:
 
-`char*`:: una cadena que representará la conversión a lenguaje ensamblador de
+ `char*`:: una cadena que representará la conversión a lenguaje ensamblador de
 la secuencia de bytes.
  `function(...)`:: una función variádica, que recibirá como argumento los bytes
 coincididos, y devolverá una cadena que representará la secuencia de bytes.
