@@ -118,7 +118,7 @@ return {
           LD = {
               {
                   { "r", "dir9" },
-                function(r, v) return { 0x20 | (obt_r(r) << 1) | ((v & 0x100) >> 8), v & 0xFF } end
+                  function(r, v) return { 0x20 | (obt_r(r) << 1) | ((v & 0x100) >> 8), v & 0xFF } end
               },
               {
                   { "r", "ind9" },
@@ -138,15 +138,15 @@ return {
           ST = {
               {
                   { "r", "dir9" },
-                  { "LD", function(bytes) return { bytes[1] + 0x10, bytes[2] } end}
+                  { "LD", function(bytes) return { bytes[1] + 0x10, bytes[2] } end }
               },
               {
                   { "r", "ind9" },
-                  { "LD", function(bytes) return { bytes[1] + 0x10, bytes[2] } end}
+                  { "LD", function(bytes) return { bytes[1] + 0x10, bytes[2] } end }
               },
               {
                   { "r", "ind6" },
-                  { "LD", function(bytes) return { bytes[1] + 0x10, bytes[2] } end}
+                  { "LD", function(bytes) return { bytes[1] + 0x10, bytes[2] } end }
               }
           },
           -- Instrucciones de control

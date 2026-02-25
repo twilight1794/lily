@@ -6,7 +6,7 @@
 Para poder trabajar con diversas arquitecturas, Lily necesita conocerlas a
 detalle, lo que hacemos a través de archivos de descripción escritos en tablas
 de Lua. Aquí se describe la estructura que debe tener dicha tabla de Lua para
-ser reconocidas por el hipervisor.
+ser reconocidas por Lily.
 
 == `string` _id_
 Contiene un identificador para el microprocesador definido. Éste será único en
@@ -51,7 +51,7 @@ de su función, pero normalmente, será una tabla que contendrá varias duplas,
 representando cada una un conjunto de parámetros diferente. El primer elemento
 de esta dupla será una tupla de cadenas, donde cada cadena será un identificador
 de tipo (detallado en <<_table_tipos,la sección de la tabla _tipos_>>), y el
-segundo, un elemento de cualquiera de  los siguientes tipos:
+segundo, un elemento de cualquiera de los siguientes tipos:
 
  `function`:: una función que recibirá los parámetros y devolverá una lista de
 enteros, representando la conversión a bytes.
