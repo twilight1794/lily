@@ -14,7 +14,8 @@
 #include "../common/log.h"
 #include "../lib/a_lexico_simbolo.h"
 
-#define lista_actual (lista_desplazamiento!=NULL)?lista_desplazamiento:(instruccion->params)
+#define lista_actual ((lista_desplazamiento != NULL)?lista_desplazamiento:(instruccion->params))
+#define pila_actual ((pila_desplazamiento != NULL)?pila_desplazamiento:pila_simbolos)
 
 /**
  * Estructura para almacenar detalles sobre la ejecución del análisis sintáctico

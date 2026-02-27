@@ -58,12 +58,14 @@ static struct lily_a_sintactico_ctx lily_a_sintactico_modo_instruccion(struct li
         ctx.codigo = COD_MALLOC_FALLO;
         return ctx;
     }
-    struct lily_a_lexico_simbolo* simbolo = (*nodo)->valor;
+    struct lily_lde_nodo* nodo_viejo;
+    struct lily_a_lexico_simbolo* simbolo = (*nodo == NULL)?NULL:((*nodo)->valor);
     struct lily_a_lexico_simbolo* o2 = NULL;
     struct lily_lde_lde* lista_desplazamiento = NULL;
+    struct lily_lde_lde* pila_desplazamiento = NULL;
     // Guardar todos los símbolos de esa línea
     // Algoritmo shunting-yard
-    while (simbolo != NULL && simbolo->linea == instruccion->simbolo->linea) {
+    while (*nodo != NULL && simbolo->linea == instruccion->simbolo->linea) {
         char *simb_cad = lily_a_lexico_simbolo_print(simbolo);
         log_debug_gen("a_sintactico_rpn: %s", simb_cad);
         free(simb_cad);
@@ -75,78 +77,98 @@ static struct lily_a_sintactico_ctx lily_a_sintactico_modo_instruccion(struct li
             case SIMB_CADENA_SIMPLE:
                 lily_lde_insert(lista_actual, lily_lde_size(lista_actual), simbolo);
                 // FIX: validar NULL
-                struct lily_lde_nodo* nodo_viejo = *nodo;
+                nodo_viejo = *nodo;
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
                 lily_lde_remove_node(simbolos, nodo_viejo);
                 break;
             case SIMB_FUNCION:
-                lily_lde_insert(pila_simbolos, lily_lde_size(pila_simbolos), *nodo);
+                lily_lde_insert(pila_actual, lily_lde_size(pila_simbolos), *nodo);
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
                 break;
             case SIMB_OPERADOR:
                 while (
-                    (pila_simbolos->final != NULL && (
-                            ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor)->tipo != SIMB_PARENTESIS_AP ||
-                            ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor)->tipo != SIMB_DESPLAZAMIENTO_AP)) &&
+                    (pila_actual->final != NULL && (
+                            ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->tipo != SIMB_PARENTESIS_AP ||
+                            ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->tipo != SIMB_DESPLAZAMIENTO_AP)) &&
                     (
-                        (lily_a_sintactico_precedencia((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor) > lily_a_sintactico_precedencia(simbolo)) ||
-                        ((lily_a_sintactico_precedencia((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor) == lily_a_sintactico_precedencia(simbolo)) && (simbolo->subtipo == OP_BIT_NOT || simbolo->subtipo == OP_LOG_NEG))
+                        (lily_a_sintactico_precedencia((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor) > lily_a_sintactico_precedencia(simbolo)) ||
+                        ((lily_a_sintactico_precedencia((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor) == lily_a_sintactico_precedencia(simbolo)) && (simbolo->subtipo == OP_BIT_NOT || simbolo->subtipo == OP_LOG_NEG))
                     )
                 ) {
-                    lily_lde_insert(lista_actual, lily_lde_size(lista_actual), ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor);
+                    lily_lde_insert(lista_actual, lily_lde_size(lista_actual), ((struct lily_lde_nodo*) pila_actual->final->valor)->valor);
                     // FIX: validar NULL
-                    lily_lde_remove_node(simbolos, pila_simbolos->final->valor);
-                    lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
+                    lily_lde_remove_node(simbolos, pila_actual->final->valor);
+                    lily_lde_remove_node(pila_actual, pila_actual->final);
                 }
-                lily_lde_insert(pila_simbolos, lily_lde_size(pila_simbolos), *nodo);
+                lily_lde_insert(pila_actual, lily_lde_size(pila_actual), *nodo);
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
                 break;
             case SIMB_PARENTESIS_AP:
-                lily_lde_insert(pila_simbolos, lily_lde_size(pila_simbolos), *nodo);
+                lily_lde_insert(pila_actual, lily_lde_size(pila_actual), *nodo);
                 *nodo = (*nodo)->posterior;
                 simbolo = (*nodo)->valor;
                 break;
             case SIMB_PARENTESIS_CI:
                 // FIX: revisar
-                while (pila_simbolos->final != NULL &&
-                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor)->tipo != SIMB_PARENTESIS_AP
+                while (pila_actual->final != NULL &&
+                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->tipo != SIMB_PARENTESIS_AP
                     ) {
-                    o2 = (struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor;
+                    o2 = (struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor;
                     lily_lde_insert(lista_actual, lily_lde_size(lista_actual), o2);
                     // FIX: validar NULL
-                    lily_lde_remove_node(simbolos, pila_simbolos->final->valor);
-                    lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
+                    lily_lde_remove_node(simbolos, pila_actual->final->valor);
+                    lily_lde_remove_node(pila_actual, pila_actual->final);
                 }
-                if (pila_simbolos->final == NULL) {
+                if (pila_actual->final == NULL) {
                     ctx.codigo = COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS;
                     ctx.ultimo = simbolo;
                     return ctx;
                 }
                 free(o2);
                 o2 = NULL;
-                lily_lde_remove_node(simbolos, pila_simbolos->final->valor);
-                lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
+                lily_lde_remove_node(simbolos, pila_actual->final->valor);
+                lily_lde_remove_node(pila_actual, pila_actual->final);
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
                 // Note: Para función: sería esto mismo, y averiguar si ahora hay un símbolo llamada-a-función, y moverlo a la lista
                 break;
             case SIMB_DESPLAZAMIENTO_AP:
+                // TODO: rechazar desplazamiento anidado
                 lista_desplazamiento = lily_lde_create();
                 if (lista_desplazamiento == NULL) {
                     ctx.codigo = COD_MALLOC_FALLO;
                     ctx.ultimo = simbolo;
                     return ctx;
                 }
-                lily_lde_insert(pila_simbolos, lily_lde_size(pila_simbolos), *nodo);
+                pila_desplazamiento = lily_lde_create();
+                if (pila_desplazamiento == NULL) {
+                    ctx.codigo = COD_MALLOC_FALLO;
+                    ctx.ultimo = simbolo;
+                    return ctx;
+                }
+                lily_lde_insert(pila_actual, lily_lde_size(pila_actual), *nodo);
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
                 break;
             case SIMB_DESPLAZAMIENTO_CI:
-                o2 = (pila_simbolos->final == NULL)?NULL: ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor);
-                if (o2 == NULL || o2->tipo != SIMB_DESPLAZAMIENTO_AP) {
+                if (lista_desplazamiento == NULL) {
+                    ctx.codigo = COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS;
+                    ctx.ultimo = simbolo;
+                    return ctx;
+                }
+                while (pila_actual->final != NULL &&
+                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->tipo != SIMB_DESPLAZAMIENTO_AP
+                    ) {
+                    o2 = (struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor;
+                    lily_lde_insert(lista_actual, lily_lde_size(lista_actual), o2);
+                    // FIX: validar NULL
+                    lily_lde_remove_node(simbolos, pila_actual->final->valor);
+                    lily_lde_remove_node(pila_actual, pila_actual->final);
+                    }
+                if (pila_actual->final == NULL) {
                     ctx.codigo = COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS;
                     ctx.ultimo = simbolo;
                     return ctx;
@@ -154,39 +176,52 @@ static struct lily_a_sintactico_ctx lily_a_sintactico_modo_instruccion(struct li
                 if (lista_desplazamiento->inicio == NULL) {
                     ctx.codigo = COD_A_SINTACTICO_PARENTESIS_VACIOS;
                     ctx.ultimo = simbolo;
+                    return ctx;
                 }
+                if (o2 == NULL)
+                    o2 = ((struct lily_lde_nodo*) pila_desplazamiento->final->valor)->valor;
                 o2->valor = lista_desplazamiento;
                 lista_desplazamiento = NULL;
-                lily_lde_insert(lista_actual, lily_lde_size(lista_actual), o2);
-                lily_lde_remove_node(simbolos, pila_simbolos->final->valor);
-                lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
+                lily_lde_insert(instruccion->params, lily_lde_size(instruccion->params), o2);
+                lily_lde_remove_node(simbolos, pila_desplazamiento->final->valor);
+                lily_lde_remove_node(pila_desplazamiento, pila_desplazamiento->final);
+                free(pila_desplazamiento);
+                pila_desplazamiento = NULL;
+                o2 = NULL;
+                nodo_viejo = *nodo;
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
+                lily_lde_remove_node(simbolos, nodo_viejo);
                 break;
             case SIMB_SEPARADOR:
-                while (pila_simbolos->final != NULL && (
-                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor)->tipo != SIMB_PARENTESIS_AP &&
-                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor)->tipo != SIMB_DESPLAZAMIENTO_AP
+                while (pila_actual->final != NULL && (
+                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->tipo != SIMB_PARENTESIS_AP &&
+                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->tipo != SIMB_DESPLAZAMIENTO_AP
                     )) {
-                    lily_lde_insert(lista_actual, lily_lde_size(lista_actual), (struct lily_lde_nodo*) ((struct lily_lde_nodo*) pila_simbolos->final->valor)->valor);
+                    lily_lde_insert(lista_actual, lily_lde_size(lista_actual), (struct lily_lde_nodo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor);
                     // FIX: validar NULL
-                    lily_lde_remove_node(simbolos, pila_simbolos->final->valor);
-                    lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
+                    lily_lde_remove_node(simbolos, pila_actual->final->valor);
+                    lily_lde_remove_node(pila_actual, pila_actual->final);
                 }
+                nodo_viejo = *nodo;
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
+                lily_lde_remove_node(simbolos, nodo_viejo);
                 break;
             default:
                 log_debug("Si llegamos acá, es que algo anda mal");
+                ctx.codigo = COD_A_SINTACTICO_SIMBOLO_IMPROCEDENTE;
+                ctx.ultimo = simbolo;
                 return ctx;
         }
     }
-    while (pila_simbolos->final != NULL) {
+    while (lily_lde_size(pila_simbolos)) {
         struct lily_lde_nodo* nodo_pila = (struct lily_lde_nodo*) pila_simbolos->final->valor;
-        if (((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) nodo_pila->valor)->valor)->tipo != SIMB_PARENTESIS_AP) {
-            lily_lde_insert(instruccion->params, lily_lde_size(instruccion->params), nodo_pila->valor);
-            lily_lde_remove_node(simbolos, nodo_pila->valor);
-            lily_lde_remove_node(pila_simbolos, nodo_pila);
+        struct lily_a_lexico_simbolo* simbolo_pila = nodo_pila->valor;
+        if (simbolo_pila->tipo != SIMB_PARENTESIS_AP) {
+            lily_lde_insert(instruccion->params, lily_lde_size(instruccion->params), simbolo_pila);
+            lily_lde_remove_node(simbolos, nodo_pila);
+            lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
         }
     }
 
@@ -231,18 +266,21 @@ struct lily_a_sintactico_ctx lily_a_sintactico(struct lily_lde_lde* simbolos, st
             nodo = nodo->posterior;
             lily_lde_remove_node(simbolos, nodo_viejo);
         }
-        if (nodo == NULL) return ctx; // Si la etiqueta está al final de todo, salimos
+        if (nodo == NULL) break; // Si la etiqueta está al final de todo, salimos
         simbolo = nodo->valor;
         // Si no, vemos si seguimos en la misma línea
         if (simbolo->linea > linea_actual) {
-            if (lily_lde_insert(simbolos, lily_lde_size(simbolos), instruccion) == NULL) {
+            if (lily_lde_insert(ast, lily_lde_size(ast), instruccion) == NULL) {
                 ctx.codigo = COD_MALLOC_FALLO;
                 ctx.ultimo = NULL;
                 return ctx;
             }
+            simb_cad = lily_a_sintactico_instruccion_print(instruccion);
+            log_debug_gen("a_sintactico sim: %s", simb_cad);
+            free(simb_cad);
             continue;
         }
-        // Si no, ya seguimos jsjsjs, hay cosas en la línea
+        // Si seguimos en la misma línea, ya continuamos jsjsjs, hay cosas en la línea
 
         // Ahora vemos si lo siguiente es mnemónico o directiva
         if (simbolo->tipo == SIMB_MNEMO || simbolo->tipo == SIMB_DIRECTIVA) {
@@ -256,21 +294,6 @@ struct lily_a_sintactico_ctx lily_a_sintactico(struct lily_lde_lde* simbolos, st
             ctx = lily_a_sintactico_modo_instruccion(simbolos, &nodo, instruccion);
             if (ctx.codigo != COD_OK) return ctx;
             lily_lde_insert(ast, lily_lde_size(ast), instruccion);
-            struct lily_lde_nodo* simb_nodo = instruccion->params->inicio;
-            while (simb_nodo != NULL) {
-                simb_cad = lily_a_lexico_simbolo_print(simb_nodo->valor);
-                log_debug_gen("a_sintactico_comp: %s", simb_cad);
-                free(simb_cad);
-                struct lily_a_lexico_simbolo* simb_simb = simb_nodo->valor;
-                if (simb_simb->tipo == SIMB_DESPLAZAMIENTO_AP) {
-                    for (struct lily_lde_nodo* simb_it = ((struct lily_lde_lde*)simb_simb->valor)->inicio; simb_it != NULL; simb_it = simb_it->posterior) {
-                        simb_cad = lily_a_lexico_simbolo_print(simb_it->valor);
-                        log_debug_gen("a_sintactico_desp: %s", simb_cad);
-                        free(simb_cad);
-                    }
-                }
-                simb_nodo = simb_nodo->posterior;
-            }
         }
         else if (simbolo->tipo == SIMB_ETI) {
             ctx.codigo = COD_A_SINTACTICO_ETIQUETA_MULTIPLE_LINEA;
@@ -282,7 +305,15 @@ struct lily_a_sintactico_ctx lily_a_sintactico(struct lily_lde_lde* simbolos, st
             ctx.ultimo = simbolo;
             return ctx;
         }
-    } while (nodo->posterior != NULL);
+        simb_cad = lily_a_sintactico_instruccion_print(instruccion);
+        log_debug_gen("a_sintactico sim: %s", simb_cad);
+        free(simb_cad);
+    } while (nodo != NULL);
     log_debug_gen("sizeof(simbolos)=%lu", lily_lde_size(simbolos));
+    for (size_t i = 0; i < lily_lde_size(simbolos); i++) {
+        simb_cad = lily_a_lexico_simbolo_print(lily_lde_get(simbolos,i)->valor);
+        log_debug_gen("a_sintactico rest: %s", simb_cad);
+        free(simb_cad);
+    }
     return ctx;
 }

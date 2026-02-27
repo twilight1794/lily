@@ -30,6 +30,7 @@ enum lily_error {
     COD_A_SINTACTICO_NO_CADENA_NUL, /**< Se esperaba una cadena nul, pero el símbolo no era */
     COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS, /**< Los paréntesis en la expresión no están balanceaados correctamente */
     COD_A_SINTACTICO_PARENTESIS_VACIOS, /**< Los paréntesis no están agrupando ningún símbolo */
+    COD_A_SINTACTICO_SIMBOLO_IMPROCEDENTE, /**< No se esperaba un símbolo de este tipo */
     // lib/a_semantico.h
     COD_A_SEMANTICO_CPU_NO_ESPECIFICADO, /**< No se ha especificado la directiva CPU cuando se ha requerido */
     // lib/lua_cpu.h
