@@ -156,4 +156,15 @@ struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void)
  * @return Cadena de texto con la representación en texto del objeto
  */
 char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruccion* instruccion);
+
+struct lily_a_semantico_identificador {
+    bool es_const;
+    uint64_t valor;
+};
+
+/**
+ * Crea un objeto para guardar un identificador
+ * @return Un objeto para identificador nuevo
+ */
+struct lily_a_semantico_identificador* lily_a_semantico_identificador_create(void);
 #endif

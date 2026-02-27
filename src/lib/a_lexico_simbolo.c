@@ -221,3 +221,12 @@ char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruc
     }
     return buff;
 }
+
+struct lily_a_semantico_identificador* lily_a_semantico_identificador_create(void) {
+    struct lily_a_semantico_identificador* obj = (struct lily_a_semantico_identificador*) malloc(sizeof(struct lily_a_semantico_identificador));
+    if (obj != NULL) {
+        obj->valor = 0;
+        obj->es_const = false;
+    }
+    return obj;
+}
