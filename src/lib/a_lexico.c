@@ -98,7 +98,7 @@ enum lily_error lily_a_lexico_modo_objeto(const char* blob, size_t* i, const siz
     // Obtener cadena a comparar
     char* cad_tentativa = lily_cadena_create();
     if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
-    while (isalpha(blob[*i])) {
+    while (isalnum(blob[*i])) {
         lily_cadena_add(cad_tentativa, blob+(*i));
         (*i)++;
     }
