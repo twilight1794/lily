@@ -84,7 +84,7 @@ clean:
 
 lib/munit/munit.o: lib/munit/munit.c
 
-test/common/dict.o: test/common/dict.c
+test/common/dict.o: test/common/dict.c test/common/dict.h
 test/main.o: test/main.c
 
 dist/test: lib/munit/munit.o test/main.o test/common/dict.o lib-linux
