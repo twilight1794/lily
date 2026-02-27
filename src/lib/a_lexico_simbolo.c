@@ -104,10 +104,32 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
             sprintf(buff, patron, LC);
             break;
         case SIMB_DESPLAZAMIENTO_AP:
-            patron = "(%lu:%lu) DesplazamientoAp";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
-            if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC);
+            if (simbolo->valor == NULL) {
+                patron = "(%lu:%lu) DesplazamientoAp";
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC);
+            } else {
+                patron = "(%lu:%lu) DesplazamientoAp { %s }";
+                char* cad = lily_cadena_create();
+                if (cad == NULL) return NULL;
+                for (struct lily_lde_nodo* nodo = ((struct lily_lde_lde*) simbolo->valor)->inicio; nodo != NULL; nodo = nodo->posterior) {
+                    char* cad_cont = lily_a_lexico_simbolo_print(nodo->valor);
+                    if (cad_cont == NULL) return NULL;
+                    char* cad_tmp = lily_cadena_concat(cad, cad_cont);
+                    if (cad_tmp == NULL) return NULL;
+                    cad = cad_tmp;
+                    free(cad_cont);
+                    if (nodo->posterior != NULL) {
+                        cad_tmp = lily_cadena_concat(cad, ", ");
+                        if (cad_tmp == NULL) return NULL;
+                        cad = cad_tmp;
+                    }
+                }
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC, cad) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC, cad);
+            }
             break;
         case SIMB_DESPLAZAMIENTO_CI:
             patron = "(%lu:%lu) DesplazamientoCi";
@@ -122,8 +144,8 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
             sprintf(buff, patron, LC);
             break;
         default:
-            patron = "(%lu:%lu) Indeterminado";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
+            patron = "(%lu:%lu) Indeterminado (%d)";
+            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, simbolo->tipo) + 1);
             if (buff == NULL) return NULL;
             sprintf(buff, patron, LC);
             break;
