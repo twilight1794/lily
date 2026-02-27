@@ -7,10 +7,15 @@
 #define LILY_L_A_LEXICO_SIMBOLO
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "../common/cadena.h"
 #include "../common/lde.h"
+#include "../common/log.h"
+
+#define esta_definido(obj) (obj->direccion != SIZE_MAX)
 
 /**
  * Tipo de símbolo
@@ -123,7 +128,7 @@ struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void);
  * @param simbolo Símbolo cuyos datos imprimir
  * @return Cadena de texto con la representación en texto del objeto
  */
-char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo);
+char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo);
 
 /**
  * Estructura para guardar un símbolo sintáctico
@@ -131,10 +136,12 @@ char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo);
 struct lily_a_sintactico_instruccion {
     struct lily_a_lexico_simbolo* etiqueta; /**< Etiqueta asociada, si existe */
     struct lily_a_lexico_simbolo* simbolo; /**< Mnemónico o directiva asociada, si existe */
-    struct lily_lde_lde* params; /**< Lista de parámetros */
+    struct lily_lde_lde* params; /**< Lista de parámetros, o condiciones para bloques */
     struct lily_lde_lde* instrucciones; /**< Para macros que agrupan instrucciones */
     struct lily_lde_lde* instruccionesn; /**< Como \a instrucciones, pero para la rama opuesta */
-    size_t dirección; /**< Dirección de memoria asociada */
+    size_t direccion; /**< Dirección de memoria asociada. SIZE_MAX si aún no está determinada completamente */
+    size_t tam_bytes; /**< Tamaño del array guardado en \a bytes */
+    uint8_t* bytes; /**< Representación en bytes de la instrucción */
 };
 
 /**
@@ -143,4 +150,10 @@ struct lily_a_sintactico_instruccion {
  */
 struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void);
 
+/**
+ * Genera una representación en texto de \a instrucción
+ * @param instruccion Instrucción cuyos datos imprimir
+ * @return Cadena de texto con la representación en texto del objeto
+ */
+char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruccion* instruccion);
 #endif

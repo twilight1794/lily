@@ -1,7 +1,5 @@
 #include "a_lexico_simbolo.h"
 
-#include "../common/log.h"
-
 extern char* lily_a_lexico_directivas[];
 extern char* lily_a_lexico_operadores[];
 
@@ -21,11 +19,14 @@ struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void)
         }
         obj->instrucciones = NULL;
         obj->instruccionesn = NULL;
+        obj->direccion = SIZE_MAX;
+        obj->tam_bytes = 0;
+        obj->bytes = NULL;
     }
     return obj;
 }
 
-char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo) {
+char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
     #define LC simbolo->linea, (simbolo->pos-simbolo->linea_pos+1)
     char* patron;
     char* buff;
@@ -126,6 +127,75 @@ char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo) {
             if (buff == NULL) return NULL;
             sprintf(buff, patron, LC);
             break;
+    }
+    return buff;
+}
+
+char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruccion* instruccion) {
+    char *patron, *buff_local, *buff_tmp;
+    char* buff = lily_cadena_create();
+    if (buff == NULL) return NULL;
+    // Imprimir dirección
+    if (esta_definido(instruccion)) {
+        patron = "(%lu)";
+        buff_local = (char*) malloc(snprintf(NULL, 0, patron, instruccion->direccion) + 1);
+        if (buff_local == NULL) return NULL;
+        sprintf(buff_local, patron, instruccion->direccion);
+        buff_tmp = lily_cadena_concat(buff, buff_local);
+        if (buff_tmp == NULL) return NULL;
+        buff = buff_tmp;
+        free(buff_local);
+    } else {
+        buff_tmp = lily_cadena_concat(buff, "(—)");
+        if (buff_tmp == NULL) return NULL;
+        buff = buff_tmp;
+    }
+    // Imprimir etiqueta, si la hay
+    if (instruccion->etiqueta != NULL) {
+        patron = " [%s:]";
+        buff_local = (char*) malloc(snprintf(NULL, 0, patron, (char*) instruccion->etiqueta->valor) + 1);
+        if (buff_local == NULL) return NULL;
+        sprintf(buff_local, patron, (char*) instruccion->etiqueta->valor);
+        buff_tmp = lily_cadena_concat(buff, buff_local);
+        if (buff_tmp == NULL) return NULL;
+        buff = buff_tmp;
+        free(buff_local);
+    }
+    // Imprimir tipo
+    char* dumb = " }";
+    if (instruccion->simbolo != NULL) {
+        buff_tmp = lily_cadena_add(buff, dumb);
+        if (buff_tmp == NULL) return NULL;
+        buff = buff_tmp;
+        char* cad_tipo = lily_a_lexico_simbolo_print(instruccion->simbolo);
+        if (cad_tipo == NULL) return NULL;
+        buff_tmp = lily_cadena_concat(buff, cad_tipo);
+        if (buff_tmp == NULL) return NULL;
+        buff = buff_tmp;
+        buff_tmp = lily_cadena_concat(buff, " { ");
+        if (buff_tmp == NULL) return NULL;
+        buff = buff_tmp;
+        // Imprimir parámetros
+        for (size_t i = 0; i < lily_lde_size(instruccion->params); i++) {
+            struct lily_a_lexico_simbolo* sim = lily_lde_get(instruccion->params, i)->valor;
+            cad_tipo = lily_a_lexico_simbolo_print(sim);
+            if (cad_tipo == NULL) {
+                free(cad_tipo);
+                return NULL;
+            }
+            buff_tmp = lily_cadena_concat(buff, cad_tipo);
+            if (buff_tmp == NULL) return NULL;
+            buff = buff_tmp;
+            free(cad_tipo);
+            if (lily_lde_get(instruccion->params, i)->posterior != NULL) {
+                buff_tmp = lily_cadena_concat(buff, ", ");
+                if (buff_tmp == NULL) return NULL;
+                buff = buff_tmp;
+            }
+        }
+        buff_tmp = lily_cadena_concat(buff, dumb);
+        if (buff_tmp == NULL) return NULL;
+        buff = buff_tmp;
     }
     return buff;
 }
