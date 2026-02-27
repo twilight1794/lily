@@ -183,20 +183,20 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, const siz
     }
 
     // Obtener valor
-    long* valor = (long*) malloc(sizeof(long));
+    uint64_t* valor = (uint64_t*) malloc(sizeof(uint64_t));
     if (valor == NULL) {
         free(valor_texto);
         return COD_MALLOC_FALLO;
     }
     *valor = 0;
     for (size_t j = strlen(valor_texto); j > 0; j--) {
-        long potencia;
+        uint64_t potencia;
         const int exponente = (int) (strlen(valor_texto)-j); // FIX: no deberíamos aceptar números mayores a 20 dígitos en cualquier caso
         if (tipo == 'x') potencia = pow16(exponente);
         else if (tipo == 'o') potencia = pow8(exponente);
         else if (tipo == 'b') potencia = pow2(exponente);
         else potencia = pow10(exponente);
-        long valor_digito;
+        uint64_t valor_digito;
         if (tipo == 'x' && valor_texto[j-1] >= 97) valor_digito = valor_texto[j-1] - 0x57;
         else if (tipo == 'x' && valor_texto[j-1] >= 65) valor_digito = valor_texto[j-1] - 0x37;
         else valor_digito = valor_texto[j-1] - 0x30;

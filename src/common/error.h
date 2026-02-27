@@ -12,6 +12,10 @@ enum lily_error {
     COD_MALLOC_FALLO, /**< [mc]alloc falló al reservar memoria */
     COD_CARACTER_INVALIDO, /**< Caracter inválido en el archivo */
     COD_CTX_NULO, /**< El contexto pasado a una función es nulo */
+    // common/nums.h
+    COD_NUMS_MAS_8, /**< El número que se intenta guardar no cabe en 8 bits */
+    COD_NUMS_MAS_16, /**< El número que se intenta guardar no cabe en 16 bits */
+    COD_NUMS_MAS_32, /**< El número que se intenta guardar no cabe en 32 bits */
     // lib/a_lexico.h
     COD_A_LEXICO_RECON_ERRONEO, /**< La cadena no corresponde a un tipo, durante un estado de ambigüedad */
     COD_A_LEXICO_DIRECTIVA_INVALIDA, /**< La directiva especificada no existe */

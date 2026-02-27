@@ -29,6 +29,7 @@ src/common/cadena.o: src/common/cadena.c src/common/cadena.h
 src/common/dict.o: src/common/dict.c src/common/dict.h
 src/common/lde.o: src/common/lde.c src/common/lde.h
 src/common/log.o: src/common/log.c src/common/log.h
+src/common/nums.o: src/common/nums.c src/common/nums.h
 src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\"
 src/cli/main.o: src/cli/main.c
 src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h
@@ -38,10 +39,10 @@ src/lib/a_semantico.o: src/lib/a_semantico.c src/lib/a_semantico.h
 src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o
+dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o
 	$(CC) -shared -fPIC $(LDFLAGS) $^ -llua $(LDLIBS) -o $@
 
-dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o  src/lib/a_semantico.o src/lib/lua_cpu.o
+dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o  src/lib/a_semantico.o src/lib/lua_cpu.o
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/lily: src/cli/main.o lib-linux

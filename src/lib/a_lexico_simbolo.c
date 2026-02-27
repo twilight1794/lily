@@ -55,10 +55,10 @@ char* lily_a_lexico_simbolo_print(struct lily_a_lexico_simbolo* simbolo) {
             sprintf(buff, patron, LC, simbolo->valor);
             break;
         case SIMB_NUMERO:
-            patron = "(%lu:%lu) Número %ld";
+            patron = "(%lu:%lu) Número %" PRIu64;
             buff = (char*) malloc(snprintf(NULL, 0, patron, LC, simbolo->valor) + 1);
             if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC, *((long*) simbolo->valor));
+            sprintf(buff, patron, LC, *((uint64_t*) simbolo->valor));
             break;
         case SIMB_FUNCION:
             patron = "(%lu:%lu) Función %s";

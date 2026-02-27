@@ -6,6 +6,8 @@
 #ifndef LILY_L_A_LEXICO_SIMBOLO
 #define LILY_L_A_LEXICO_SIMBOLO
 
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "../common/lde.h"
