@@ -34,19 +34,25 @@ enum lily_error {
     // lib/a_semantico.h
     COD_A_SEMANTICO_CPU_NO_ESPECIFICADO, /**< No se ha especificado la directiva CPU cuando se ha requerido */
     // lib/lua_cpu.h
+    COD_LUA_CPU_LUA_ERR, /**< Error generado por la máquina virtual de Lua */
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */
     COD_LUA_CPU_DESC_NO_ID, /**< El miembro "id" no existe en el objeto de descripción */
     COD_LUA_CPU_DESC_ID_NO_CADENA, /**< El miembro "cadena" del objeto de descripción no es una cadena */
     COD_LUA_CPU_DESC_NO_REGISTROS, /**< El miembro "registros" no existe en el objeto de descripción */
     COD_LUA_CPU_DESC_REGISTROS_NO_TABLA, /**< El miembro "registros" del objeto de descripción no es una tabla */
-    COD_LUA_CPU_DESC_NO_OPERANDOS, /**< El miembro "operandos" no existe en el objeto de descripción */
-    COD_LUA_CPU_DESC_OPERANDOS_NO_TABLA, /**< El miembro "operandos" del objeto de descripción no es una tabla */
+    COD_LUA_CPU_DESC_NO_TIPOS, /**< El miembro "tipos" no existe en el objeto de descripción */
+    COD_LUA_CPU_DESC_TIPOS_NO_TABLA, /**< El miembro "tipos" del objeto de descripción no es una tabla */
     COD_LUA_CPU_DESC_NO_ENSAMBLE, /**< El miembro "ensamble" no existe en el objeto de descripción */
     COD_LUA_CPU_DESC_ENSAMBLE_NO_TABLA, /**< El miembro "ensamble" del objeto de descripción no es una tabla */
     COD_LUA_CPU_DESC_NO_OPCODES, /**< El miembro "opcodes" no existe en el objeto de descripción */
     COD_LUA_CPU_DESC_OPCODES_NO_TABLA, /**< El miembro "opcodes" del objeto de descripción no es una tabla */
     COD_LUA_CPU_DESC_NO_DESENSAMBLE, /**< El miembro "desensamble" no existe en el objeto de descripción */
     COD_LUA_CPU_DESC_DESENSAMBLE_NO_TABLA, /**< El miembro "desensamble" del objeto de descripción no es una tabla */
+    COD_LUA_CPU_TIPO_INEXISTENTE, /**< El identificador de tipo provisto no está definido */
+    COD_LUA_CPU_TIPO_FUNCION_NO_BOOLEANO, /**< La función de comprobación de tipo no devolvió un valor booleano */
+    COD_LUA_CPU_RES_ENSAMBLE_NO_TABLA, /**< El resultado de la función de ensamble no es una tabla */
+    COD_LUA_CPU_RES_ENSAMBLE_VACIO, /**< La tabla devuelta por la función de ensamble no contiene ningún byte */
+    COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO, /**< Uno de los elementos de la tabla devuelta por la función de ensamble no es un entero */
 };
 
 #endif

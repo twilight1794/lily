@@ -38,16 +38,19 @@ enum lily_lua_cpu_userdata_globales {
  * Estructura para almacenar detalles sobre el estado de la ejecución
  */
 struct lily_lua_cpu_error_ctx {
-    enum lily_error codigo; //< Código del error generado
+    enum lily_error codigo; /**< Código del error generado */
+    char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
 };
 
 /**
- * Comprueba si \a simbolo cumple con alguno de los tipos predeterminados de Lily
+ * Comprueba si \a simbolo cumple con alguno de los tipos conocidos por Lily
+ * @param L Sesión de Lua
  * @param tipo Tipo contra el cual comprobar
  * @param simbolo Símbolo a comprobar
+ * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
  * @return \c true si el símbolo coincide con el tipo, \c false si no
  */
-static bool lily_lua_cpu_comp_tipo_simbolo_(char* tipo, struct lily_a_lexico_simbolo* simbolo);
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_lua_cpu_error_ctx* ctx);
 
 /**
  * Lee la lista de parámetros en \a params para una instrucción, y prepara sus valores en la pila para Lua

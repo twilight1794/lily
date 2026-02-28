@@ -1,6 +1,6 @@
 #include "lua_cpu.h"
 
-static bool lily_lua_cpu_comp_tipo_simbolo(char* tipo, struct lily_a_lexico_simbolo* simbolo) {
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_lua_cpu_error_ctx* ctx) {
     union lily_a_lexico_numero n;
     // Primero, comprobar si el tipo es uno precargado
     if (!strcmp(tipo, "int3") && simbolo->tipo == SIMB_NUMERO) {
@@ -129,7 +129,51 @@ static bool lily_lua_cpu_comp_tipo_simbolo(char* tipo, struct lily_a_lexico_simb
         n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
         return n.positivo <= 9223372036854775807;
     }
-    return false;
+    // Es (probablemente) un tipo definido por el usuario
+    lua_getglobal(L, "_lily_tabla_idx");
+    lua_Integer tabla_idx = lua_tointegerx(L, -1, NULL);
+    lua_pushstring(L, "tipos");
+    lua_gettable(L, (int) tabla_idx);
+    lua_pushstring(L, tipo);
+    lua_gettable(L, -2);
+    if (lua_isnil(L, -1)) {
+        lua_pop(L, 2);
+        ctx->codigo = COD_LUA_CPU_TIPO_INEXISTENTE;
+        return false;
+    }
+    // Ajustar valor de símbolo
+    if (simbolo->tipo == SIMB_OBJETO) {
+        lua_pushstring(L, (char*) simbolo->valor);
+    }
+    else if (simbolo->tipo == SIMB_NUMERO) {
+        lua_pushinteger(L, ((union lily_a_lexico_numero*) simbolo->valor)->negativo);
+    }
+    else if (simbolo->tipo == SIMB_DESPLAZAMIENTO_AP) {
+        lua_createtable(L, (int) lily_lde_size(simbolo->valor), 0);
+        for (size_t i = 0; i < lily_lde_size(simbolo->valor); i++ ) {
+            struct lily_a_lexico_simbolo* simbolo_desp = lily_lde_get(simbolo->valor, i)->valor;
+            if (simbolo_desp->tipo == SIMB_OBJETO)
+                lua_pushstring(L, (char*) simbolo_desp->valor);
+            else if (simbolo_desp->tipo == SIMB_NUMERO)
+                lua_pushinteger(L, ((union lily_a_lexico_numero*) simbolo_desp->valor)->negativo);
+            lua_seti(L, -2, (int) i + 1);
+        }
+    }
+    // Llamar función
+    if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
+        ctx->codigo = COD_LUA_CPU_TIPO_INEXISTENTE;
+        ctx->lua_msg = (char*) lua_tostring(L, -1);
+        lua_pop(L, 2);
+        return false;
+    }
+    if (!lua_isboolean(L, -1)) {
+        lua_pop(L, 2);
+        ctx->codigo = COD_LUA_CPU_TIPO_FUNCION_NO_BOOLEANO;
+        return false;
+    }
+    bool res = lua_toboolean(L, -1);
+    lua_pop(L, 2);
+    return res;
 }
 
 struct lily_lua_cpu_error_ctx lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params) {
