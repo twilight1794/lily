@@ -183,12 +183,13 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, const siz
     }
 
     // Obtener valor
-    uint64_t* valor = (uint64_t*) malloc(sizeof(uint64_t));
+    union lily_a_lexico_numero* valor = (union lily_a_lexico_numero*) malloc(sizeof(union lily_a_lexico_numero));
     if (valor == NULL) {
         free(valor_texto);
         return COD_MALLOC_FALLO;
     }
-    *valor = 0;
+    // Un número se crea siempre como positivo, aunque después pueda ser negativo
+    valor->positivo = 0;
     for (size_t j = strlen(valor_texto); j > 0; j--) {
         uint64_t potencia;
         const int exponente = (int) (strlen(valor_texto)-j); // FIX: no deberíamos aceptar números mayores a 20 dígitos en cualquier caso
@@ -200,7 +201,7 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, const siz
         if (tipo == 'x' && valor_texto[j-1] >= 97) valor_digito = valor_texto[j-1] - 0x57;
         else if (tipo == 'x' && valor_texto[j-1] >= 65) valor_digito = valor_texto[j-1] - 0x37;
         else valor_digito = valor_texto[j-1] - 0x30;
-        *valor += valor_digito * potencia;
+        valor->positivo += valor_digito * potencia;
     }
     *sim = lily_a_lexico_simbolo_create();
     if (*sim == NULL) {
@@ -213,7 +214,7 @@ enum lily_error lily_a_lexico_modo_numero(const char* blob, size_t* i, const siz
     (*sim)->linea = *linea;
     (*sim)->linea_pos = *linea_pos;
     (*sim)->pos = *i_inicial;
-    log_debug_gen(_("a_lexico (%lu, %lu): +número '%ld'"), *linea SEP (*i_inicial)-(*linea_pos)+1 SEP *valor);
+    log_debug_gen(_("a_lexico (%lu, %lu): +número '%" PRIu64 "'"), *linea SEP (*i_inicial)-(*linea_pos)+1 SEP valor->positivo);
     free(valor_texto);
     return COD_OK;
 }

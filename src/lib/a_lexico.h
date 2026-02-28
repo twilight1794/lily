@@ -7,6 +7,7 @@
 #define LILY_L_A_LEXICO
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>

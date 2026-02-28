@@ -106,6 +106,14 @@ enum lily_a_lexico_tipo_simbolo {
 };
 
 /**
+ * Amalgama para números
+ */
+union lily_a_lexico_numero {
+    int64_t negativo;
+    uint64_t positivo;
+};
+
+/**
  * Estructura para guardar un símbolo léxico
  */
 struct lily_a_lexico_simbolo {
@@ -115,6 +123,7 @@ struct lily_a_lexico_simbolo {
     size_t linea_pos; /**< Índice del inicio de la línea \a linea en el blob */
     size_t pos; /**< Índice del inicio del símbolo en el blob */
     void* valor; /**< Valor representativo del símbolo */
+    bool signo; /***< Para valores numéricos, signo del número representado: \c true para negativo, \c false para positivo */
 };
 
 /**

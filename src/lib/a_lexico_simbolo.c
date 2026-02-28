@@ -4,7 +4,17 @@ extern char* lily_a_lexico_directivas[];
 extern char* lily_a_lexico_operadores[];
 
 struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void) {
-    return calloc(1, sizeof(struct lily_a_lexico_simbolo));
+    struct lily_a_lexico_simbolo* obj = (struct lily_a_lexico_simbolo*) malloc(sizeof(struct lily_a_lexico_simbolo));
+    if (obj != NULL) {
+        obj->tipo = SIMB_INDETERMINADO;
+        obj->subtipo = SIMB_INDETERMINADO;
+        obj->linea = 0;
+        obj->linea_pos = 0;
+        obj->pos = 0;
+        obj->valor = NULL;
+        obj->signo = false;
+    }
+    return obj;
 }
 
 struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void) {
@@ -55,12 +65,17 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
             if (buff == NULL) return NULL;
             sprintf(buff, patron, LC, simbolo->valor);
             break;
-        case SIMB_NUMERO:
-            patron = "(%lu:%lu) Número %" PRIu64;
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, simbolo->valor) + 1);
+        case SIMB_NUMERO: {
+            union lily_a_lexico_numero* num = (union lily_a_lexico_numero*) simbolo->valor;
+            if (simbolo->signo)
+                patron = "(%lu:%lu) Número %" PRIi64;
+            else
+                patron = "(%lu:%lu) Número %" PRIu64;
+            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, (simbolo->signo)?num->negativo:num->positivo) + 1);
             if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC, *((uint64_t*) simbolo->valor));
+            sprintf(buff, patron, LC, (simbolo->signo)?num->negativo:num->positivo);
             break;
+        }
         case SIMB_FUNCION:
             patron = "(%lu:%lu) Función %s";
             buff = (char*) malloc(snprintf(NULL, 0, patron, LC, simbolo->valor) + 1);
