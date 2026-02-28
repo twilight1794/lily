@@ -35,8 +35,71 @@ expresión regular en formato PCRE `[a-z0-9_]+`. Además, si el identificador
 tiene un caracter asterisco al inicio, entonces el parámetro solo coincidirá
 con el tipo si es un símbolo de desplazamiento.
 
-Existen 5 identificadores reservados por Lily, que no se pueden utilizar para
-identificar un nuevo tipo: `int3`, `int4`, `int8`, `int16`, `int32` y `obj`.
+Existen 19 identificadores reservados por Lily, que no se pueden utilizar para
+identificar un nuevo tipo:
+
+.Tipos predefinidos de Lua
+|===
+|Tipo |Descripción
+
+|`int3`
+|Número entre -2² y 2³-1.
+
+|`uint3`
+|Número entre 0 y 2³-1.
+
+|`sint3`
+|Número entre -2² y 2²-1.
+
+|`int4`
+|Número entre -2³ y 2⁴-1.
+
+|`uint4`
+|Número entre 0 y 2⁴-1.
+
+|`sint4`
+|Número entre -2³ y 2³-1.
+
+|`int8`
+|Número entre -2⁷ y 2⁸-1.
+
+|`uint8`
+|Número entre 0 y 2⁸-1.
+
+|`sint8`
+|Número entre -2⁷ y 2⁷-1.
+
+|`int16`
+|Número entre 2¹⁵ y 2¹⁶-1.
+
+|`uint16`
+|Número entre 0 y 2¹⁶-1.
+
+|`sint16`
+|Número entre -2¹⁵ y 2¹⁵-1.
+
+|`int32`
+|Número entre -2³¹ y 2³²-1.
+
+|`uint32`
+|Número entre 0 y 2³²-1.
+
+|`sint32`
+|Número entre -2³¹ y 2³¹-1.
+
+|`int64`
+|Número entre -2⁶³ y 2⁶⁴-1.
+
+|`uint64`
+|Número entre 0 y 2⁶⁴-1.
+
+|`sint64`
+|Número entre -2⁶³ y 2⁶³-1.
+
+|`obj`
+|Coincide con cualquier objeto.
+|===
+
 
 Si un valor podría coincidir con más de un tipo, es importante notar que se
 devolverá el primer tipo que haga coincidencia. Dado que éstas se procesan según
