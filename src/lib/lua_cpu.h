@@ -9,6 +9,7 @@
 #include "../common/cadena.h"
 #include "../common/defs.h"
 #include "../common/error.h"
+#include "../common/log.h"
 #include  "a_lexico_simbolo.h"
 
 #include "lua.h"
@@ -39,6 +40,14 @@ enum lily_lua_cpu_userdata_globales {
 struct lily_lua_cpu_error_ctx {
     enum lily_error codigo; //< Código del error generado
 };
+
+/**
+ * Comprueba si \a simbolo cumple con alguno de los tipos predeterminados de Lily
+ * @param tipo Tipo contra el cual comprobar
+ * @param simbolo Símbolo a comprobar
+ * @return \c true si el símbolo coincide con el tipo, \c false si no
+ */
+static bool lily_lua_cpu_comp_tipo_simbolo_(char* tipo, struct lily_a_lexico_simbolo* simbolo);
 
 /**
  * Lee la lista de parámetros en \a params para una instrucción, y prepara sus valores en la pila para Lua

@@ -1,6 +1,136 @@
 #include "lua_cpu.h"
 
-#include "../common/log.h"
+static bool lily_lua_cpu_comp_tipo_simbolo(char* tipo, struct lily_a_lexico_simbolo* simbolo) {
+    union lily_a_lexico_numero n;
+    // Primero, comprobar si el tipo es uno precargado
+    if (!strcmp(tipo, "int3") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -4;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 7;
+    }
+    if (!strcmp(tipo, "uint3") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) return false;
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 7;
+    }
+    if (!strcmp(tipo, "sint3") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -4;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 3;
+    }
+    if (!strcmp(tipo, "int4") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -8;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 15;
+    }
+    if (!strcmp(tipo, "uint4") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) return false;
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 15;
+    }
+    if (!strcmp(tipo, "sint4") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -8;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 7 ;
+    }
+    if (!strcmp(tipo, "int8") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -128;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 255;
+    }
+    if (!strcmp(tipo, "uint8") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) return false;
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 255;
+    }
+    if (!strcmp(tipo, "sint8") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -128;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 127;
+    }
+    if (!strcmp(tipo, "int16") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -32768;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 65535;
+    }
+    if (!strcmp(tipo, "uint16") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) return false;
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 65535;
+    }
+    if (!strcmp(tipo, "sint16") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -32768;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 32767;
+    }
+    if (!strcmp(tipo, "int32") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -2147483648;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 4294967295;
+    }
+    if (!strcmp(tipo, "uint32") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) return false;
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 4294967295;
+    }
+    if (!strcmp(tipo, "sint32") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -2147483648;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 2147483647;
+    }
+    if ((!strcmp(tipo, "int64")) && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -9223372036854775807-1;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 18446744073709551615U;
+    }
+    if (!strcmp(tipo, "uint64") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) return false;
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo >= 18446744073709551615U;
+    }
+    if (!strcmp(tipo, "sint64") && simbolo->tipo == SIMB_NUMERO) {
+        if (simbolo->signo) {
+            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            return n.negativo >= -9223372036854775807-1;
+        }
+        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        return n.positivo <= 9223372036854775807;
+    }
+    return false;
+}
 
 struct lily_lua_cpu_error_ctx lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params) {
     struct lily_lua_cpu_error_ctx ctx = {
