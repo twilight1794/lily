@@ -86,6 +86,8 @@ enum lily_a_lexico_tipo_simbolo {
     DIR_IFNDEF,
     DIR_ELSE,
     DIR_ELIF,
+    DIR_ELIFDEF,
+    DIR_ELIFNDEF,
     /// Bucles
     DIR_WHILE,
     DIR_LOOP,

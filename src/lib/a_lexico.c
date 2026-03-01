@@ -45,7 +45,7 @@ enum lily_error lily_a_lexico_modo_directiva(const char* blob, size_t* i, const 
                 return COD_MALLOC_FALLO;
             }
             (*sim)->tipo = SIMB_DIRECTIVA;
-            (*sim)->subtipo = 64+j;
+            (*sim)->subtipo = 66+j;
             (*sim)->linea = *linea;
             (*sim)->linea_pos = *linea_pos;
             (*sim)->pos = *i_inicial;
