@@ -52,7 +52,7 @@ dist/lily.exe: src/cli/main.o lib-windows
 	$(CC) $(LDFLAGS) src/cli/main.o -llily $(LDLIBS) -o $@
 
 dist/liblily.js: | dist
-	emcc main.c libluawasm.a -s WASM=1 -O2 -o $@ -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
+	emcc main.c -lluawasm -s WASM=1 -O2 -o $@ -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
 
 dist:
 	mkdir -p dist
