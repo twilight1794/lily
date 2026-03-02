@@ -12,6 +12,7 @@ enum lily_error {
     COD_MALLOC_FALLO, /**< [mc]alloc falló al reservar memoria */
     COD_CARACTER_INVALIDO, /**< Caracter inválido en el archivo */
     COD_CTX_NULO, /**< El contexto pasado a una función es nulo */
+    COD_NO_IMPLEMENTADO, /**< Se encontró una situación que aún no ha sido implementada */
     // common/nums.h
     COD_NUMS_MAS_8, /**< El número que se intenta guardar no cabe en 8 bits */
     COD_NUMS_MAS_16, /**< El número que se intenta guardar no cabe en 16 bits */
@@ -33,6 +34,16 @@ enum lily_error {
     COD_A_SINTACTICO_SIMBOLO_IMPROCEDENTE, /**< No se esperaba un símbolo de este tipo */
     // lib/a_semantico.h
     COD_A_SEMANTICO_CPU_NO_ESPECIFICADO, /**< No se ha especificado la directiva CPU cuando se ha requerido */
+    COD_A_SEMANTICO_CPU_MULTIPLES_PARAMS, /**< La directiva CPU ha recibido más de un parámetro */
+    COD_A_SEMANTICO_CPU_MULTIPLE, /**< Se ha utilizado la directiva CPU en otro punto diferente al inicio del archivo */
+    COD_A_SEMANTICO_INSTRUCCION_SIN_ETI, /**< La directiva procesada necesita una etiqueta, y no ha sido provista */
+    COD_A_SEMANTICO_DFS_MULTIPLES_PARAMS, /**< La directiva DFS ha recibido más de un parámetro */
+    COD_A_SEMANTICO_DFS_PARAM_NO_ENTERO, /**< La directiva DFS ha recibido un parámetro que no es entero */
+    COD_A_SEMANTICO_CONST_VAR_MULTIPLES_PARAMS, /**< La directiva CONST o VAR ha recibido más de un parámetro */
+    COD_A_SEMANTICO_CONST_VAR_PARAM_NO_ENTERO, /**< La directiva CONST o VAR ha recibido un parámetro que no es entero */
+    COD_A_SEMANTICO_REDEF_CONSTANTE, /**< Se intentó redefinir un identificador declarado como constante */
+    COD_A_SEMANTICO_REDEF_VARIABLE, /**< Se intentó redefinir un identificador declarado con una etiqueta de localidad */
+    COD_A_SEMANTICO_FIN_USUARIO, /**< Una directiva STOP ha detenido el proceso de ensamble */
     // lib/lua_cpu.h
     COD_LUA_CPU_LUA_ERR, /**< Error generado por la máquina virtual de Lua */
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */
@@ -53,6 +64,15 @@ enum lily_error {
     COD_LUA_CPU_RES_ENSAMBLE_NO_TABLA, /**< El resultado de la función de ensamble no es una tabla */
     COD_LUA_CPU_RES_ENSAMBLE_VACIO, /**< La tabla devuelta por la función de ensamble no contiene ningún byte */
     COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO, /**< Uno de los elementos de la tabla devuelta por la función de ensamble no es un entero */
+};
+
+/**
+ * Estructura para almacenar detalles sobre el estado de la ejecución
+ */
+struct lily_error_ctx {
+    enum lily_error codigo; /**< Código de estado */
+    struct lily_a_lexico_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
+    char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
 };
 
 #endif

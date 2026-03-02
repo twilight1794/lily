@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 500
+#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -51,7 +53,7 @@ struct lily_log_config lily_log_conf = {
     .colores = true,
     .incluir_fecha = true,
     .incluir_hora = true,
-    .incluir_archivo = false,
+    .incluir_archivo = true,
     .nivel_minimo = LILY_LOG_DEBUG
 };
 bool lily_log_msg_null;
@@ -301,18 +303,20 @@ int main(int argc, char **argv){
     }
     log_info_gen(_("Output file: '%s'."), archivo_salida)
 
-    // Empezamos análisis
-
-    /// Análisis léxico
+    // Análisis léxico
     struct lily_lde_lde* simbolos = lily_lde_create();
     struct lily_a_lexico_ctx ctx_lexico;
     estado = lily_a_lexico(archivo_entrada_p, simbolos, &ctx_lexico);
     log_info_gen(_("lily_a_lexico: %d."), estado);
     if (estado != COD_OK) {
         char caracter_prob = archivo_entrada_p[ctx_lexico.i_desp];
-        log_info_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx_lexico.tipo SEP ctx_lexico.i_inicial SEP ctx_lexico.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?')
+        log_fatal_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx_lexico.tipo SEP ctx_lexico.i_inicial SEP ctx_lexico.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?');
     }
-
+    /*for (size_t i = 0; i < lily_lde_size(simbolos); i++) {
+        char* simb_cad = lily_a_lexico_simbolo_print(lily_lde_get(simbolos,i)->valor);
+        log_debug_gen("a_lexico rest [%p]: %s", lily_lde_get(simbolos,i)->valor SEP simb_cad);
+        free(simb_cad);
+    }*/
     munmap(archivo_entrada_p, archivo_entrada_st.st_size); // Ya no necesitamos más el archivo
     close(archivo_entrada_fd);
 
@@ -321,43 +325,99 @@ int main(int argc, char **argv){
     struct lily_a_sintactico_ctx ctx_sintactico = lily_a_sintactico(simbolos, ast);
     log_info_gen(_("lily_a_sintactico: %d."), ctx_sintactico.codigo);
     if (ctx_sintactico.codigo != COD_OK) {
-        log_info_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
+        log_fatal_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
     }
 
-    // Análisis semántico
-    char* bytes = lily_cadena_create();
-    struct lily_a_semantico_ctx ctx_semantico = lily_a_semantico(ast, bytes);
-    log_info_gen(_("lily_a_semantico: %d."), ctx_semantico.codigo);
-    if (ctx_semantico.codigo != COD_OK) {
-        log_info_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
-    }
-    return ctx_semantico.codigo;
-    //if (codigo) return codigo;
-
-    //struct lily_lde_lde* objeto = lily_lde_create();
-    //codigo = z80_semantico(ast, objeto);
-    //if (codigo) return codigo;
-
-
-    // Cargar archivo de definiciones
-    // FIX: por ahora, solo archivos de usuario
-    int archivo_arquitectura_fd = open(arquitectura, O_RDONLY);
-    if (archivo_arquitectura_fd == -1) {
-        log_fatal_gen(_("File %s cannot be open."), arquitectura);
+    // Determinar arquitectura a usar
+    char* arquitectura_final = NULL;
+    struct lily_error_ctx ctx;
+    char* arquitectura_asm = lily_a_semantico_obt_arquitectura_declarada(ast, &ctx);
+    if (arquitectura != NULL) {
+        arquitectura_final = arquitectura;
+        if (strcmp((arquitectura_asm == NULL)?"":arquitectura_asm, arquitectura)) {
+            log_warn_gen(_("The architecture specified at parameter '%s' is different to architecture specified at file '%s'."), arquitectura SEP arquitectura_asm);
+        }
+    } else if (arquitectura_asm != NULL)
+        arquitectura_final = arquitectura_asm;
+    else {
+        log_fatal(_("An architecture was not specified."));
         exit(EXIT_FAILURE);
     }
+    log_info_gen(_("The architecture selected is '%s'"), arquitectura_final);
+    /// Generar ruta para archivo de arquitectura
+    int archivo_arquitectura_fd = open(arquitectura_final, O_RDONLY);
+    if (archivo_arquitectura_fd == -1) {
+        char* archivo_arquitectura_ruta = lily_cadena_create();
+        if (archivo_arquitectura_ruta == NULL) {
+            log_fatal(_("Error while searching for architecture description file."));
+            exit(EXIT_FAILURE);
+        }
+        char* tmp = lily_cadena_concat(archivo_arquitectura_ruta, "misc/cpu/"); // FIX: cambiar por constante definida en Makefile
+        if (tmp == NULL) {
+            log_fatal(_("Error while searching for architecture description file."));
+            exit(EXIT_FAILURE);
+        }
+        archivo_arquitectura_ruta = tmp;
+        tmp = lily_cadena_concat(archivo_arquitectura_ruta, arquitectura_final);
+        if (tmp == NULL) {
+            log_fatal(_("Error while searching for architecture description file."));
+            exit(EXIT_FAILURE);
+        }
+        archivo_arquitectura_ruta = tmp;
+        tmp = lily_cadena_concat(archivo_arquitectura_ruta, ".lua");
+        if (tmp == NULL) {
+            log_fatal(_("Error while searching for architecture description file."));
+            exit(EXIT_FAILURE);
+        }
+        archivo_arquitectura_ruta = tmp;
+        archivo_arquitectura_fd = open(archivo_arquitectura_ruta, O_RDONLY);
+        if (archivo_arquitectura_fd == -1) {
+            log_fatal_gen(_("The architecture '%s' could not be found."), arquitectura_final);
+            exit(EXIT_FAILURE);
+        }
+    }
+    /// Abrir ruta generada
     struct stat archivo_arquitectura_st;
     fstat(archivo_arquitectura_fd, &archivo_arquitectura_st);
     char* archivo_arquitectura_p = (char*) mmap(NULL, archivo_arquitectura_st.st_size, PROT_READ, MAP_SHARED, archivo_arquitectura_fd, 0);
-    struct lily_lua_cpu_error_ctx lua_cpu_ctx;
-    lua_cpu_ctx.codigo = COD_OK;
-    lua_State* L = lily_lua_cpu_cargar(archivo_arquitectura_p, &lua_cpu_ctx);
-    lily_lua_cpu_ensamblar(L, NULL, NULL, &lua_cpu_ctx);
-    printf("lua_cpu_cargar: %d\n", lua_cpu_ctx.codigo);
+    lua_State* L = lily_lua_cpu_cargar(archivo_arquitectura_p, &ctx);
+    log_info_gen(_("lily_lua_cpu_cargar: %d."), ctx.codigo);
+    if (ctx.codigo != COD_OK) {
+        log_fatal_gen(_("codigo=%d (%s)"), ctx.codigo SEP ctx.lua_msg);
+        exit(EXIT_FAILURE);
+    }
     munmap(archivo_arquitectura_p, archivo_arquitectura_st.st_size);
     close(archivo_arquitectura_fd);
 
-    return estado;
+    // Análisis semántico
+    size_t tam_bytes;
+    uint8_t* bytes = lily_a_semantico(ast, L, 0, &tam_bytes, &ctx);
+    log_info_gen(_("lily_a_semantico: %d (%ld bytes)."), ctx.codigo SEP tam_bytes);
+    if (ctx.codigo != COD_OK) {
+        log_fatal_gen(_("codigo=%d, %s, Lua: '%s')"), ctx.codigo SEP lily_a_lexico_simbolo_print(ctx.ultimo) SEP ctx.lua_msg);
+    }
+
+    // Salida
+    int archivo_salida_fd = open(archivo_salida, O_RDWR | O_CREAT | O_TRUNC, 0660);
+    if (archivo_salida_fd == -1) {
+        log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    if (ftruncate(archivo_salida_fd, tam_bytes)) {
+        log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    struct stat archivo_salida_st;
+    fstat(archivo_salida_fd, &archivo_salida_st);
+    char* archivo_salida_p = (char*) mmap(NULL, tam_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, archivo_salida_fd, 0);
+    if (archivo_salida_p == MAP_FAILED) {
+        log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    memcpy(archivo_salida_p, bytes, tam_bytes);
+    munmap(archivo_salida_p, tam_bytes);
+    close(archivo_salida_fd);
+    return EXIT_SUCCESS;
 }
 
 void f_help(char* name) {

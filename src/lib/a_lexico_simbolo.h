@@ -111,8 +111,8 @@ enum lily_a_lexico_tipo_simbolo {
  * Amalgama para números
  */
 union lily_a_lexico_numero {
-    int64_t negativo;
-    uint64_t positivo;
+    int64_t negativo; /**< Para números negativos */
+    uint64_t positivo; /**< Para números positivos */
 };
 
 /**
@@ -169,8 +169,8 @@ struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void)
 char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruccion* instruccion);
 
 struct lily_a_semantico_identificador {
-    bool es_const;
-    uint64_t valor;
+    bool es_const; /**< Si se podrá modificar el valor asociado al identificador una vez asignado */
+    union lily_a_lexico_numero* valor; /**< Número asociado al identificador */
 };
 
 /**

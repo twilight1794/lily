@@ -32,14 +32,9 @@ enum lily_lua_cpu_userdata_globales {
     UD_TIPO_INT32,
     UD_TIPO_UINT32,
     UD_TIPO_SINT32,
-};
-
-/**
- * Estructura para almacenar detalles sobre el estado de la ejecución
- */
-struct lily_lua_cpu_error_ctx {
-    enum lily_error codigo; /**< Código del error generado */
-    char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
+    UD_TIPO_INT64,
+    UD_TIPO_UINT64,
+    UD_TIPO_SINT64,
 };
 
 /**
@@ -50,32 +45,39 @@ struct lily_lua_cpu_error_ctx {
  * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
  * @return \c true si el símbolo coincide con el tipo, \c false si no
  */
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_lua_cpu_error_ctx* ctx);
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_error_ctx* ctx);
 
 /**
  * Lee la lista de parámetros en \a params para una instrucción, y prepara sus valores en la pila para Lua
  * @param L Sesión de Lua
  * @param params Lista de parámetros para el mnemónico
- * @return Estado de la ejecución
+ * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
  */
-struct lily_lua_cpu_error_ctx lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params);
+static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params, struct lily_error_ctx* ctx);
+
+/**
+ * Obtiene el resultado del ensamble de una instrucción
+ * @param L Sesión de Lua
+ * @param [out] tam Número de bytes generados al ensamblar
+ * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
+ * @return Cadena de bytes que representan al mnemónico
+ */
+static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, struct lily_error_ctx* ctx);
 
 /**
  * Analiza un script de descripción de un microprocesador y genera la estructura
  * @param codigo Cadena de caracteres que contiene el código del script
- * @param [out] error_ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
+ * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
  * @return Sesión de Lua nueva
  */
-lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_lua_cpu_error_ctx* error_ctx);
+lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_error_ctx* ctx);
 
 /**
- *
+ * Ensambla un mnemónico
  * @param L Sesión de Lua
- * @param mnemo Mnemónico a convertir
- * @param params Lista de parámetros para el mnemónico
- * @param [out] error_ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
- * @return Lista de bytes que representan la conversión a código objeto del mnemónico
+ * @param instruccion Instrucción que contiene el mnemónico a convertir
+ * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
  */
-char* lily_lua_cpu_ensamblar(lua_State* L, const char* mnemo, struct lily_lde_lde* params, struct lily_lua_cpu_error_ctx* error_ctx);
+void lily_lua_cpu_ensamblar(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx);
 
 #endif
