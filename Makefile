@@ -13,7 +13,7 @@ MANDIR := /usr/local/share/man/man1
 
 V_LILY_VERSION=$(shell git tag --points-at HEAD)
 V_LILY_COMMIT=$(shell git rev-parse HEAD|cut -c 1-8)
-V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; else echo ''; fi)
+V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; fi)
 
 TARGETS := linux windows lib-linux lib-windows web
 .PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean test-windows test-linux
@@ -37,12 +37,13 @@ src/lib/a_lexico_simbolo.o: src/lib/a_lexico_simbolo.c src/lib/a_lexico_simbolo.
 src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
 src/lib/a_semantico.o: src/lib/a_semantico.c src/lib/a_semantico.h
 src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
+src/lib/lua_ensamble.o: src/lib/lua_ensamble.c src/lib/lua_ensamble.h
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o
+dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o src/lib/lua_ensamble.o
 	$(CC) -shared -fPIC $(LDFLAGS) $^ -llua $(LDLIBS) -o $@
 
-dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o  src/lib/a_semantico.o src/lib/lua_cpu.o
+dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o  src/lib/a_semantico.o src/lib/lua_cpu.o src/lib/lua_ensamble.o
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/lily: src/cli/main.o lib-linux

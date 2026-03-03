@@ -19,6 +19,7 @@
 #include "../common/nums.h"
 #include "a_lexico_simbolo.h"
 #include "lua_cpu.h"
+#include "lua_ensamble.h"
 
 /**
  * Añade un nuevo identificador a la lista de identificadores conocidos
