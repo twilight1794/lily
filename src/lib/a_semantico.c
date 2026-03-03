@@ -9,7 +9,6 @@ static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identific
             ctx->codigo = COD_A_SEMANTICO_REDEF_VARIABLE;
         return;
     }
-    ctx->codigo = COD_OK;
     struct lily_a_semantico_identificador* val = lily_a_semantico_identificador_create();
     if (val == NULL) ctx->codigo = COD_MALLOC_FALLO;
     else {
@@ -27,7 +26,6 @@ static bool lily_a_semantico_reducir(struct lily_a_sintactico_instruccion* instr
 static void lily_a_semantico_directiva(struct lily_a_sintactico_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, struct lily_error_ctx* ctx) {
     struct lily_lde_nodo* nodo_param;
     struct lily_a_lexico_simbolo* simbolo_param;
-    ctx->codigo = COD_OK;
 
     union lily_a_lexico_numero* pc_numero = (union lily_a_lexico_numero*) malloc(sizeof(union lily_a_lexico_numero));
     if (pc_numero == NULL) {
@@ -229,7 +227,6 @@ char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, stru
 
 uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, struct lily_error_ctx* ctx) {
     uint8_t* bytes = NULL;
-    ctx->codigo = COD_OK;
 
     // Diccionario para identificadores
     struct lily_dict_dict* identificadores = lily_dict_create();
@@ -288,7 +285,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                         }
                     }
                     // Imprimir array
-                    char* cad = malloc(sizeof(char*)*(instruccion->tam_bytes*6) -1);
+                    char* cad = malloc(sizeof(char)*(instruccion->tam_bytes*6) -1);
                     if (cad == NULL) {
                         ctx->codigo = COD_MALLOC_FALLO;
                         break;

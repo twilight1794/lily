@@ -311,6 +311,7 @@ int main(int argc, char **argv){
     if (estado != COD_OK) {
         char caracter_prob = archivo_entrada_p[ctx_lexico.i_desp];
         log_fatal_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx_lexico.tipo SEP ctx_lexico.i_inicial SEP ctx_lexico.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?');
+        exit(EXIT_FAILURE);
     }
     /*for (size_t i = 0; i < lily_lde_size(simbolos); i++) {
         char* simb_cad = lily_a_lexico_simbolo_print(lily_lde_get(simbolos,i)->valor);
@@ -326,11 +327,16 @@ int main(int argc, char **argv){
     log_info_gen(_("lily_a_sintactico: %d."), ctx_sintactico.codigo);
     if (ctx_sintactico.codigo != COD_OK) {
         log_fatal_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
+        exit(EXIT_FAILURE);
     }
 
     // Determinar arquitectura a usar
     char* arquitectura_final = NULL;
-    struct lily_error_ctx ctx;
+    struct lily_error_ctx ctx = {
+        .codigo = COD_OK,
+        .ultimo = NULL,
+        .lua_msg = NULL
+    };
     char* arquitectura_asm = lily_a_semantico_obt_arquitectura_declarada(ast, &ctx);
     if (arquitectura != NULL) {
         arquitectura_final = arquitectura;
@@ -395,6 +401,7 @@ int main(int argc, char **argv){
     log_info_gen(_("lily_a_semantico: %d (%ld bytes)."), ctx.codigo SEP tam_bytes);
     if (ctx.codigo != COD_OK) {
         log_fatal_gen(_("codigo=%d, %s, Lua: '%s')"), ctx.codigo SEP lily_a_lexico_simbolo_print(ctx.ultimo) SEP ctx.lua_msg);
+        exit(EXIT_FAILURE);
     }
 
     // Salida
@@ -403,7 +410,7 @@ int main(int argc, char **argv){
         log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
         exit(EXIT_FAILURE);
     }
-    if (ftruncate(archivo_salida_fd, tam_bytes)) {
+    if (ftruncate(archivo_salida_fd, (long) tam_bytes)) {
         log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
         exit(EXIT_FAILURE);
     }
@@ -417,7 +424,7 @@ int main(int argc, char **argv){
     memcpy(archivo_salida_p, bytes, tam_bytes);
     munmap(archivo_salida_p, tam_bytes);
     close(archivo_salida_fd);
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
 
 void f_help(char* name) {

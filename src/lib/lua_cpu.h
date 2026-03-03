@@ -9,12 +9,16 @@
 #include "../common/cadena.h"
 #include "../common/defs.h"
 #include "../common/error.h"
+#include "../common/lde.h"
 #include "../common/log.h"
 #include  "a_lexico_simbolo.h"
 
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
+#include <libintl.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+#define ptipo(pre, idx) printf("%s: %s\n", (pre), lua_typename(L, lua_type(L, idx)));
 
 enum lily_lua_cpu_userdata_globales {
     UD_TIPO_INT3,
@@ -45,7 +49,7 @@ enum lily_lua_cpu_userdata_globales {
  * @param [out] ctx Estado de la ejecución al momento de salir de la función
  * @return \c true si el símbolo coincide con el tipo, \c false si no
  */
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_error_ctx* ctx);
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_error_ctx* ctx);
 
 /**
  * Lee la lista de parámetros en \a params para una instrucción, y prepara sus valores en la pila para Lua
@@ -73,10 +77,41 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
 lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_error_ctx* ctx);
 
 /**
+ * Ensambla un mnemónico definido como una función
+ * @param L Sesión de Lua
+ * @param instruccion Instrucción que contiene el mnemónico a ensamblar
+ * @param ctx Estado de la ejecución al momento de salir de la función
+ */
+static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx);
+
+/**
+ * Ensambla un mnemónico definido como una lista de bytes
+ * @param L Sesión de Lua
+ * @param instruccion Instrucción que contiene el mnemónico a ensamblar
+ * @param ctx Estado de la ejecución al momento de salir de la función
+ */
+static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx);
+
+/**
+ * Ensambla un mnemónico definido como una redirección a otro mnemónico
+ * @param L Sesión de Lua
+ * @param instruccion Instrucción que contiene el mnemónico a ensamblar
+ * @param ctx Estado de la ejecución al momento de salir de la función
+ */
+static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx);
+
+/**
+ * Ensambla un mnemónico definido como una lista de diferentes combinaciones de argumentos
+ * @param L Sesión de Lua
+ * @param instruccion Instrucción que contiene el mnemónico a ensamblar
+ * @param ctx Estado de la ejecución al momento de salir de la función
+ */
+static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx);
+
+/**
  * Ensambla un mnemónico
  * @param L Sesión de Lua
- * @param instruccion Instrucción que contiene el mnemónico a convertir
- * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
+ * @param instruccion Instrucción que contiene el mnemónico a ensamblar
  * @param [out] ctx Estado de la ejecución al momento de salir de la función
  */
 void lily_lua_cpu_ensamblar(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx);
