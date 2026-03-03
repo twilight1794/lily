@@ -5,7 +5,7 @@
 
 -- Devuelve el valor numérico de un registro rx
 local function obt_r(r)
-    return tonumber(r:sub(2, 3))
+    return tonumber(r:sub(2, 2))
 end
 
 return {
@@ -64,12 +64,12 @@ return {
     },
     tipos = {
         r = function(v)
-            return type(v) == "string" and v:sub(1,2):lower() == "r" and (tonumber(v:sub(2,3)) >= 0 and tonumber(v:sub(2,3)) < 8)
+            return type(v) == "string" and v:sub(1,1):lower() == "r" and (tonumber(v:sub(2,2)) >= 0 and tonumber(v:sub(2,3)) < 8)
         end,
         uint5 = function(v) return type(v) == "number" and v >= 0 and v < 31 end,
         dir9 = function(v) return type(v) == "number" and v >= -256 and v < 256 end,
         ["*ind9"] = function(desp) return #desp == 1 and type(desp[1]) == "number" and desp[1] >= -256 and desp[1] < 256 end,
-        ["*ind6"] = function(desp) return #desp == 2 and type(desp[1]) == "string" and desp[1]:sub(1,2):lower() == "r" and (tonumber(desp[1]:sub(2,3)) >= 0 and tonumber(desp[1]:sub(2,3)) < 8) and type(desp[2]) == "number" and desp[2] >= -32 and desp[2] < 32 end,
+        ["*ind6"] = function(desp) return #desp == 2 and type(desp[1]) == "string" and desp[1]:sub(1,1):lower() == "r" and (tonumber(desp[1]:sub(2,2)) >= 0 and tonumber(desp[1]:sub(2,2)) < 8) and type(desp[2]) == "number" and desp[2] >= -32 and desp[2] < 32 end,
     },
     ensamble = {
           -- Instrucciones de operación
