@@ -164,7 +164,7 @@ return {
           },
           JSR = nil,
           JSRR = nil,
-          RET = nil,
+          RET = { 0xC1, 0xC0 },
           TRAP = {
               {
                   { "uint8" },
