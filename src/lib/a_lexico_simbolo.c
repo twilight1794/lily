@@ -40,6 +40,7 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
     #define LC simbolo->linea, (simbolo->pos-simbolo->linea_pos+1)
     char* patron;
     char* buff;
+    if (simbolo == NULL) return NULL;
     switch (simbolo->tipo) {
         case SIMB_MNEMO:
             patron = "(%lu:%lu) Mnemo %s";
