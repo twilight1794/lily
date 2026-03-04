@@ -42,7 +42,6 @@ enum lily_main_estricto {
 
 enum lily_main_etapa {
     LILY_MAIN_INDETERMINADO,
-    LILY_MAIN_PREPROCESADO,
     LILY_MAIN_ENSAMBLADO,
     LILY_MAIN_ENLAZADO,
     LILY_MAIN_DESENSAMBLADO,
@@ -174,11 +173,7 @@ int main(int argc, char **argv){
                 formato_salida = optarg;
                 break;
             case 's':
-                if (!strcmp(optarg, "p")) {
-                    etapa_inicial = LILY_MAIN_PREPROCESADO;
-                    etapa_final = LILY_MAIN_PREPROCESADO;
-                }
-                else if (!strcmp(optarg, "a")) {
+                if (!strcmp(optarg, "a")) {
                     etapa_inicial = LILY_MAIN_ENSAMBLADO;
                     etapa_final = LILY_MAIN_ENSAMBLADO;
                 }
@@ -249,8 +244,7 @@ int main(int argc, char **argv){
     /// Extensión origen->origen
     if (etapa_inicial == LILY_MAIN_INDETERMINADO) {
         char* extension = obt_extension(archivo_entrada);
-        if (!strcmp(extension, "asm")) etapa_inicial = LILY_MAIN_PREPROCESADO;
-        else if (!strcmp(extension, "s")) etapa_inicial = LILY_MAIN_ENSAMBLADO;
+        if (!strcmp(extension, "asm") || !strcmp(extension, "s")) etapa_inicial = LILY_MAIN_ENSAMBLADO;
         else if (!strcmp(extension, "o")) etapa_inicial = LILY_MAIN_ENLAZADO;
         else if (!strcmp(extension, "com")) etapa_inicial = LILY_MAIN_EJECUCION;
     }
@@ -258,12 +252,12 @@ int main(int argc, char **argv){
     if (etapa_final == LILY_MAIN_INDETERMINADO && archivo_salida != NULL) {
         char* extension = obt_extension(archivo_salida);
         if (!strcmp(extension, "s")) {
-            etapa_final = LILY_MAIN_PREPROCESADO;
-            if (etapa_inicial == LILY_MAIN_INDETERMINADO) etapa_inicial = LILY_MAIN_PREPROCESADO;
+            etapa_final = LILY_MAIN_DESENSAMBLADO;
+            if (etapa_inicial == LILY_MAIN_INDETERMINADO) etapa_inicial = LILY_MAIN_DESENSAMBLADO;
         }
         else if (!strcmp(extension, "o")) {
             etapa_final = LILY_MAIN_ENSAMBLADO;
-            if (etapa_inicial == LILY_MAIN_INDETERMINADO) etapa_inicial = LILY_MAIN_PREPROCESADO;
+            if (etapa_inicial == LILY_MAIN_INDETERMINADO) etapa_inicial = LILY_MAIN_ENSAMBLADO;
         }
         else if (!strcmp(extension, "com")) {
             etapa_final = LILY_MAIN_ENLAZADO;
@@ -274,10 +268,10 @@ int main(int argc, char **argv){
     if (etapa_inicial != LILY_MAIN_INDETERMINADO &&
         etapa_final == LILY_MAIN_INDETERMINADO &&
         archivo_salida == NULL) {
-        if (etapa_inicial == LILY_MAIN_PREPROCESADO) etapa_final = LILY_MAIN_ENSAMBLADO;
-        else if (etapa_inicial == LILY_MAIN_ENSAMBLADO) etapa_final = LILY_MAIN_ENSAMBLADO;
+        if (etapa_inicial == LILY_MAIN_ENSAMBLADO) etapa_final = LILY_MAIN_ENSAMBLADO;
         else if (etapa_inicial == LILY_MAIN_ENLAZADO) etapa_final = LILY_MAIN_ENLAZADO;
         else if (etapa_inicial == LILY_MAIN_EJECUCION) etapa_final = LILY_MAIN_EJECUCION;
+        else if (etapa_inicial == LILY_MAIN_DESENSAMBLADO) etapa_final = LILY_MAIN_DESENSAMBLADO;
     }
 
     // En este punto, ya debemos saber qué haremos
@@ -429,14 +423,12 @@ int main(int argc, char **argv){
 
 void f_help(char* name) {
     printf(_("Usage: %s [<params>] <file>\n\n"), name);
-    puts(_("Key: P (preprocessor), A (assembly),"));
-    puts(_("     L (linking), D (disassembly), E (execution)"));
-    /* Opciones del preprocesador */
-    puts(_("\nPreprocessor options:"));
+    puts(_("Key: A (assembly), L (linking), D (disassembly), E (execution)"));
+    /* Opciones de ensamble */
+    puts(_("\nAssembly options:"));
     puts(_(" -L<path>           --listing=<path>          Generate listing file in <path>"));
     puts(_(" -D<tag>[=<value>]  --define=<tag>[=<value>]  Define a tag <tag> with a value <value>"));
     puts(_(" -I<path>           --include=<path>          Search for assembly files first in <path>"));
-    /* Opciones de ensamble */
     /* Opciones de enlazado */
     /* Opciones de desensamble */
     /* Opciones de ejecución */
@@ -460,7 +452,7 @@ void f_help(char* name) {
     puts(_(" -F<format>            --output-format=<format>       Format of output object (L)"));
     /* Miscelánea */
     puts(_("\nMiscellaneous options:"));
-    puts(_(" -s<stage>   --stage=<stage>    Operation to perform: P, A, L, D, or E"));
+    puts(_(" -s<stage>   --stage=<stage>    Operation to perform: A, L, D, or E"));
     puts(_(" -l=<level>  --logging=<level>  Restrict output to <level>"));
     puts(_(" -h          --help             Show this help")); //NOTE=class[,…]
     puts(_(" -v          --version          Show Lily version"));
@@ -508,16 +500,15 @@ void obt_nombre_archivo(char* nombre, enum lily_main_etapa etapa, char* archivo_
     // Copiar nombre base
     memcpy(archivo_salida, nombre, nombre_tam);
     // Colocar extensión
-    if (etapa == LILY_MAIN_PREPROCESADO) strcpy(archivo_salida+nombre_tam, ".s");
-    else if (etapa == LILY_MAIN_ENSAMBLADO) strcpy(archivo_salida+nombre_tam, ".o");
+    if (etapa == LILY_MAIN_ENSAMBLADO) strcpy(archivo_salida+nombre_tam, ".o");
     else if (etapa == LILY_MAIN_ENLAZADO) strcpy(archivo_salida+nombre_tam, "");
     else if (etapa == LILY_MAIN_DESENSAMBLADO) strcpy(archivo_salida+nombre_tam, ".s");
 }
 
 char* obt_etapa_str(enum lily_main_etapa etapa) {
     switch (etapa) {
-    case LILY_MAIN_PREPROCESADO:
-        return _("preprocessing");
+    case LILY_MAIN_INDETERMINADO:
+        return _("undefined");
     case LILY_MAIN_ENSAMBLADO:
         return _("assembly");
     case LILY_MAIN_ENLAZADO:
