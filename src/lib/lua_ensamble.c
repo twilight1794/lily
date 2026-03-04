@@ -2,7 +2,7 @@
 
 #include <ctype.h>
 
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_error_ctx* ctx) {
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_ctx* ctx) {
     union lily_a_lexico_numero n;
     // Primero, comprobar si el tipo es uno precargado
     if (!strcmp(tipo, "int3") && simbolo->tipo == SIMB_NUMERO) {
@@ -179,7 +179,7 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     return res;
 }
 
-static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params, struct lily_error_ctx* ctx) {
+static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params, struct lily_ctx* ctx) {
     lua_Integer tam = (lua_Integer) lily_lde_size(params);
     for (lua_Integer i = 0;  i < tam; i++) {
         struct lily_lde_nodo* nodo = lily_lde_get(params, i);
@@ -220,7 +220,7 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
     }
 }
 
-static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, struct lily_error_ctx* ctx) {
+static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, struct lily_ctx* ctx) {
     if (!lua_istable(L, -1)) {
         ctx->codigo = COD_LUA_CPU_RES_ENSAMBLE_NO_TABLA;
         return NULL;
@@ -250,7 +250,7 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
     return bytes;
 }
 
-static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo función"), (char*) instruccion->simbolo->valor);
     lily_lua_cpu_est_parametros(L, instruccion->params, ctx);
     if (lua_pcall(L, lily_lde_size(instruccion->params), 1, 0) == LUA_OK) {
@@ -264,7 +264,7 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_a_sintactic
     }
 }
 
-static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo List<int>"), (char*) instruccion->simbolo->valor);
     lua_pop(L, 1);
     lua_Integer tam;
@@ -272,7 +272,7 @@ static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_a_sintactico_
     instruccion->tam_bytes = (size_t) tam;
 }
 
-static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo Tuple<char*, funcion> -> %s"), (char*) instruccion->simbolo->valor SEP lua_tostring(L, -1));
     lua_pop(L, 1);
     lua_geti(L, -1, 2); // <- Función para modificar el resultado (idx 9)
@@ -312,7 +312,7 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_a_sinta
     }
 }
 
-static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo List<Tuple<List<Args>, Value>>"), (char*) instruccion->simbolo->valor);
     lua_pop(L, 1);
     lua_len(L, -1);
@@ -409,7 +409,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactic
     ctx->ultimo = instruccion->simbolo;
 }
 
-void lily_lua_cpu_ensamblar(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx) {
+void lily_lua_cpu_ensamblar(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
     // Obtener el mnemónico canónico
     char* mnemo = instruccion->simbolo->valor;
     for (size_t i = 0; i < strlen(mnemo); i++)

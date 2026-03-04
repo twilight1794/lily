@@ -1,12 +1,12 @@
 /**
- * @file error.h
- * Códigos de error de Lily
+ * @file estado.h
+ * Códigos de estado de Lily
  */
 
-#ifndef LILY_C_ERROR
-#define LILY_C_ERROR
+#ifndef LILY_C_ESTADO
+#define LILY_C_ESTADO
 
-enum lily_error {
+enum lily_estado {
     COD_OK,
     // Generales
     COD_MALLOC_FALLO, /**< [mc]alloc falló al reservar memoria */
@@ -72,8 +72,8 @@ enum lily_error {
 /**
  * Estructura para almacenar detalles sobre el estado de la ejecución
  */
-struct lily_error_ctx {
-    enum lily_error codigo; /**< Código de estado */
+struct lily_ctx {
+    enum lily_estado codigo; /**< Código de estado */
     struct lily_a_lexico_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
     char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
 };

@@ -9,7 +9,7 @@
 #include <stdbool.h>
 
 #include "../common/defs.h"
-#include "../common/error.h"
+#include "../common/estado.h"
 #include "../common/lde.h"
 #include "../common/log.h"
 #include "../lib/a_lexico_simbolo.h"
@@ -21,7 +21,7 @@
  * Estructura para almacenar detalles sobre la ejecución del análisis sintáctico
  */
 struct lily_a_sintactico_ctx {
-    enum lily_error codigo; /**< Código a retornar */
+    enum lily_estado codigo; /**< Código a retornar */
     struct lily_a_lexico_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
 };
 

@@ -7,7 +7,7 @@
  #define LILY_L_LUA_CPU
 
 #include "../common/defs.h"
-#include "../common/error.h"
+#include "../common/estado.h"
 #include "../common/log.h"
 #include  "a_lexico_simbolo.h"
 
@@ -45,6 +45,6 @@ enum lily_lua_cpu_userdata_globales {
  * @param [out] ctx Estado de la ejecución al momento de salir de la función
  * @return Sesión de Lua nueva
  */
-lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_error_ctx* ctx);
+lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_ctx* ctx);
 
 #endif

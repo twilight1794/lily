@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "error.h"
+#include "estado.h"
 
 /**
  * Codifica el número \a val con los parámetros correctos
@@ -21,6 +21,6 @@
  * @param endianness Endianness de la representación: \c true para little-endian, \c false para big-endian
  * @return Código de operación resultante
  */
-enum lily_error lily_nums_codificar_num(uint8_t* buf, void* val, const size_t tam, const bool negativo, const bool endianness);
+enum lily_estado lily_nums_codificar_num(uint8_t* buf, void* val, const size_t tam, const bool negativo, const bool endianness);
 
 #endif

@@ -1,6 +1,6 @@
 #include "lua_cpu.h"
 
-lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_error_ctx* ctx) {
+lua_State *lily_lua_cpu_cargar(const char *codigo, struct lily_ctx* ctx) {
     // Cargar definición arquitectura a utilizar
     lua_State* L = luaL_newstate();
     // FIX: hay qué quitar algunas bibliotecas porque tienen funciones peligrosas, y reimplementar las que pudieran ser útiles:

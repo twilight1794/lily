@@ -16,7 +16,7 @@
 
 #include "../common/defs.h"
 #include "../common/dict.h"
-#include "../common/error.h"
+#include "../common/estado.h"
 #include "../common/lde.h"
 #include "../common/log.h"
 #include "../lib/a_lexico.h"
@@ -57,7 +57,7 @@ struct lily_log_config lily_log_conf = {
 };
 bool lily_log_msg_null;
 char* lily_log_msg_buffer;
-enum lily_error estado;
+enum lily_estado estado;
 
 void f_help(char* name);
 void f_version(void);
@@ -326,7 +326,7 @@ int main(int argc, char **argv){
 
     // Determinar arquitectura a usar
     char* arquitectura_final = NULL;
-    struct lily_error_ctx ctx = {
+    struct lily_ctx ctx = {
         .codigo = COD_OK,
         .ultimo = NULL,
         .lua_msg = NULL

@@ -6,7 +6,7 @@ union lily_nums_num {
     uint8_t byte[4];
 };
 
-enum lily_error lily_nums_codificar_num(uint8_t* buf, void* val, const size_t tam, const bool negativo, const bool endianness) {
+enum lily_estado lily_nums_codificar_num(uint8_t* buf, void* val, const size_t tam, const bool negativo, const bool endianness) {
     // Guardar número
     union lily_nums_num num;
     if (negativo) num.neg = *((int64_t*) val);

@@ -1,6 +1,6 @@
 #include "a_semantico.h"
 
-static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_a_lexico_numero* valor, bool es_const, struct lily_error_ctx* ctx) {
+static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_a_lexico_numero* valor, bool es_const, struct lily_ctx* ctx) {
     struct lily_dict_nodo* nodo = lily_dict_get(identificadores, identificador);
     if (nodo != NULL) {
         if (((struct lily_a_semantico_identificador*) nodo->valor)->es_const)
@@ -19,11 +19,11 @@ static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identific
     }
 }
 
-static bool lily_a_semantico_reducir(struct lily_a_sintactico_instruccion* instruccion, struct lily_dict_dict* identificadores, struct lily_error_ctx* ctx) {
+static bool lily_a_semantico_reducir(struct lily_a_sintactico_instruccion* instruccion, struct lily_dict_dict* identificadores, struct lily_ctx* ctx) {
     return true;
 }
 
-static void lily_a_semantico_directiva(struct lily_a_sintactico_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, struct lily_error_ctx* ctx) {
+static void lily_a_semantico_directiva(struct lily_a_sintactico_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, struct lily_ctx* ctx) {
     struct lily_lde_nodo* nodo_param;
     struct lily_a_lexico_simbolo* simbolo_param;
 
@@ -196,7 +196,7 @@ static void lily_a_semantico_directiva(struct lily_a_sintactico_instruccion* ins
     }
 }
 
-char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, struct lily_error_ctx* ctx) {
+char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, struct lily_ctx* ctx) {
     struct lily_lde_nodo* nodo = lily_lde_get(ast, 0);
     struct lily_a_sintactico_instruccion *instruccion = nodo->valor;
     char* arquitectura = NULL;
@@ -225,7 +225,7 @@ char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, stru
     return arquitectura;
 }
 
-uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, struct lily_error_ctx* ctx) {
+uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, struct lily_ctx* ctx) {
     uint8_t* bytes = NULL;
 
     // Diccionario para identificadores
