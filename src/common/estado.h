@@ -6,6 +6,8 @@
 #ifndef LILY_C_ESTADO
 #define LILY_C_ESTADO
 
+#include "../lib/a_lexico_simbolo.h"
+
 enum lily_estado {
     COD_OK,
     // Generales
@@ -74,6 +76,11 @@ enum lily_estado {
  */
 struct lily_ctx {
     enum lily_estado codigo; /**< Código de estado */
+    // Análisis léxico
+    enum lily_a_lexico_tipo_simbolo tipo; /**< Tipo tentativo del símbolo que se estaba generando */
+    size_t i_inicial; /**< Posición en \a blob del símbolo tentativo */
+    size_t i_desp; /**< Desplazamiento desde \a i_inicial hasta el valor actual de \a i */
+    // Análisis sintáctico
     struct lily_a_lexico_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
     char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
 };

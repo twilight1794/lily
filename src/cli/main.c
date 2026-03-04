@@ -57,7 +57,6 @@ struct lily_log_config lily_log_conf = {
 };
 bool lily_log_msg_null;
 char* lily_log_msg_buffer;
-enum lily_estado estado;
 
 void f_help(char* name);
 void f_version(void);
@@ -72,6 +71,14 @@ int main(int argc, char **argv){
         f_help(argv[0]);
         return 0;
     }
+    struct lily_ctx ctx = {
+        .codigo = COD_OK,
+        .tipo = SIMB_INDETERMINADO,
+        .i_inicial = 0,
+        .i_desp = 0,
+        .ultimo = NULL,
+        .lua_msg = NULL
+    };
 
     char* archivo_listado_ruta = NULL;
     struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
@@ -298,13 +305,11 @@ int main(int argc, char **argv){
     log_info_gen(_("Output file: '%s'."), archivo_salida)
 
     // Análisis léxico
-    struct lily_lde_lde* simbolos = lily_lde_create();
-    struct lily_a_lexico_ctx ctx_lexico;
-    estado = lily_a_lexico(archivo_entrada_p, simbolos, &ctx_lexico);
-    log_info_gen(_("lily_a_lexico: %d."), estado);
-    if (estado != COD_OK) {
-        char caracter_prob = archivo_entrada_p[ctx_lexico.i_desp];
-        log_fatal_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx_lexico.tipo SEP ctx_lexico.i_inicial SEP ctx_lexico.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?');
+    struct lily_lde_lde* simbolos = lily_a_lexico(archivo_entrada_p, &ctx);
+    log_info_gen(_("lily_a_lexico: %d."), ctx.codigo);
+    if (ctx.codigo != COD_OK) {
+        char caracter_prob = archivo_entrada_p[ctx.i_desp];
+        log_fatal_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx.tipo SEP ctx.i_inicial SEP ctx.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?');
         exit(EXIT_FAILURE);
     }
     /*for (size_t i = 0; i < lily_lde_size(simbolos); i++) {
@@ -316,21 +321,15 @@ int main(int argc, char **argv){
     close(archivo_entrada_fd);
 
     // Análisis sintáctico
-    struct lily_lde_lde* ast = lily_lde_create();
-    struct lily_a_sintactico_ctx ctx_sintactico = lily_a_sintactico(simbolos, ast);
-    log_info_gen(_("lily_a_sintactico: %d."), ctx_sintactico.codigo);
-    if (ctx_sintactico.codigo != COD_OK) {
-        log_fatal_gen(_("codigo=%d, %d.%d (%lu)"), ctx_sintactico.codigo SEP ctx_sintactico.ultimo->tipo SEP ctx_sintactico.ultimo->subtipo SEP ctx_sintactico.ultimo->linea);
+    struct lily_lde_lde* ast = lily_a_sintactico(simbolos, &ctx);
+    log_info_gen(_("lily_a_sintactico: %d."), ctx.codigo);
+    if (ctx.codigo != COD_OK) {
+        log_fatal_gen(_("codigo=%d, %d.%d (%lu)"), ctx.codigo SEP ctx.ultimo->tipo SEP ctx.ultimo->subtipo SEP ctx.ultimo->linea);
         exit(EXIT_FAILURE);
     }
 
     // Determinar arquitectura a usar
     char* arquitectura_final = NULL;
-    struct lily_ctx ctx = {
-        .codigo = COD_OK,
-        .ultimo = NULL,
-        .lua_msg = NULL
-    };
     char* arquitectura_asm = lily_a_semantico_obt_arquitectura_declarada(ast, &ctx);
     if (arquitectura != NULL) {
         arquitectura_final = arquitectura;

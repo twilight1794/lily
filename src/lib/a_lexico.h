@@ -26,15 +26,6 @@
 
 #include <libintl.h>
 
-/**
- * Estructura para almacenar detalles sobre la ejecución del análisis léxico
- */
-struct lily_a_lexico_ctx {
-    enum lily_a_lexico_tipo_simbolo tipo; //< Tipo tentativo del símbolo que se estaba generando
-    size_t i_inicial; //< Posición en \a blob del símbolo tentativo
-    size_t i_desp; //< Desplazamiento desde \a i_inicial hasta el valor actual de \a i
-};
-
 // Modos del analizador léxico
 /**
  * @brief Modo comentario
@@ -142,10 +133,9 @@ enum lily_estado lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const s
 /**
  * Función de entrada del analizador léxico
  * @param blob Cadena de texto que contiene el código fuente del archivo principal
- * @param [out] simbolos Lista de símbolos encontrados
  * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
- * @return Código de estado de la operación
+ * @return Lista de símbolos encontrados
  */
-enum lily_estado lily_a_lexico(const char* blob, struct lily_lde_lde* simbolos, struct lily_a_lexico_ctx* ctx);
+struct lily_lde_lde* lily_a_lexico(const char* blob, struct lily_ctx* ctx);
 
 #endif
