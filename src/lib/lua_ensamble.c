@@ -1,5 +1,7 @@
 #include "lua_ensamble.h"
 
+#include <ctype.h>
+
 static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_error_ctx* ctx) {
     union lily_a_lexico_numero n;
     // Primero, comprobar si el tipo es uno precargado
@@ -408,7 +410,12 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactic
 }
 
 void lily_lua_cpu_ensamblar(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_error_ctx* ctx) {
-    const char* mnemo = instruccion->simbolo->valor;
+    // Obtener el mnemónico canónico
+    char* mnemo = instruccion->simbolo->valor;
+    for (size_t i = 0; i < strlen(mnemo); i++)
+        mnemo[i] = toupper(mnemo[i]);
+
+    // Obtener definición asociada al mnemónico
     lua_pushstring(L, "ensamble");
     lua_gettable(L, -2);
     lua_pushstring(L, mnemo);
