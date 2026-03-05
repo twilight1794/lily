@@ -1,6 +1,8 @@
 #include "log.h"
 
 void lily_log(enum lily_log_nivel tipo, const char* archivo, unsigned int linea, const char* msg) {
+    // Relevancia mínima
+    if (tipo < lily_log_conf.nivel_minimo) return;
 
     // Fecha-hora
     time_t rawtime;

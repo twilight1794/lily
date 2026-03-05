@@ -12,17 +12,6 @@
 #include <time.h>
 
 /**
- * Objeto para almacenar la configuración de \c lily_log
- */
-struct lily_log_config {
-    bool colores; ///< Indica si se usarán caracteres de escape ANSI para colorear los mensajes.
-    bool incluir_fecha; ///< Indica si se mostrará la fecha.
-    bool incluir_hora; ///< Indica si se mostrará la hora.
-    bool incluir_archivo; ///< Indica si se mostrará el número de línea.
-    int nivel_minimo; ///< Indica el nivel mínimo de los mensajes a mostrar.
-};
-
-/**
  * Tipos de mensajes de log
  */
 enum lily_log_nivel {
@@ -32,6 +21,17 @@ enum lily_log_nivel {
     LILY_LOG_ERROR, ///< Nivel de error, para eventos que detienen la ejecución de una función.
     LILY_LOG_FATAL, ///< Nivel fatal, para eventos que detienen la ejecución de todo el sistema.
     LILY_LOG_NONE ///< Nivel para desactivar la escritura de eventos.
+};
+
+/**
+ * Objeto para almacenar la configuración de \c lily_log
+ */
+struct lily_log_config {
+    bool colores; ///< Indica si se usarán caracteres de escape ANSI para colorear los mensajes.
+    bool incluir_fecha; ///< Indica si se mostrará la fecha.
+    bool incluir_hora; ///< Indica si se mostrará la hora.
+    bool incluir_archivo; ///< Indica si se mostrará el número de línea.
+    enum lily_log_nivel nivel_minimo; ///< Indica el nivel mínimo de los mensajes a mostrar.
 };
 
 /**

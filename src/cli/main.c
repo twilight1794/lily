@@ -53,7 +53,7 @@ struct lily_log_config lily_log_conf = {
     .incluir_fecha = true,
     .incluir_hora = true,
     .incluir_archivo = true,
-    .nivel_minimo = LILY_LOG_DEBUG
+    .nivel_minimo = LILY_LOG_INFO
 };
 bool lily_log_msg_null;
 char* lily_log_msg_buffer;
