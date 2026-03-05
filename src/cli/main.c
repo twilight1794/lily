@@ -453,7 +453,8 @@ void f_help(char* name) {
     puts(_("\nMiscellaneous options:"));
     puts(_(" -s<stage>   --stage=<stage>    Operation to perform: A, L, D, or E"));
     puts(_(" -l=<level>  --logging=<level>  Restrict output to <level>"));
-    puts(_(" -h          --help             Show this help")); //NOTE=class[,…]
+    puts(_("                                <level> can be \"debug\", \"info\", \"warn\", \"error\", \"fatal\" or \"none\""));
+    puts(_(" -h          --help             Show this help")); /* TODO: NOTE=class[,…]*/
     puts(_(" -v          --version          Show Lily version"));
     puts(_("\nFor more info, see the man pages."));
 }
