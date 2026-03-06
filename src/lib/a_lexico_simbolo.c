@@ -169,6 +169,34 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
     return buff;
 }
 
+size_t lily_a_lexico_simbolo_aridad(enum lily_a_lexico_tipo_simbolo tipo) {
+    switch (tipo) {
+        case OP_SUMA:
+        case OP_RESTA:
+        case OP_MULTI:
+        case OP_DIV:
+        case OP_MODULO:
+        case OP_MIEMBRO:
+        case OP_BIT_AND:
+        case OP_BIT_OR:
+        case OP_BIT_XOR:
+        case OP_LOG_AND:
+        case OP_LOG_OR:
+        case OP_DESP_IZQ:
+        case OP_DESP_DER:
+        case OP_MENOR_QUE:
+        case OP_MAYOR_QUE:
+        case OP_MENOR_IGUAL:
+        case OP_MAYOR_IGUAL:
+        case OP_IGUAL:
+        case OP_DIF:
+            return 2;
+        case OP_BIT_NOT:
+        case OP_LOG_NEG:
+            return 1;
+    }
+}
+
 char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruccion* instruccion) {
     char *patron, *buff_local, *buff_tmp;
     char* buff = lily_cadena_create();

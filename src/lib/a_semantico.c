@@ -20,11 +20,189 @@ static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identific
 }
 
 static bool lily_a_semantico_reducir(struct lily_a_sintactico_instruccion* instruccion, struct lily_dict_dict* identificadores, struct lily_ctx* ctx) {
-    return true;
+    bool reducido = true;
+    struct lily_lde_nodo* nodo = instruccion->params->inicio;
+    struct lily_lde_nodo* nodo_viejo;
+    struct lily_a_lexico_simbolo* nuevo; // Puntero para símbolos recién creados
+    struct lily_a_lexico_simbolo* op1; // Punteros para operandos en uso
+    struct lily_a_lexico_simbolo* op2;
+    size_t i = 0;
+    while (nodo != NULL) {
+        struct lily_a_lexico_simbolo* simbolo = nodo->valor;
+        switch (simbolo->tipo) {
+            case SIMB_MNEMO:
+            case SIMB_DIRECTIVA:
+            case SIMB_ETI:
+            case SIMB_FUNCION:
+                // <debug>
+                log_fatal("a_semantico: esto no debería pasar");
+                ctx->codigo = COD_NO_IMPLEMENTADO;
+                // </debug>
+                break;
+            case SIMB_OBJETO:
+            case SIMB_NUMERO:
+                // Estos objetos ya son terminales
+                nodo = nodo->posterior;
+                i++;
+                break;
+            case SIMB_VARIABLE:
+                // Ver si existe la variable
+                struct lily_dict_nodo* dict_nodo = lily_dict_get(identificadores, simbolo->valor);
+                if (dict_nodo == NULL) {
+                    // No existe, no podemos reducir
+                    reducido = false;
+                    break;
+                }
+                // Redefinimos tipo de símbolo
+                simbolo->tipo = SIMB_NUMERO;
+                free(simbolo->valor);
+                simbolo->valor = malloc(sizeof(union lily_a_lexico_numero));
+                if (simbolo->valor == NULL) {
+                    ctx->codigo = COD_MALLOC_FALLO;
+                    ctx->ultimo = simbolo;
+                    return false;
+                }
+                ((union lily_a_lexico_numero*) simbolo->valor)->positivo = ((union lily_a_lexico_numero*) dict_nodo->valor)->positivo;
+                i++;
+                break;
+            case SIMB_CADENA_SIMPLE:
+            case SIMB_CADENA_NUL:
+                // Limpiar símbolo viejo
+                const char* cad = simbolo->valor; // Salvamos por un momento esto
+                nodo_viejo = nodo;
+                nodo = nodo->posterior;
+                lily_lde_remove_node(instruccion->params, nodo_viejo);
+
+                for (size_t j = 0; j < strlen(cad); j++) {
+                    nuevo = lily_a_lexico_simbolo_create();
+                    if (nuevo == NULL) {
+                        ctx->codigo = COD_MALLOC_FALLO;
+                        ctx->ultimo = instruccion->simbolo;
+                        return false;
+                    }
+                    nuevo->tipo = SIMB_NUMERO;
+                    nuevo->valor = malloc(sizeof(union lily_a_lexico_numero));
+                    if (nuevo->valor == NULL) {
+                        ctx->codigo = COD_MALLOC_FALLO;
+                        ctx->ultimo = instruccion->simbolo;
+                        return false;
+                    }
+                    ((union lily_a_lexico_numero*) nuevo->valor)->positivo = ((char*) simbolo->valor)[j];
+                    lily_lde_insert(instruccion->params, i, nuevo);
+                    i++;
+                }
+                if (simbolo->tipo == SIMB_CADENA_NUL) {
+                    nuevo = lily_a_lexico_simbolo_create();
+                    if (nuevo == NULL) {
+                        ctx->codigo = COD_MALLOC_FALLO;
+                        ctx->ultimo = instruccion->simbolo;
+                        return false;
+                    }
+                    nuevo->tipo = SIMB_NUMERO;
+                    nuevo->valor = malloc(sizeof(union lily_a_lexico_numero));
+                    if (nuevo->valor == NULL) {
+                        ctx->codigo = COD_MALLOC_FALLO;
+                        ctx->ultimo = instruccion->simbolo;
+                        return false;
+                    }
+                    ((union lily_a_lexico_numero*) nuevo->valor)->positivo = 0;
+                    lily_lde_insert(instruccion->params, i, nuevo);
+                    i++;
+                }
+                // Limpiar símbolo viejo II
+                free(simbolo->valor);
+                free(simbolo);
+                i++;
+                break;
+            case SIMB_OPERADOR:
+                if (lily_a_lexico_simbolo_aridad(simbolo->subtipo) == 2) {
+                    op2 = (struct lily_a_lexico_simbolo*) nodo->anterior->valor;
+                    op1 = (struct lily_a_lexico_simbolo*) nodo->anterior->anterior->valor;
+                    if (op2->tipo != SIMB_NUMERO && op1->tipo != SIMB_NUMERO) {
+                        ctx->codigo = COD_A_SEMANTICO_OPERANDO_OBJETO;
+                        ctx->ultimo = (op2->tipo != SIMB_NUMERO)?op2:op1;
+                        break;
+                    }
+                    nodo_viejo = nodo;
+                    nodo = nodo->posterior;
+                }
+                switch (simbolo->subtipo) {
+                    case OP_SUMA:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo += ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                        break;
+                    case OP_RESTA:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo -= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                        break;
+                    case OP_MULTI:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo *= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                        break;
+                    case OP_DIV:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo /= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                        break;
+                case OP_MODULO:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo %= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                        break;
+                case OP_BIT_AND:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo &= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                        break;
+                case OP_BIT_OR:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo |= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_BIT_XOR:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo ^= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_BIT_NOT:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = ~(((union lily_a_lexico_numero*) op1->valor)->positivo);
+                case OP_LOG_AND:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo == ((union lily_a_lexico_numero*) op1->valor)->positivo && ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_LOG_OR:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo == ((union lily_a_lexico_numero*) op1->valor)->positivo || ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_LOG_NEG:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = !(((union lily_a_lexico_numero*) op1->valor)->positivo);
+                case OP_DESP_IZQ:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo <<= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_DESP_DER:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo >>= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_MENOR_QUE:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = ((union lily_a_lexico_numero*) op1->valor)->positivo < ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_MAYOR_QUE:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = ((union lily_a_lexico_numero*) op1->valor)->positivo > ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_MENOR_IGUAL:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = ((union lily_a_lexico_numero*) op1->valor)->positivo <= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_MAYOR_IGUAL:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = ((union lily_a_lexico_numero*) op1->valor)->positivo >= ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_IGUAL:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = ((union lily_a_lexico_numero*) op1->valor)->positivo == ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                case OP_DIF:
+                        ((union lily_a_lexico_numero*) op1->valor)->positivo = ((union lily_a_lexico_numero*) op1->valor)->positivo != ((union lily_a_lexico_numero*) op2->valor)->positivo;
+                }
+                if (lily_a_lexico_simbolo_aridad(simbolo->subtipo) == 2) {
+                    // Borrar op2
+                    free(op2->valor);
+                    free(op2);
+                }
+                lily_lde_remove_node(instruccion->params, nodo_viejo->anterior);
+                // Borrar operador
+                free(((struct lily_a_lexico_simbolo*) nodo_viejo->valor)->valor);
+                free(nodo_viejo->valor);
+                lily_lde_remove_node(instruccion->params, nodo_viejo);
+                i++;
+                break;
+        }
+        if (ctx->codigo != COD_OK) {
+            return false;
+        }
+        if (!reducido) {
+            log_debug_gen("a_semantico: no se ha reducido completamente %s", lily_a_sintactico_instruccion_print(instruccion));
+            break;
+        }
+        ++i;
+    }
+    if (reducido) {
+        log_debug_gen("a_semantico: se ha reducido %s", lily_a_sintactico_instruccion_print(instruccion));
+    }
+    return reducido;
 }
 
 static void lily_a_semantico_directiva(struct lily_a_sintactico_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, struct lily_ctx* ctx) {
-    struct lily_lde_nodo* nodo_param;
     struct lily_a_lexico_simbolo* simbolo_param;
 
     union lily_a_lexico_numero* pc_numero = (union lily_a_lexico_numero*) malloc(sizeof(union lily_a_lexico_numero));

@@ -142,6 +142,13 @@ struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void);
 char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo);
 
 /**
+ * Devuelve la aridad de un operador
+ * @param tipo Tipo de operador
+ * @return Aridad del operador indicado
+ */
+size_t lily_a_lexico_simbolo_aridad(enum lily_a_lexico_tipo_simbolo tipo);
+
+/**
  * Estructura para guardar un símbolo sintáctico
  */
 struct lily_a_sintactico_instruccion {

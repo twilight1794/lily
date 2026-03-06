@@ -104,15 +104,15 @@ static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, st
                 break;
             case SIMB_PARENTESIS_AP:
                 lily_lde_insert(pila_actual, lily_lde_size(pila_actual), *nodo);
+                // FIX: validar NULL
                 *nodo = (*nodo)->posterior;
-                simbolo = (*nodo)->valor;
+                if (*nodo != NULL) simbolo = (*nodo)->valor;
                 break;
             case SIMB_PARENTESIS_CI:
                 // FIX: revisar
-                while (pila_actual->final != NULL &&
-                    ((struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->tipo != SIMB_PARENTESIS_AP
-                    ) {
+                while (pila_actual->final != NULL) {
                     o2 = (struct lily_a_lexico_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor;
+                    if (o2->tipo == SIMB_PARENTESIS_AP) break;
                     lily_lde_insert(lista_actual, lily_lde_size(lista_actual), o2);
                     // FIX: validar NULL
                     lily_lde_remove_node(simbolos, pila_actual->final->valor);

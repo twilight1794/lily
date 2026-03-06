@@ -46,6 +46,8 @@ enum lily_estado {
     COD_A_SEMANTICO_REDEF_CONSTANTE, /**< Se intentó redefinir un identificador declarado como constante */
     COD_A_SEMANTICO_REDEF_VARIABLE, /**< Se intentó redefinir un identificador declarado con una etiqueta de localidad */
     COD_A_SEMANTICO_FIN_USUARIO, /**< Una directiva STOP ha detenido el proceso de ensamble */
+    COD_A_SEMANTICO_OPERANDOS_INSUFICIENTES, /**< Hace falta operandos en la pila para un operador  */
+    COD_A_SEMANTICO_OPERANDO_OBJETO, /**< Se intentó operar sobre un objeto */
     // lib/lua_cpu.h
     COD_LUA_CPU_LUA_ERR, /**< Error generado por la máquina virtual de Lua */
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */

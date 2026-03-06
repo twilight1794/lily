@@ -49,7 +49,7 @@ struct lily_lde_lde* lily_lde_create(void);
 struct lily_lde_nodo* lily_lde_nodo_create(void);
 
 /**
- * Añade un valor a la lista
+ * Añade un valor a la lista
  * @param lde Lista a manipular
  * @param pos Posición en la cual insertar el valor
  * @param valor Valor a añadir
