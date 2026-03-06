@@ -50,9 +50,9 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
             break;
         case SIMB_DIRECTIVA:
             patron = "(%lu:%lu) Directiva %s";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-66]) + 1);
+            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-64]) + 1);
             if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-66]);
+            sprintf(buff, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-64]);
             break;
         case SIMB_ETI:
             patron = "(%lu:%lu) Etiqueta %s";

@@ -3,7 +3,7 @@
 /**
  * Listado de directivas, para comparar
  */
-char* lily_a_lexico_directivas[] = { "DB", "DWL", "DWM", "DDL", "DDM", "DQL", "DQM", "DR", "DRD", "DFS", "CONST", "VAR", "IF", "IFDEF", "IFNDEF","ELSE", "ELIF", "WHILE", "LOOP", "INC", "CPU", "ORG", "STOP", "STRUCT", "UNION", "MACRO", "PROC", "END", NULL };
+char* lily_a_lexico_directivas[] = { "DB", "DWL", "DWM", "DDL", "DDM", "DQL", "DQM", "DR", "DRD", "DFS", "CONST", "VAR", "IF", "IFDEF", "IFNDEF","ELSE", "ELIF", "ELIFDEF", "ELIFNDEF", "WHILE", "LOOP", "INC", "CPU", "ORG", "STOP", "STRUCT", "UNION", "MACRO", "PROC", "END", NULL };
 
 char* lily_a_lexico_operadores[] = { "+", "-", "*", "/", "%", ".", "&", "|", "^", "~", "&&", "||", "!", "<<", ">>", "<", ">", "<=", ">=", "=", "!=" };
 
@@ -45,7 +45,7 @@ enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const
                 return COD_MALLOC_FALLO;
             }
             (*sim)->tipo = SIMB_DIRECTIVA;
-            (*sim)->subtipo = 66+j;
+            (*sim)->subtipo = 64+j;
             (*sim)->linea = *linea;
             (*sim)->linea_pos = *linea_pos;
             (*sim)->pos = *i_inicial;
