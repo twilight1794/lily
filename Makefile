@@ -32,6 +32,7 @@ src/common/log.o: src/common/log.c src/common/log.h
 src/common/nums.o: src/common/nums.c src/common/nums.h
 src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\"
 src/cli/main.o: src/cli/main.c
+src/cli/mmap.o: src/cli/mmap.c src/cli/mmap.h
 src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h
 src/lib/a_lexico_simbolo.o: src/lib/a_lexico_simbolo.c src/lib/a_lexico_simbolo.h
 src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
@@ -46,11 +47,11 @@ dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/comm
 dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_lexico_simbolo.o src/lib/a_sintactico.o  src/lib/a_semantico.o src/lib/lua_cpu.o src/lib/lua_ensamble.o
 	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/lily: src/cli/main.o lib-linux
-	$(CC) $(LDFLAGS) src/cli/main.o -llily $(LDLIBS) -o $@
+dist/lily: src/cli/main.o src/cli/mmap.o lib-linux
+	$(CC) $(LDFLAGS) src/cli/main.o src/cli/mmap.o -llily $(LDLIBS) -o $@
 
-dist/lily.exe: src/cli/main.o lib-windows
-	$(CC) $(LDFLAGS) src/cli/main.o -llily $(LDLIBS) -o $@
+dist/lily.exe: src/cli/main.o src/cli/mmap.o lib-windows
+	$(CC) $(LDFLAGS) src/cli/main.o src/cli/mmap.o -llily $(LDLIBS) -o $@
 
 dist/liblily.js: | dist
 	emcc main.c -lluawasm -s WASM=1 -O2 -o $@ -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'

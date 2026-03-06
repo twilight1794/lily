@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE 500
 #include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -6,14 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <fcntl.h>
 #include <getopt.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <libintl.h>
 
+#include "mmap.h"
 #include "../common/defs.h"
 #include "../common/dict.h"
 #include "../common/estado.h"
@@ -237,14 +234,12 @@ int main(int argc, char **argv){
     } else archivo_entrada = argv[optind++];
 
     // Abrimos archivo
-    int archivo_entrada_fd = open(archivo_entrada, O_RDONLY);
-    if (archivo_entrada_fd == -1) {
+    struct lily_cli_archivo* archivo_entrada_obj = lily_cli_archivo_create(archivo_entrada, 0);
+    if (archivo_entrada_obj == NULL) {
         log_fatal_gen(_("File %s cannot be open."), archivo_entrada);
+        puts(strerror(errno));
         exit(EXIT_FAILURE);
     }
-    struct stat archivo_entrada_st;
-    fstat(archivo_entrada_fd, &archivo_entrada_st);
-    char* archivo_entrada_p = (char*) mmap(NULL, archivo_entrada_st.st_size, PROT_READ, MAP_SHARED, archivo_entrada_fd, 0);
 
     // Determinar operación inicial y final
     /// Parámetro origen->origen, destino, arriba en la lectura de argumentos
@@ -302,13 +297,13 @@ int main(int argc, char **argv){
         }
         obt_nombre_archivo(archivo_entrada, etapa_final, archivo_salida);
     }
-    log_info_gen(_("Output file: '%s'."), archivo_salida)
+    log_info_gen(_("Output file: '%s'."), archivo_salida);
 
     // Análisis léxico
-    struct lily_lde_lde* simbolos = lily_a_lexico(archivo_entrada_p, &ctx);
+    struct lily_lde_lde* simbolos = lily_a_lexico(archivo_entrada_obj->p, &ctx);
     log_info_gen(_("lily_a_lexico: %d."), ctx.codigo);
     if (ctx.codigo != COD_OK) {
-        char caracter_prob = archivo_entrada_p[ctx.i_desp];
+        char caracter_prob = archivo_entrada_obj->p[ctx.i_desp];
         log_fatal_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx.tipo SEP ctx.i_inicial SEP ctx.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?');
         exit(EXIT_FAILURE);
     }
@@ -317,8 +312,7 @@ int main(int argc, char **argv){
         log_debug_gen("a_lexico rest [%p]: %s", lily_lde_get(simbolos,i)->valor SEP simb_cad);
         free(simb_cad);
     }*/
-    munmap(archivo_entrada_p, archivo_entrada_st.st_size); // Ya no necesitamos más el archivo
-    close(archivo_entrada_fd);
+    lily_cli_archivo_close(archivo_entrada_obj); // Ya no necesitamos más el archivo
 
     // Análisis sintáctico
     struct lily_lde_lde* ast = lily_a_sintactico(simbolos, &ctx);
@@ -398,25 +392,13 @@ int main(int argc, char **argv){
     }
 
     // Salida
-    int archivo_salida_fd = open(archivo_salida, O_RDWR | O_CREAT | O_TRUNC, 0660);
-    if (archivo_salida_fd == -1) {
+    struct lily_cli_archivo* archivo_salida_obj = lily_cli_archivo_create(archivo_salida, tam_bytes);
+    if (archivo_salida_obj == NULL) {
         log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
         exit(EXIT_FAILURE);
     }
-    if (ftruncate(archivo_salida_fd, (long) tam_bytes)) {
-        log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    struct stat archivo_salida_st;
-    fstat(archivo_salida_fd, &archivo_salida_st);
-    char* archivo_salida_p = (char*) mmap(NULL, tam_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, archivo_salida_fd, 0);
-    if (archivo_salida_p == MAP_FAILED) {
-        log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    memcpy(archivo_salida_p, bytes, tam_bytes);
-    munmap(archivo_salida_p, tam_bytes);
-    close(archivo_salida_fd);
+    memcpy(archivo_salida_obj->p, bytes, tam_bytes);
+    lily_cli_archivo_close(archivo_salida_obj);
     exit(EXIT_SUCCESS);
 }
 
@@ -520,3 +502,5 @@ char* obt_etapa_str(enum lily_main_etapa etapa) {
     }
     return "";
 }
+
+char* obt_archivo(const char* archivo) {}
