@@ -115,71 +115,73 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccio
                 i++;
                 break;
             case SIMB_OPERADOR:
-                if (lily_simbolo_aridad(simbolo->subtipo) == 2) {
+#define es(op) simbolo->subtipo == op
+                nodo_viejo = nodo;
+                nodo = nodo->posterior;
+                if (lily_simbolo_aridad(simbolo->subtipo) == 1) {
+                    op1 = (struct lily_simbolo_simbolo*) nodo_viejo->anterior->valor;
+                    if (op1->tipo != SIMB_NUMERO) {
+                        ctx->codigo = COD_A_SEMANTICO_OPERANDO_OBJETO;
+                        ctx->ultimo = op1;
+                        break;
+                    }
+                    // Operar!
+                    if (es(OP_BIT_NOT))
+                        ((union lily_simbolo_numero*) op1->valor)->positivo = ~(((union lily_simbolo_numero*) op1->valor)->positivo);
+                    else if (es(OP_LOG_NEG))
+                       ((union lily_simbolo_numero*) op1->valor)->positivo = !(((union lily_simbolo_numero*) op1->valor)->positivo);
+
+                }
+                else if (lily_simbolo_aridad(simbolo->subtipo) == 2) {
                     op2 = (struct lily_simbolo_simbolo*) nodo->anterior->valor;
                     op1 = (struct lily_simbolo_simbolo*) nodo->anterior->anterior->valor;
-                    if (op2->tipo != SIMB_NUMERO && op1->tipo != SIMB_NUMERO) {
+                    if (op2->tipo != SIMB_NUMERO || op1->tipo != SIMB_NUMERO) {
                         ctx->codigo = COD_A_SEMANTICO_OPERANDO_OBJETO;
                         ctx->ultimo = (op2->tipo != SIMB_NUMERO)?op2:op1;
                         break;
                     }
-                    nodo_viejo = nodo;
-                    nodo = nodo->posterior;
-                }
-                switch (simbolo->subtipo) {
-                    case OP_SUMA:
+                    // Operar!
+                    if (es(OP_SUMA))
                         ((union lily_simbolo_numero*) op1->valor)->positivo += ((union lily_simbolo_numero*) op2->valor)->positivo;
-                        break;
-                    case OP_RESTA:
+                    if (es(OP_RESTA))
                         ((union lily_simbolo_numero*) op1->valor)->positivo -= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                        break;
-                    case OP_MULTI:
+                    if (es(OP_MULTI))
                         ((union lily_simbolo_numero*) op1->valor)->positivo *= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                        break;
-                    case OP_DIV:
+                    if (es(OP_DIV))
                         ((union lily_simbolo_numero*) op1->valor)->positivo /= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                        break;
-                case OP_MODULO:
+                    if (es(OP_MODULO))
                         ((union lily_simbolo_numero*) op1->valor)->positivo %= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                        break;
-                case OP_BIT_AND:
+                    if (es(OP_BIT_AND))
                         ((union lily_simbolo_numero*) op1->valor)->positivo &= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                        break;
-                case OP_BIT_OR:
+                    if (es(OP_BIT_OR))
                         ((union lily_simbolo_numero*) op1->valor)->positivo |= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_BIT_XOR:
+                    if (es(OP_BIT_XOR))
                         ((union lily_simbolo_numero*) op1->valor)->positivo ^= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_BIT_NOT:
-                        ((union lily_simbolo_numero*) op1->valor)->positivo = ~(((union lily_simbolo_numero*) op1->valor)->positivo);
-                case OP_LOG_AND:
-                        ((union lily_simbolo_numero*) op1->valor)->positivo == ((union lily_simbolo_numero*) op1->valor)->positivo && ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_LOG_OR:
-                        ((union lily_simbolo_numero*) op1->valor)->positivo == ((union lily_simbolo_numero*) op1->valor)->positivo || ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_LOG_NEG:
-                        ((union lily_simbolo_numero*) op1->valor)->positivo = !(((union lily_simbolo_numero*) op1->valor)->positivo);
-                case OP_DESP_IZQ:
+                    if (es(OP_LOG_AND))
+                        ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo && ((union lily_simbolo_numero*) op2->valor)->positivo;
+                    if (es(OP_LOG_OR))
+                        ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo || ((union lily_simbolo_numero*) op2->valor)->positivo;
+                    if (es(OP_DESP_IZQ))
                         ((union lily_simbolo_numero*) op1->valor)->positivo <<= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_DESP_DER:
+                    if (es(OP_DESP_DER))
                         ((union lily_simbolo_numero*) op1->valor)->positivo >>= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_MENOR_QUE:
+                    if (es(OP_MENOR_QUE))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo < ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_MAYOR_QUE:
+                    if (es(OP_MAYOR_QUE))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo > ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_MENOR_IGUAL:
+                    if (es(OP_MENOR_IGUAL))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo <= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_MAYOR_IGUAL:
+                    if (es(OP_MAYOR_IGUAL))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo >= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_IGUAL:
+                    if (es(OP_IGUAL))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo == ((union lily_simbolo_numero*) op2->valor)->positivo;
-                case OP_DIF:
+                    if (es(OP_DIF))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo != ((union lily_simbolo_numero*) op2->valor)->positivo;
-                }
-                if (lily_simbolo_aridad(simbolo->subtipo) == 2) {
                     // Borrar op2
                     free(op2->valor);
                     free(op2);
+                    lily_lde_remove_node(instruccion->params, nodo_viejo->anterior);
                 }
-                lily_lde_remove_node(instruccion->params, nodo_viejo->anterior);
                 // Borrar operador
                 free(((struct lily_simbolo_simbolo*) nodo_viejo->valor)->valor);
                 free(nodo_viejo->valor);
