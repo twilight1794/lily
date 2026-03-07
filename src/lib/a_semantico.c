@@ -1,5 +1,33 @@
 #include "a_semantico.h"
 
+/**
+ * Añade un nuevo identificador a la lista de identificadores conocidos
+ * @param identificadores Tabla de símbolos
+ * @param identificador Identificador a añadir
+ * @param valor Entero asociado al identificador
+ * @param es_const Si el identificador será constante o variable
+ * @param [out] ctx Contexto del estado de la operación
+ */
+static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_simbolo_numero* valor, bool es_const, struct lily_ctx* ctx);
+
+/**
+ * Reduce una lista de expresiones, aplicando las operaciones y reemplazos pertinentes
+ * @param instruccion Directiva a procesar
+ * @param identificadores Tabla de símbolos
+ * @param [out] ctx Contexto del estado de la operación
+ * @return Si la lista de símbolos pudo ser reducida al máximo
+ */
+static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, struct lily_ctx* ctx);
+
+/**
+ * Ensambla una directiva
+ * @param instruccion Directiva a procesar
+ * @param identificadores Tabla de símbolos
+ * @param pc Contador de instrucción
+ * @param [out] ctx Contexto del estado de la operación
+ */
+static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, struct lily_ctx* ctx);
+
 static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_simbolo_numero* valor, bool es_const, struct lily_ctx* ctx) {
     struct lily_dict_nodo* nodo = lily_dict_get(identificadores, identificador);
     if (nodo != NULL) {

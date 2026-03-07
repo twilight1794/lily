@@ -22,25 +22,6 @@
 #include "lua_ensamble.h"
 
 /**
- * Añade un nuevo identificador a la lista de identificadores conocidos
- * @param identificadores Tabla de símbolos
- * @param identificador Identificador a añadir
- * @param valor Entero asociado al identificador
- * @param es_const Si el identificador será constante o variable
- * @param [out] ctx Contexto del estado de la operación
- */
-static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_simbolo_numero* valor, bool es_const, struct lily_ctx* ctx);
-
-/**
- * Ensambla una directiva
- * @param instruccion Directiva a procesar
- * @param identificadores Tabla de símbolos
- * @param pc Contador de instrucción
- * @param [out] ctx Contexto del estado de la operación
- */
-static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, struct lily_ctx* ctx);
-
-/**
  * Devuelve la arquitectura declarada en el archivo ensamblador
  * @param ast Árbol de sintaxis abstracta generado en el análisis sintáctico
  * @param ctx Contexto del estado de la operación
