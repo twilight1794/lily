@@ -15,14 +15,12 @@ V_LILY_VERSION=$(shell git tag --points-at HEAD)
 V_LILY_COMMIT=$(shell git rev-parse HEAD|cut -c 1-8)
 V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; fi)
 
-TARGETS := linux windows lib-linux lib-windows web
+TARGETS := linux windows web
 .PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean test-windows test-linux
 
 all: linux windows web
 linux: dist/lily
 windows: dist/lily.exe
-lib-linux: dist/liblily.so
-lib-windows: dist/liblily.dll
 web: dist/liblily.js
 
 src/common/cadena.o: src/common/cadena.c src/common/cadena.h
@@ -42,17 +40,21 @@ src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/lib/lua_ensamble.o: src/lib/lua_ensamble.c src/lib/lua_ensamble.h
 src/web/main.o: src/web/main.c
 
-dist/liblily.so: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/simbolo.o
-	$(CC) -shared -fPIC $(LDFLAGS) $^ -llua $(LDLIBS) -o $@
+DEPS_LIBLILY := src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/simbolo.o
 
-dist/liblily.dll: src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_sintactico.o  src/lib/a_semantico.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/simbolo.o
-	$(CC) -shared $(LDFLAGS) $^ $(LDLIBS) -o $@
+dist/liblily.so: $(DEPS_LIBLILY)
+	$(CC) -shared -fPIC $(LDFLAGS) $(DEPS_LIBLILY) -llua $(LDLIBS) -o $@
 
-dist/lily: src/cli/main.o src/cli/mmap.o lib-linux
-	$(CC) $(LDFLAGS) src/cli/main.o src/cli/mmap.o -llily $(LDLIBS) -o $@
+dist/liblily.dll: $(DEPS_LIBLILY)
+	$(CC) -shared $(LDFLAGS) $(DEPS_LIBLILY) $(LDLIBS) -o $@
 
-dist/lily.exe: src/cli/main.o src/cli/mmap.o lib-windows
-	$(CC) $(LDFLAGS) src/cli/main.o src/cli/mmap.o -llily $(LDLIBS) -o $@
+DEPS_LILY_LINUX := src/cli/main.o src/cli/mmap.o
+dist/lily: $(DEPS_LILY_LINUX) dist/liblily.so
+	$(CC) $(LDFLAGS) $(DEPS_LILY_LINUX) -llily $(LDLIBS) -o $@
+
+DEPS_LILY_WIN := src/cli/main.o
+dist/lily.exe: $(DEPS_LILY_WIN) dist/liblily.dll
+	$(CC) $(LDFLAGS) $(DEPS_LILY_WIN) -llily $(LDLIBS) -o $@
 
 dist/liblily.js: | dist
 	emcc main.c -lluawasm -s WASM=1 -O2 -o $@ -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
@@ -90,11 +92,11 @@ lib/munit/munit.o: lib/munit/munit.c
 test/common/dict.o: test/common/dict.c test/common/dict.h
 test/main.o: test/main.c
 
-dist/test: lib/munit/munit.o test/main.o test/common/dict.o lib-linux
-	$(CC) $(LDFLAGS) lib/munit/munit.o test/main.o test/common/dict.o -llily $(LDLIBS) -o $@
+dist/test: lib/munit/munit.o test/main.o test/common/dict.o dist/liblily.so
+	$(CC) $(LDFLAGS) $^ -llily $(LDLIBS) -o $@
 
-dist/test.exe: lib/munit/munit.o test/main.o test/common/dict.o lib-windows
-	$(CC) $(LDFLAGS) lib/munit/munit.o test/main.o test/common/dict.o -llily $(LDLIBS) -o $@
+dist/test.exe: lib/munit/munit.o test/main.o test/common/dict.o dist/liblily.dll
+	$(CC) $(LDFLAGS) $^ -llily $(LDLIBS) -o $@
 
 test-linux: dist/test
 	LD_LIBRARY_PATH=dist dist/test
