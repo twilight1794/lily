@@ -68,13 +68,18 @@ char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo) {
             break;
         case SIMB_NUMERO: {
             union lily_simbolo_numero* num = (union lily_simbolo_numero*) simbolo->valor;
-            if (simbolo->signo)
+            if (simbolo->signo) {
                 patron = "(%lu:%lu) Número %" PRIi64;
-            else
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC, num->negativo) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC, num->negativo);
+            }
+            else {
                 patron = "(%lu:%lu) Número %" PRIu64;
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, (simbolo->signo)?num->negativo:num->positivo) + 1);
-            if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC, (simbolo->signo)?num->negativo:num->positivo);
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC, num->positivo) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC, num->positivo);
+            }
             break;
         }
         case SIMB_FUNCION:
@@ -243,6 +248,7 @@ int lily_simbolo_aridad(enum lily_simbolo_tipo tipo) {
         case OP_LOG_NEG:
             return 1;
     }
+    return 0;
 }
 
 char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* instruccion) {

@@ -48,12 +48,14 @@ static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identific
 }
 
 static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, struct lily_ctx* ctx) {
-    bool reducido = true;
     struct lily_lde_nodo* nodo = instruccion->params->inicio;
     struct lily_lde_nodo* nodo_viejo;
+    struct lily_dict_nodo* dict_nodo; // Puntero para consultas a identificadores
     struct lily_simbolo_simbolo* nuevo; // Puntero para símbolos recién creados
     struct lily_simbolo_simbolo* op1; // Punteros para operandos en uso
     struct lily_simbolo_simbolo* op2;
+    char* cad; // Puntero para manejo de cadena
+    bool reducido = true;
     size_t i = 0;
     while (nodo != NULL) {
         struct lily_simbolo_simbolo* simbolo = nodo->valor;
@@ -75,7 +77,7 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccio
                 break;
             case SIMB_VARIABLE:
                 // Ver si existe la variable
-                struct lily_dict_nodo* dict_nodo = lily_dict_get(identificadores, simbolo->valor);
+                dict_nodo = lily_dict_get(identificadores, simbolo->valor);
                 if (dict_nodo == NULL) {
                     // No existe, no podemos reducir
                     reducido = false;
@@ -96,7 +98,7 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccio
             case SIMB_CADENA_SIMPLE:
             case SIMB_CADENA_NUL:
                 // Limpiar símbolo viejo
-                const char* cad = simbolo->valor; // Salvamos por un momento esto
+                cad = simbolo->valor; // Salvamos por un momento esto
                 nodo_viejo = nodo;
                 nodo = nodo->posterior;
                 lily_lde_remove_node(instruccion->params, nodo_viejo);
