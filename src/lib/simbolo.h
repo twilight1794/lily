@@ -1,10 +1,10 @@
 /**
- * @file a_lexico_simbolo.h
+ * @file simbolo.h
  * Definiciones de los tipos de símbolos creados por el analizador léxico
  */
 
-#ifndef LILY_L_A_LEXICO_SIMBOLO
-#define LILY_L_A_LEXICO_SIMBOLO
+#ifndef LILY_L_SIMBOLO
+#define LILY_L_SIMBOLO
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -20,7 +20,7 @@
 /**
  * Tipo de símbolo
  */
-enum lily_a_lexico_tipo_simbolo {
+enum lily_simbolo_tipo {
     SIMB_INDETERMINADO,
 
     // Terminal
@@ -110,7 +110,7 @@ enum lily_a_lexico_tipo_simbolo {
 /**
  * Amalgama para números
  */
-union lily_a_lexico_numero {
+union lily_simbolo_numero {
     int64_t negativo; /**< Para números negativos */
     uint64_t positivo; /**< Para números positivos */
 };
@@ -118,9 +118,9 @@ union lily_a_lexico_numero {
 /**
  * Estructura para guardar un símbolo léxico
  */
-struct lily_a_lexico_simbolo {
-    enum lily_a_lexico_tipo_simbolo tipo; /**< Tipo del símbolo */
-    enum lily_a_lexico_tipo_simbolo subtipo; /**< Si aplica, tipo más específico del símbolo (para operadores y directivas) */
+struct lily_simbolo_simbolo {
+    enum lily_simbolo_tipo tipo; /**< Tipo del símbolo */
+    enum lily_simbolo_tipo subtipo; /**< Si aplica, tipo más específico del símbolo (para operadores y directivas) */
     size_t linea; /**< Línea donde se encuentra el inicio del símbolo */
     size_t linea_pos; /**< Índice del inicio de la línea \a linea en el blob */
     size_t pos; /**< Índice del inicio del símbolo en el blob */
@@ -132,28 +132,35 @@ struct lily_a_lexico_simbolo {
  * Crea un objeto para guardar un símbolo
  * @return Un objeto para símbolo nuevo
  */
-struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void);
+struct lily_simbolo_simbolo* lily_simbolo_simbolo_create(void);
 
 /**
  * Genera una representación en texto de \a simbolo
  * @param simbolo Símbolo cuyos datos imprimir
  * @return Cadena de texto con la representación en texto del objeto
  */
-char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo);
+char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo);
+
+/**
+ * Devuelve el nivel de precedencia de un operador
+ * @param operador Operador en cuestión
+ * @return Nivel de precedencia de \a operador
+ */
+int lily_simbolo_precedencia(const struct lily_simbolo_simbolo* operador);
 
 /**
  * Devuelve la aridad de un operador
  * @param tipo Tipo de operador
  * @return Aridad del operador indicado
  */
-size_t lily_a_lexico_simbolo_aridad(enum lily_a_lexico_tipo_simbolo tipo);
+int lily_simbolo_aridad(enum lily_simbolo_tipo tipo);
 
 /**
  * Estructura para guardar un símbolo sintáctico
  */
-struct lily_a_sintactico_instruccion {
-    struct lily_a_lexico_simbolo* etiqueta; /**< Etiqueta asociada, si existe */
-    struct lily_a_lexico_simbolo* simbolo; /**< Mnemónico o directiva asociada, si existe */
+struct lily_simbolo_instruccion {
+    struct lily_simbolo_simbolo* etiqueta; /**< Etiqueta asociada, si existe */
+    struct lily_simbolo_simbolo* simbolo; /**< Mnemónico o directiva asociada, si existe */
     struct lily_lde_lde* params; /**< Lista de parámetros, o condiciones para bloques */
     struct lily_lde_lde* instrucciones; /**< Para macros que agrupan instrucciones */
     struct lily_lde_lde* instruccionesn; /**< Como \a instrucciones, pero para la rama opuesta */
@@ -166,23 +173,23 @@ struct lily_a_sintactico_instruccion {
  * Crea un objeto para guardar una instrucción
  * @return Un objeto para instrucción nuevo
  */
-struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void);
+struct lily_simbolo_instruccion* lily_simbolo_instruccion_create(void);
 
 /**
  * Genera una representación en texto de \a instrucción
  * @param instruccion Instrucción cuyos datos imprimir
  * @return Cadena de texto con la representación en texto del objeto
  */
-char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruccion* instruccion);
+char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* instruccion);
 
-struct lily_a_semantico_identificador {
+struct lily_simbolo_identificador {
     bool es_const; /**< Si se podrá modificar el valor asociado al identificador una vez asignado */
-    union lily_a_lexico_numero* valor; /**< Número asociado al identificador */
+    union lily_simbolo_numero* valor; /**< Número asociado al identificador */
 };
 
 /**
  * Crea un objeto para guardar un identificador
  * @return Un objeto para identificador nuevo
  */
-struct lily_a_semantico_identificador* lily_a_semantico_identificador_create(void);
+struct lily_simbolo_identificador* lily_simbolo_identificador_create(void);
 #endif

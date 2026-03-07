@@ -1,10 +1,10 @@
-#include "a_lexico_simbolo.h"
+#include "simbolo.h"
 
 extern char* lily_a_lexico_directivas[];
 extern char* lily_a_lexico_operadores[];
 
-struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void) {
-    struct lily_a_lexico_simbolo* obj = (struct lily_a_lexico_simbolo*) malloc(sizeof(struct lily_a_lexico_simbolo));
+struct lily_simbolo_simbolo* lily_simbolo_simbolo_create(void) {
+    struct lily_simbolo_simbolo* obj = (struct lily_simbolo_simbolo*) malloc(sizeof(struct lily_simbolo_simbolo));
     if (obj != NULL) {
         obj->tipo = SIMB_INDETERMINADO;
         obj->subtipo = SIMB_INDETERMINADO;
@@ -17,8 +17,8 @@ struct lily_a_lexico_simbolo* lily_a_lexico_simbolo_create(void) {
     return obj;
 }
 
-struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void) {
-    struct lily_a_sintactico_instruccion* obj = (struct lily_a_sintactico_instruccion*) calloc(1, sizeof(struct lily_a_sintactico_instruccion));
+struct lily_simbolo_instruccion* lily_simbolo_instruccion_create(void) {
+    struct lily_simbolo_instruccion* obj = (struct lily_simbolo_instruccion*) calloc(1, sizeof(struct lily_simbolo_instruccion));
     if (obj != NULL) {
         obj->etiqueta = NULL;
         obj->simbolo = NULL;
@@ -36,7 +36,7 @@ struct lily_a_sintactico_instruccion* lily_a_sintactico_instruccion_create(void)
     return obj;
 }
 
-char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
+char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo) {
     #define LC simbolo->linea, (simbolo->pos-simbolo->linea_pos+1)
     char* patron;
     char* buff;
@@ -67,7 +67,7 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
             sprintf(buff, patron, LC, simbolo->valor);
             break;
         case SIMB_NUMERO: {
-            union lily_a_lexico_numero* num = (union lily_a_lexico_numero*) simbolo->valor;
+            union lily_simbolo_numero* num = (union lily_simbolo_numero*) simbolo->valor;
             if (simbolo->signo)
                 patron = "(%lu:%lu) Número %" PRIi64;
             else
@@ -130,7 +130,7 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
                 char* cad = lily_cadena_create();
                 if (cad == NULL) return NULL;
                 for (struct lily_lde_nodo* nodo = ((struct lily_lde_lde*) simbolo->valor)->inicio; nodo != NULL; nodo = nodo->posterior) {
-                    char* cad_cont = lily_a_lexico_simbolo_print(nodo->valor);
+                    char* cad_cont = lily_simbolo_simbolo_print(nodo->valor);
                     if (cad_cont == NULL) return NULL;
                     char* cad_tmp = lily_cadena_concat(cad, cad_cont);
                     if (cad_tmp == NULL) return NULL;
@@ -169,7 +169,55 @@ char* lily_a_lexico_simbolo_print(const struct lily_a_lexico_simbolo* simbolo) {
     return buff;
 }
 
-size_t lily_a_lexico_simbolo_aridad(enum lily_a_lexico_tipo_simbolo tipo) {
+int lily_simbolo_precedencia(const struct lily_simbolo_simbolo* operador) {
+    // Todos son asociativos siniestros excepto los operadores de precedencia nivel 2
+    switch (operador->subtipo) {
+        case SIMB_PARENTESIS_AP:
+        case SIMB_PARENTESIS_CI:
+        case SIMB_DESPLAZAMIENTO_AP:
+        case SIMB_DESPLAZAMIENTO_CI:
+        case OP_MIEMBRO:
+            return 1;
+        case OP_BIT_NOT:
+        case OP_LOG_NEG:
+            //case sizeof
+            return 2; // Asociativo diestro
+        case OP_MULTI:
+        case OP_DIV:
+        case OP_MODULO:
+            return 3;
+        case OP_SUMA:
+        case OP_RESTA:
+            return 4;
+        case OP_DESP_IZQ:
+        case OP_DESP_DER:
+            return 5;
+        case OP_MENOR_QUE:
+        case OP_MAYOR_QUE:
+        case OP_MENOR_IGUAL:
+        case OP_MAYOR_IGUAL:
+            return 6;
+        case OP_IGUAL:
+        case OP_DIF:
+            return 7;
+        case OP_BIT_AND:
+            return 8;
+        case OP_BIT_XOR:
+            return 9;
+        case OP_BIT_OR:
+            return 10;
+        case OP_LOG_AND:
+            return 11;
+        case OP_LOG_OR:
+            return 12;
+        case SIMB_SEPARADOR:
+            return 13;
+        default:
+            return 14;
+    }
+}
+
+int lily_simbolo_aridad(enum lily_simbolo_tipo tipo) {
     switch (tipo) {
         case OP_SUMA:
         case OP_RESTA:
@@ -197,7 +245,7 @@ size_t lily_a_lexico_simbolo_aridad(enum lily_a_lexico_tipo_simbolo tipo) {
     }
 }
 
-char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruccion* instruccion) {
+char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* instruccion) {
     char *patron, *buff_local, *buff_tmp;
     char* buff = lily_cadena_create();
     if (buff == NULL) return NULL;
@@ -233,7 +281,7 @@ char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruc
         buff_tmp = lily_cadena_add(buff, dumb);
         if (buff_tmp == NULL) return NULL;
         buff = buff_tmp;
-        char* cad_tipo = lily_a_lexico_simbolo_print(instruccion->simbolo);
+        char* cad_tipo = lily_simbolo_simbolo_print(instruccion->simbolo);
         if (cad_tipo == NULL) return NULL;
         buff_tmp = lily_cadena_concat(buff, cad_tipo);
         if (buff_tmp == NULL) return NULL;
@@ -243,8 +291,8 @@ char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruc
         buff = buff_tmp;
         // Imprimir parámetros
         for (size_t i = 0; i < lily_lde_size(instruccion->params); i++) {
-            struct lily_a_lexico_simbolo* sim = lily_lde_get(instruccion->params, i)->valor;
-            cad_tipo = lily_a_lexico_simbolo_print(sim);
+            struct lily_simbolo_simbolo* sim = lily_lde_get(instruccion->params, i)->valor;
+            cad_tipo = lily_simbolo_simbolo_print(sim);
             if (cad_tipo == NULL) {
                 free(cad_tipo);
                 return NULL;
@@ -266,8 +314,8 @@ char* lily_a_sintactico_instruccion_print(const struct lily_a_sintactico_instruc
     return buff;
 }
 
-struct lily_a_semantico_identificador* lily_a_semantico_identificador_create(void) {
-    struct lily_a_semantico_identificador* obj = (struct lily_a_semantico_identificador*) malloc(sizeof(struct lily_a_semantico_identificador));
+struct lily_simbolo_identificador* lily_simbolo_identificador_create(void) {
+    struct lily_simbolo_identificador* obj = (struct lily_simbolo_identificador*) malloc(sizeof(struct lily_simbolo_identificador));
     if (obj != NULL) {
         obj->valor = 0;
         obj->es_const = false;

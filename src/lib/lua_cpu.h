@@ -9,7 +9,7 @@
 #include "../common/defs.h"
 #include "../common/estado.h"
 #include "../common/log.h"
-#include  "a_lexico_simbolo.h"
+#include  "simbolo.h"
 
 #include <libintl.h>
 #include <lua.h>

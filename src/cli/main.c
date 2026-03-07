@@ -387,7 +387,7 @@ int main(int argc, char **argv){
     uint8_t* bytes = lily_a_semantico(ast, L, 0, &tam_bytes, &ctx);
     log_info_gen(_("lily_a_semantico: %d (%ld bytes)."), ctx.codigo SEP tam_bytes);
     if (ctx.codigo != COD_OK) {
-        log_fatal_gen(_("codigo=%d, %s, Lua: '%s')"), ctx.codigo SEP lily_a_lexico_simbolo_print(ctx.ultimo) SEP ctx.lua_msg);
+        log_fatal_gen(_("codigo=%d, %s, Lua: '%s')"), ctx.codigo SEP lily_simbolo_simbolo_print(ctx.ultimo) SEP ctx.lua_msg);
         exit(EXIT_FAILURE);
     }
 

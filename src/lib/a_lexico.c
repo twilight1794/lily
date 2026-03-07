@@ -17,7 +17,7 @@ void lily_a_lexico_modo_comentario(const char* blob, size_t* i, size_t* linea, s
     (*i)++;
 }
 
-enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim) {
+enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim) {
     // Comprobar antes si esto pudiera ser un número decimal
     if (isdigit(blob[(*i)+1])) return COD_A_LEXICO_RECON_ERRONEO;
 
@@ -39,7 +39,7 @@ enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const
     for (size_t j = 0; lily_a_lexico_directivas[j] != NULL; j++) {
         if (!strcmp(lily_a_lexico_directivas[j], cad_tentativa)) {
             // Directiva encontrada
-            *sim = lily_a_lexico_simbolo_create();
+            *sim = lily_simbolo_simbolo_create();
             if (*sim == NULL) {
                 free(cad_tentativa);
                 return COD_MALLOC_FALLO;
@@ -59,7 +59,7 @@ enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const
     return COD_A_LEXICO_DIRECTIVA_INVALIDA;
 }
 
-enum lily_estado lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim) {
+enum lily_estado lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim) {
     (*i)++; // Nos saltamos el $
 
     // Obtener cadena a comparar
@@ -78,7 +78,7 @@ enum lily_estado lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, cons
         (*i)++;
     }
     // Dado a que esto solo debe usarse dentro de una expresión, pueden sucederle muchos tipos de símbolos, así que no hay comprobación de fin
-    *sim = lily_a_lexico_simbolo_create();
+    *sim = lily_simbolo_simbolo_create();
     if (*sim == NULL) {
         free(cad_tentativa);
         return COD_MALLOC_FALLO;
@@ -92,7 +92,7 @@ enum lily_estado lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, cons
     return COD_OK;
 }
 
-enum lily_estado lily_a_lexico_modo_objeto(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim) {
+enum lily_estado lily_a_lexico_modo_objeto(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim) {
     (*i)++;
 
     // Obtener cadena a comparar
@@ -103,7 +103,7 @@ enum lily_estado lily_a_lexico_modo_objeto(const char* blob, size_t* i, const si
         (*i)++;
     }
     // Dado a que esto solo debe usarse dentro de una expresión, pueden sucederle muchos tipos de símbolos, así que no hay comprobación de fin
-    *sim = lily_a_lexico_simbolo_create();
+    *sim = lily_simbolo_simbolo_create();
     if (*sim == NULL) {
         free(cad_tentativa);
         return COD_MALLOC_FALLO;
@@ -117,7 +117,7 @@ enum lily_estado lily_a_lexico_modo_objeto(const char* blob, size_t* i, const si
     return COD_OK;
 }
 
-enum lily_estado lily_a_lexico_modo_cadena(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim) {
+enum lily_estado lily_a_lexico_modo_cadena(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim) {
     const char comilla_inicial = blob[*i];
     (*i)++; // Saltamos las comillas
 
@@ -137,7 +137,7 @@ enum lily_estado lily_a_lexico_modo_cadena(const char* blob, size_t* i, const si
     }
     (*i)++;
     // Terminamos la cadena bien
-    *sim = lily_a_lexico_simbolo_create();
+    *sim = lily_simbolo_simbolo_create();
     if (*sim == NULL) {
         free(contenido);
         return COD_MALLOC_FALLO;
@@ -151,7 +151,7 @@ enum lily_estado lily_a_lexico_modo_cadena(const char* blob, size_t* i, const si
     return COD_OK;
 }
 
-enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim, const char tipo) {
+enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim, const char tipo) {
     bool punto = false;
     char* valor_texto = lily_cadena_create();
     if (tipo == 'x') {
@@ -183,7 +183,7 @@ enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const si
     }
 
     // Obtener valor
-    union lily_a_lexico_numero* valor = (union lily_a_lexico_numero*) malloc(sizeof(union lily_a_lexico_numero));
+    union lily_simbolo_numero* valor = (union lily_simbolo_numero*) malloc(sizeof(union lily_simbolo_numero));
     if (valor == NULL) {
         free(valor_texto);
         return COD_MALLOC_FALLO;
@@ -203,7 +203,7 @@ enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const si
         else valor_digito = valor_texto[j-1] - 0x30;
         valor->positivo += valor_digito * potencia;
     }
-    *sim = lily_a_lexico_simbolo_create();
+    *sim = lily_simbolo_simbolo_create();
     if (*sim == NULL) {
         free(valor);
         free(valor_texto);
@@ -219,10 +219,10 @@ enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const si
     return COD_OK;
 }
 
-enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim) {
+enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim) {
     // Determinar operador involucrado
-    enum lily_a_lexico_tipo_simbolo tipo = SIMB_OPERADOR;
-    enum lily_a_lexico_tipo_simbolo subtipo = SIMB_INDETERMINADO;
+    enum lily_simbolo_tipo tipo = SIMB_OPERADOR;
+    enum lily_simbolo_tipo subtipo = SIMB_INDETERMINADO;
     if (blob[*i] == '+') subtipo = OP_SUMA;
     else if (blob[*i] == '-') subtipo = OP_RESTA;
     else if (blob[*i] == '*') subtipo = OP_MULTI;
@@ -284,7 +284,7 @@ enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const 
     (*i)++;
 
     // Crear objeto
-    *sim = lily_a_lexico_simbolo_create();
+    *sim = lily_simbolo_simbolo_create();
     if (*sim == NULL) return COD_MALLOC_FALLO;
     (*sim)->tipo = tipo;
     (*sim)->subtipo = subtipo;
@@ -295,7 +295,7 @@ enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const 
     return COD_OK;
 }
 
-enum lily_estado lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_a_lexico_simbolo** sim) {
+enum lily_estado lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim) {
     // Obtener cadena a analizar
     char* cad_tentativa = lily_cadena_create();
     if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
@@ -316,7 +316,7 @@ enum lily_estado lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const s
         return COD_A_LEXICO_MNEMONICO_INVALIDO;
     }
     // Crear objeto
-    *sim = lily_a_lexico_simbolo_create();
+    *sim = lily_simbolo_simbolo_create();
     if (*sim == NULL) {
         free(cad_tentativa);
         return COD_MALLOC_FALLO;
@@ -331,12 +331,12 @@ enum lily_estado lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const s
 }
 
 struct lily_lde_lde* lily_a_lexico(const char* blob, struct lily_ctx* ctx) {
-    enum lily_a_lexico_tipo_simbolo tipo_tentativo;
+    enum lily_simbolo_tipo tipo_tentativo;
     size_t i = 0;
     size_t i_inicial = 0;
     size_t linea = 1;
     size_t linea_pos = 0;
-    struct lily_a_lexico_simbolo* sim;
+    struct lily_simbolo_simbolo* sim;
     struct lily_lde_nodo* nodo;
     struct lily_lde_lde* simbolos = lily_lde_create();
     if (simbolos == NULL) {

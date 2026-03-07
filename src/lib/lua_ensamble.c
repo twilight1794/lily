@@ -2,133 +2,133 @@
 
 #include <ctype.h>
 
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_a_lexico_simbolo* simbolo, struct lily_ctx* ctx) {
-    union lily_a_lexico_numero n;
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, struct lily_ctx* ctx) {
+    union lily_simbolo_numero n;
     // Primero, comprobar si el tipo es uno precargado
     if (!strcmp(tipo, "int3") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -4;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 7;
     }
     if (!strcmp(tipo, "uint3") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) return false;
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 7;
     }
     if (!strcmp(tipo, "sint3") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -4;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 3;
     }
     if (!strcmp(tipo, "int4") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -8;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 15;
     }
     if (!strcmp(tipo, "uint4") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) return false;
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 15;
     }
     if (!strcmp(tipo, "sint4") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -8;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 7 ;
     }
     if (!strcmp(tipo, "int8") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -128;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 255;
     }
     if (!strcmp(tipo, "uint8") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) return false;
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 255;
     }
     if (!strcmp(tipo, "sint8") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -128;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 127;
     }
     if (!strcmp(tipo, "int16") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -32768;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 65535;
     }
     if (!strcmp(tipo, "uint16") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) return false;
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 65535;
     }
     if (!strcmp(tipo, "sint16") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -32768;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 32767;
     }
     if (!strcmp(tipo, "int32") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -2147483648;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 4294967295;
     }
     if (!strcmp(tipo, "uint32") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) return false;
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 4294967295;
     }
     if (!strcmp(tipo, "sint32") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -2147483648;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 2147483647;
     }
     if ((!strcmp(tipo, "int64")) && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -9223372036854775807-1;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 18446744073709551615U;
     }
     if (!strcmp(tipo, "uint64") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) return false;
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo >= 18446744073709551615U;
     }
     if (!strcmp(tipo, "sint64") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
-            n.negativo = ((union lily_a_lexico_numero*) simbolo->valor)->negativo;
+            n.negativo = ((union lily_simbolo_numero*) simbolo->valor)->negativo;
             return n.negativo >= -9223372036854775807-1;
         }
-        n.positivo = ((union lily_a_lexico_numero*) simbolo->valor)->positivo;
+        n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
         return n.positivo <= 9223372036854775807;
     }
     // Es (probablemente) un tipo definido por el usuario
@@ -149,16 +149,16 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
         lua_pushstring(L, (char*) simbolo->valor);
     }
     else if (simbolo->tipo == SIMB_NUMERO) {
-        lua_pushinteger(L, ((union lily_a_lexico_numero*) simbolo->valor)->negativo);
+        lua_pushinteger(L, ((union lily_simbolo_numero*) simbolo->valor)->negativo);
     }
     else if (simbolo->tipo == SIMB_DESPLAZAMIENTO_AP) {
         lua_createtable(L, (int) lily_lde_size(simbolo->valor), 0);
         for (size_t i = 0; i < lily_lde_size(simbolo->valor); i++) {
-            struct lily_a_lexico_simbolo* simbolo_desp = lily_lde_get(simbolo->valor, i)->valor;
+            struct lily_simbolo_simbolo* simbolo_desp = lily_lde_get(simbolo->valor, i)->valor;
             if (simbolo_desp->tipo == SIMB_OBJETO)
                 lua_pushstring(L, (char*) simbolo_desp->valor);
             else if (simbolo_desp->tipo == SIMB_NUMERO)
-                lua_pushinteger(L, ((union lily_a_lexico_numero*) simbolo_desp->valor)->negativo);
+                lua_pushinteger(L, ((union lily_simbolo_numero*) simbolo_desp->valor)->negativo);
             lua_seti(L, -2, (int) i + 1);
         }
     }
@@ -183,30 +183,30 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
     lua_Integer tam = (lua_Integer) lily_lde_size(params);
     for (lua_Integer i = 0;  i < tam; i++) {
         struct lily_lde_nodo* nodo = lily_lde_get(params, i);
-        struct lily_a_lexico_simbolo* simbolo = nodo->valor;
+        struct lily_simbolo_simbolo* simbolo = nodo->valor;
         if (simbolo->tipo == SIMB_OBJETO) {
             lua_pushstring(L, (char*) simbolo->valor);
         }
         else if (simbolo->tipo == SIMB_NUMERO) {
             // FIX: por ahora, un entero
-            lua_pushinteger(L, (lua_Integer) ((union lily_a_lexico_numero*) simbolo->valor)->positivo);
+            lua_pushinteger(L, (lua_Integer) ((union lily_simbolo_numero*) simbolo->valor)->positivo);
         }
         else if (simbolo->tipo == SIMB_DESPLAZAMIENTO_AP) {
             int tam_desp = (int) lily_lde_size((struct lily_lde_lde*) simbolo->valor);
             lua_createtable(L, (int) tam_desp, 0);
             for (int j = 0; j < tam_desp; j++) {
                 struct lily_lde_nodo* nodo_desp = lily_lde_get(simbolo->valor, j);
-                struct lily_a_lexico_simbolo* simbolo_desp = nodo_desp->valor;
+                struct lily_simbolo_simbolo* simbolo_desp = nodo_desp->valor;
                 if (simbolo_desp->tipo == SIMB_OBJETO) {
                     lua_pushstring(L, (char*) simbolo_desp->valor);
                     lua_seti(L, -2, j + 1);
                 } else if (simbolo_desp->tipo == SIMB_NUMERO) {
                     // FIX: por ahora, un entero
-                    lua_pushinteger(L, (lua_Integer) ((union lily_a_lexico_numero*) simbolo->valor)->positivo);
+                    lua_pushinteger(L, (lua_Integer) ((union lily_simbolo_numero*) simbolo->valor)->positivo);
                     lua_seti(L, -2, j + 1);
                 } else {
                     // FIX: quitar este mensaje de log, es una condición que debería ser imposible
-                    log_warn_gen("El preprocesado se olvidó %s", lily_a_lexico_simbolo_print(simbolo_desp));
+                    log_warn_gen("El preprocesado se olvidó %s", lily_simbolo_simbolo_print(simbolo_desp));
                     return;
                 }
             }
@@ -214,7 +214,7 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
         }
         else {
             // FIX: quitar este mensaje de log, es una condición que debería ser imposible
-            log_warn_gen("El preprocesado se olvidó %s", lily_a_lexico_simbolo_print(simbolo));
+            log_warn_gen("El preprocesado se olvidó %s", lily_simbolo_simbolo_print(simbolo));
             return;
         }
     }
@@ -250,7 +250,7 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
     return bytes;
 }
 
-static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo función"), (char*) instruccion->simbolo->valor);
     lily_lua_cpu_est_parametros(L, instruccion->params, ctx);
     if (lua_pcall(L, lily_lde_size(instruccion->params), 1, 0) == LUA_OK) {
@@ -264,7 +264,7 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_a_sintactic
     }
 }
 
-static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo List<int>"), (char*) instruccion->simbolo->valor);
     lua_pop(L, 1);
     lua_Integer tam;
@@ -272,7 +272,7 @@ static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_a_sintactico_
     instruccion->tam_bytes = (size_t) tam;
 }
 
-static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo Tuple<char*, funcion> -> %s"), (char*) instruccion->simbolo->valor SEP lua_tostring(L, -1));
     lua_pop(L, 1);
     lua_geti(L, -1, 2); // <- Función para modificar el resultado (idx 9)
@@ -312,7 +312,7 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_a_sinta
     }
 }
 
-static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
+static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
     log_debug_gen(_("lua_cpu: %s es de tipo List<Tuple<List<Args>, Value>>"), (char*) instruccion->simbolo->valor);
     lua_pop(L, 1);
     lua_len(L, -1);
@@ -372,7 +372,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactic
         for (lua_Integer j = 0; j < tam_params; j++) {
             // Bucle para analizar cada argumento
             /// Obtener símbolo de argumento
-            struct lily_a_lexico_simbolo* simbolo_param = lily_lde_get(instruccion->params, j)->valor;
+            struct lily_simbolo_simbolo* simbolo_param = lily_lde_get(instruccion->params, j)->valor;
             /// Comprobar argumento
             coincide = lily_lua_cpu_comp_tipo_simbolo(L, lista_params[j], simbolo_param, ctx);
             if (!coincide) break;
@@ -409,7 +409,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_a_sintactic
     ctx->ultimo = instruccion->simbolo;
 }
 
-void lily_lua_cpu_ensamblar(lua_State* L, struct lily_a_sintactico_instruccion* instruccion, struct lily_ctx* ctx) {
+void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
     // Obtener el mnemónico canónico
     char* mnemo = instruccion->simbolo->valor;
     for (size_t i = 0; i < strlen(mnemo); i++)
