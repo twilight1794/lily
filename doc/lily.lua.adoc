@@ -31,9 +31,7 @@ parámetro &mdash;el valor del parámetro del mnemónico&mdash;, y devuelve un
 booleano, indicando si el parámetro es o no del tipo especificado.
 
 El identificador de tipo será una cadena de caracteres que coincida con la
-expresión regular en formato PCRE `[a-z0-9_]+`. Además, si el identificador
-tiene un caracter asterisco al inicio, entonces el parámetro solo coincidirá
-con el tipo si es un símbolo de desplazamiento.
+expresión regular en formato PCRE `[a-z0-9_]+`.
 
 Existen 19 identificadores reservados por Lily, que no se pueden utilizar para
 identificar un nuevo tipo:
@@ -100,6 +98,26 @@ identificar un nuevo tipo:
 |Coincide con cualquier objeto.
 |===
 
+En los casos en los que hay una función, Lily convertirá los argumentos a tipos
+primitivos que puedan leerse fácilmente desde Lua, en vez de pasar las
+estructuras originales en C. Así, los argumentos que se puede esperar recibir en
+una función pueden ser de uno de los siguientes tipos:
+
+.Conversión de tipos para Lua
+|===
+|Tipo de argumento|Tipo recibido
+
+|Número
+|`integer` con el valor del parámetro
+
+|Objeto
+|`string` con el identificador del objeto
+
+|Desplazamiento<...>
+|`table`, una lista que contiene los elementos previamente convertidos según lo
+descrito en esta tabla
+
+|===
 
 Si un valor podría coincidir con más de un tipo, es importante notar que se
 devolverá el primer tipo que haga coincidencia. Dado que éstas se procesan según

@@ -252,7 +252,7 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
         }
         else if (simbolo->tipo == SIMB_OPERADOR && simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
             int tam_desp = (int) lily_lde_size((struct lily_lde_lde*) simbolo->valor);
-            lua_createtable(L, (int) tam_desp, 0);
+            lua_createtable(L, tam_desp, 0);
             for (int j = 0; j < tam_desp; j++) {
                 struct lily_lde_nodo* nodo_desp = lily_lde_get(simbolo->valor, j);
                 struct lily_simbolo_simbolo* simbolo_desp = nodo_desp->valor;
@@ -269,7 +269,6 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
                     return;
                 }
             }
-            lua_seti(L, -2, i + 1);
         }
         else {
             // FIX: quitar este mensaje de log, es una condición que debería ser imposible
