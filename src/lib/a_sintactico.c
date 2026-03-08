@@ -155,7 +155,7 @@ static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, st
                                ((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->subtipo != SIMB_DESPLAZAMIENTO_AP)) &&
                        (
                            (lily_simbolo_precedencia((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor) > lily_simbolo_precedencia(simbolo)) ||
-                           ((lily_simbolo_precedencia((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor) == lily_simbolo_precedencia(simbolo)) && (simbolo->subtipo == OP_BIT_NOT || simbolo->subtipo == OP_LOG_NEG))
+                           ((lily_simbolo_precedencia((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor) == lily_simbolo_precedencia(simbolo)) && !(simbolo->subtipo == OP_BIT_NOT || simbolo->subtipo == OP_LOG_NEG))
                        )
                    ) {
                         lily_lde_insert(lista_actual, lily_lde_size(lista_actual), ((struct lily_lde_nodo*) pila_actual->final->valor)->valor);
