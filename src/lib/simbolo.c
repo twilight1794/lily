@@ -7,7 +7,7 @@ struct lily_simbolo_simbolo* lily_simbolo_simbolo_create(void) {
     struct lily_simbolo_simbolo* obj = (struct lily_simbolo_simbolo*) malloc(sizeof(struct lily_simbolo_simbolo));
     if (obj != NULL) {
         obj->tipo = SIMB_INDETERMINADO;
-        obj->subtipo = SIMB_INDETERMINADO;
+        obj->subtipo = 0;
         obj->linea = 0;
         obj->linea_pos = 0;
         obj->pos = 0;
@@ -50,9 +50,9 @@ char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo) {
             break;
         case SIMB_DIRECTIVA:
             patron = "(%lu:%lu) Directiva %s";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-64]) + 1);
+            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_directivas[simbolo->subtipo]) + 1);
             if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-64]);
+            sprintf(buff, patron, LC, lily_a_lexico_directivas[simbolo->subtipo]);
             break;
         case SIMB_ETI:
             patron = "(%lu:%lu) Etiqueta %s";
@@ -107,62 +107,64 @@ char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo) {
             sprintf(buff, patron, LC, simbolo->valor);
             break;
         case SIMB_OPERADOR:
-            patron = "(%lu:%lu) Operador %s";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_operadores[simbolo->subtipo-32]) + 1);
-            if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC, lily_a_lexico_operadores[simbolo->subtipo-32]);
-            break;
-        case SIMB_PARENTESIS_AP:
-            patron = "(%lu:%lu) ParéntesisAp";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
-            if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC);
-            break;
-        case SIMB_PARENTESIS_CI:
-            patron = "(%lu:%lu) ParéntesisCi";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
-            if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC);
-            break;
-        case SIMB_DESPLAZAMIENTO_AP:
-            if (simbolo->valor == NULL) {
-                patron = "(%lu:%lu) DesplazamientoAp";
+            if (simbolo->subtipo == SIMB_PARENTESIS_AP) {
+                patron = "(%lu:%lu) ParéntesisAp";
                 buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
                 if (buff == NULL) return NULL;
                 sprintf(buff, patron, LC);
-            } else {
-                patron = "(%lu:%lu) DesplazamientoAp { %s }";
-                char* cad = lily_cadena_create();
-                if (cad == NULL) return NULL;
-                for (struct lily_lde_nodo* nodo = ((struct lily_lde_lde*) simbolo->valor)->inicio; nodo != NULL; nodo = nodo->posterior) {
-                    char* cad_cont = lily_simbolo_simbolo_print(nodo->valor);
-                    if (cad_cont == NULL) return NULL;
-                    char* cad_tmp = lily_cadena_concat(cad, cad_cont);
-                    if (cad_tmp == NULL) return NULL;
-                    cad = cad_tmp;
-                    free(cad_cont);
-                    if (nodo->posterior != NULL) {
-                        cad_tmp = lily_cadena_concat(cad, ", ");
+            }
+            else if (simbolo->subtipo == SIMB_PARENTESIS_CI) {
+                patron = "(%lu:%lu) ParéntesisCi";
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC);
+            }
+            else if (simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
+                if (simbolo->valor == NULL) {
+                    patron = "(%lu:%lu) DesplazamientoAp";
+                    buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
+                    if (buff == NULL) return NULL;
+                    sprintf(buff, patron, LC);
+                } else {
+                    patron = "(%lu:%lu) DesplazamientoAp { %s }";
+                    char* cad = lily_cadena_create();
+                    if (cad == NULL) return NULL;
+                    for (struct lily_lde_nodo* nodo = ((struct lily_lde_lde*) simbolo->valor)->inicio; nodo != NULL; nodo = nodo->posterior) {
+                        char* cad_cont = lily_simbolo_simbolo_print(nodo->valor);
+                        if (cad_cont == NULL) return NULL;
+                        char* cad_tmp = lily_cadena_concat(cad, cad_cont);
                         if (cad_tmp == NULL) return NULL;
                         cad = cad_tmp;
+                        free(cad_cont);
+                        if (nodo->posterior != NULL) {
+                            cad_tmp = lily_cadena_concat(cad, ", ");
+                            if (cad_tmp == NULL) return NULL;
+                            cad = cad_tmp;
+                        }
                     }
+                    buff = (char*) malloc(snprintf(NULL, 0, patron, LC, cad) + 1);
+                    if (buff == NULL) return NULL;
+                    sprintf(buff, patron, LC, cad);
                 }
-                buff = (char*) malloc(snprintf(NULL, 0, patron, LC, cad) + 1);
-                if (buff == NULL) return NULL;
-                sprintf(buff, patron, LC, cad);
             }
-            break;
-        case SIMB_DESPLAZAMIENTO_CI:
-            patron = "(%lu:%lu) DesplazamientoCi";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
-            if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC);
-            break;
-        case SIMB_SEPARADOR:
-            patron = "(%lu:%lu) Separador";
-            buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
-            if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC);
+            else if (simbolo->subtipo == SIMB_DESPLAZAMIENTO_CI) {
+                patron = "(%lu:%lu) DesplazamientoCi";
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC);
+            }
+            else if (simbolo->subtipo == SIMB_SEPARADOR) {
+                patron = "(%lu:%lu) Separador";
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC);
+            }
+            else {
+                patron = "(%lu:%lu) Operador %s";
+                buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_operadores[simbolo->subtipo]) + 1);
+                if (buff == NULL) return NULL;
+                sprintf(buff, patron, LC, lily_a_lexico_operadores[simbolo->subtipo]);
+            }
             break;
         default:
             patron = "(%lu:%lu) Indeterminado (%d)";
@@ -222,8 +224,8 @@ int lily_simbolo_precedencia(const struct lily_simbolo_simbolo* operador) {
     }
 }
 
-int lily_simbolo_aridad(enum lily_simbolo_tipo tipo) {
-    switch (tipo) {
+int lily_simbolo_aridad(enum lily_simbolo_operador subtipo) {
+    switch (subtipo) {
         case OP_SUMA:
         case OP_RESTA:
         case OP_MULTI:
@@ -247,8 +249,9 @@ int lily_simbolo_aridad(enum lily_simbolo_tipo tipo) {
         case OP_BIT_NOT:
         case OP_LOG_NEG:
             return 1;
+        default:
+            return 0;
     }
-    return 0;
 }
 
 char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* instruccion) {

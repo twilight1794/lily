@@ -84,6 +84,7 @@ struct lily_ctx {
     size_t i_desp; /**< Desplazamiento desde \a i_inicial hasta el valor actual de \a i */
     // Análisis sintáctico
     struct lily_simbolo_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
+    // Análisis semántico
     char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
 };
 

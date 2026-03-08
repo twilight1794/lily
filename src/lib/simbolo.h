@@ -22,7 +22,6 @@
  */
 enum lily_simbolo_tipo {
     SIMB_INDETERMINADO,
-
     // Terminal
     SIMB_MNEMO,
     SIMB_DIRECTIVA,
@@ -30,20 +29,21 @@ enum lily_simbolo_tipo {
     SIMB_OBJETO,
     SIMB_NUMERO,
     SIMB_FUNCION,
-
     // No terminal
     SIMB_VARIABLE,
     SIMB_CADENA_SIMPLE,
     SIMB_CADENA_NUL,
-    SIMB_OPERADOR, //< Superclase para todo lo siguiente
+    SIMB_OPERADOR,
+};
+
+enum lily_simbolo_operador {
+    OP_INDETERMINADO,
     SIMB_PARENTESIS_AP,
     SIMB_PARENTESIS_CI,
     SIMB_DESPLAZAMIENTO_AP,
     SIMB_DESPLAZAMIENTO_CI,
     SIMB_SEPARADOR,
-
-    // Operadores
-    OP_SUMA = 32,
+    OP_SUMA,
     OP_RESTA,
     OP_MULTI,
     OP_DIV,
@@ -64,10 +64,11 @@ enum lily_simbolo_tipo {
     OP_MAYOR_IGUAL,
     OP_IGUAL,
     OP_DIF,
+};
 
-    // Directivas
-    /// Definicion de constantes
-    DIR_DB = 64,
+enum lily_simbolo_directiva {
+    // Definicion de constantes
+    DIR_DB,
     DIR_DWL,
     DIR_DWM,
     DIR_DDL,
@@ -77,7 +78,7 @@ enum lily_simbolo_tipo {
     DIR_DR,
     DIR_DRD,
     DIR_DFS,
-    /// Definición de símbolos para el preprocesador
+    // Definición de símbolos para el preprocesador
     DIR_CONST,
     DIR_VAR,
     /// Condicionales
@@ -88,24 +89,25 @@ enum lily_simbolo_tipo {
     DIR_ELIF,
     DIR_ELIFDEF,
     DIR_ELIFNDEF,
-    /// Bucles
+    // Bucles
     DIR_WHILE,
     DIR_LOOP,
-    /// Inclusión de archivos
+    // Inclusión de archivos
     DIR_INC,
-    /// Control de ensamblado
+    // Control de ensamblado
     DIR_CPU,
     DIR_ORG,
     DIR_STOP,
-    /// Estructuras de datos
+    // Estructuras de datos
     DIR_STRUCT,
     DIR_UNION,
-    /// Subrutinas
+    // Subrutinas
     DIR_MACRO,
     DIR_PROC,
-    /// Miscelánea
+    // Miscelánea
     DIR_END
 };
+
 
 /**
  * Amalgama para números
@@ -120,7 +122,7 @@ union lily_simbolo_numero {
  */
 struct lily_simbolo_simbolo {
     enum lily_simbolo_tipo tipo; /**< Tipo del símbolo */
-    enum lily_simbolo_tipo subtipo; /**< Si aplica, tipo más específico del símbolo (para operadores y directivas) */
+    int subtipo; /**< Si aplica, tipo más específico del símbolo (para operadores y directivas) */
     size_t linea; /**< Línea donde se encuentra el inicio del símbolo */
     size_t linea_pos; /**< Índice del inicio de la línea \a linea en el blob */
     size_t pos; /**< Índice del inicio del símbolo en el blob */
@@ -150,10 +152,10 @@ int lily_simbolo_precedencia(const struct lily_simbolo_simbolo* operador);
 
 /**
  * Devuelve la aridad de un operador
- * @param tipo Tipo de operador
+ * @param subtipo Tipo de operador
  * @return Aridad del operador indicado
  */
-int lily_simbolo_aridad(enum lily_simbolo_tipo tipo);
+int lily_simbolo_aridad(enum lily_simbolo_operador subtipo);
 
 /**
  * Estructura para guardar un símbolo sintáctico

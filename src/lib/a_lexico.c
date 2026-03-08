@@ -36,7 +36,7 @@ enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const
         return COD_A_LEXICO_CARACTER_INVALIDO;
     }
     // Comparar por cada directiva posible
-    for (size_t j = 0; lily_a_lexico_directivas[j] != NULL; j++) {
+    for (int j = 0; lily_a_lexico_directivas[j] != NULL; j++) {
         if (!strcmp(lily_a_lexico_directivas[j], cad_tentativa)) {
             // Directiva encontrada
             *sim = lily_simbolo_simbolo_create();
@@ -45,7 +45,7 @@ enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const
                 return COD_MALLOC_FALLO;
             }
             (*sim)->tipo = SIMB_DIRECTIVA;
-            (*sim)->subtipo = 64+j;
+            (*sim)->subtipo = j;
             (*sim)->linea = *linea;
             (*sim)->linea_pos = *linea_pos;
             (*sim)->pos = *i_inicial;
@@ -221,8 +221,7 @@ enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const si
 
 enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const size_t* i_inicial, const size_t* linea, const size_t* linea_pos, struct lily_simbolo_simbolo** sim) {
     // Determinar operador involucrado
-    enum lily_simbolo_tipo tipo = SIMB_OPERADOR;
-    enum lily_simbolo_tipo subtipo = SIMB_INDETERMINADO;
+    enum lily_simbolo_operador subtipo = OP_INDETERMINADO;
     if (blob[*i] == '+') subtipo = OP_SUMA;
     else if (blob[*i] == '-') subtipo = OP_RESTA;
     else if (blob[*i] == '*') subtipo = OP_MULTI;
@@ -275,18 +274,18 @@ enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const 
         else subtipo = OP_MAYOR_QUE;
     }
     else if (blob[*i] == '=') subtipo = OP_IGUAL;
-    else if (blob[*i] == ',') tipo = subtipo = SIMB_SEPARADOR;
-    else if (blob[*i] == '(') tipo = subtipo = SIMB_PARENTESIS_AP;
-    else if (blob[*i] == ')') tipo = subtipo = SIMB_PARENTESIS_CI;
-    else if (blob[*i] == '[') tipo = subtipo = SIMB_DESPLAZAMIENTO_AP;
-    else if (blob[*i] == ']') tipo = subtipo = SIMB_DESPLAZAMIENTO_CI;
+    else if (blob[*i] == ',') subtipo = SIMB_SEPARADOR;
+    else if (blob[*i] == '(') subtipo = SIMB_PARENTESIS_AP;
+    else if (blob[*i] == ')') subtipo = SIMB_PARENTESIS_CI;
+    else if (blob[*i] == '[') subtipo = SIMB_DESPLAZAMIENTO_AP;
+    else if (blob[*i] == ']') subtipo = SIMB_DESPLAZAMIENTO_CI;
     // No debe haber más opciones, ¿verdad?
     (*i)++;
 
     // Crear objeto
     *sim = lily_simbolo_simbolo_create();
     if (*sim == NULL) return COD_MALLOC_FALLO;
-    (*sim)->tipo = tipo;
+    (*sim)->tipo = SIMB_OPERADOR;
     (*sim)->subtipo = subtipo;
     (*sim)->linea = *linea;
     (*sim)->linea_pos = *linea_pos;

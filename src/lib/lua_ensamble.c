@@ -210,7 +210,7 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     else if (simbolo->tipo == SIMB_NUMERO) {
         lua_pushinteger(L, ((union lily_simbolo_numero*) simbolo->valor)->negativo);
     }
-    else if (simbolo->tipo == SIMB_DESPLAZAMIENTO_AP) {
+    else if (simbolo->tipo == SIMB_OPERADOR && simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
         lua_createtable(L, (int) lily_lde_size(simbolo->valor), 0);
         for (size_t i = 0; i < lily_lde_size(simbolo->valor); i++) {
             struct lily_simbolo_simbolo* simbolo_desp = lily_lde_get(simbolo->valor, i)->valor;
@@ -250,7 +250,7 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
             // FIX: por ahora, un entero
             lua_pushinteger(L, (lua_Integer) ((union lily_simbolo_numero*) simbolo->valor)->positivo);
         }
-        else if (simbolo->tipo == SIMB_DESPLAZAMIENTO_AP) {
+        else if (simbolo->tipo == SIMB_OPERADOR && simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
             int tam_desp = (int) lily_lde_size((struct lily_lde_lde*) simbolo->valor);
             lua_createtable(L, (int) tam_desp, 0);
             for (int j = 0; j < tam_desp; j++) {
