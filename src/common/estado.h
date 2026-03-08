@@ -31,6 +31,7 @@ enum lily_estado {
     COD_A_SINTACTICO_SIMBOLO_INICIAL_INVALIDO, /**< El símbolo al inicio no es un mnemónico, una etiqueta, o una directiva */
     COD_A_SINTACTICO_ETIQUETA_MULTIPLE_LINEA, /**< Hay más de una definición de etiqueta en la misma línea */
     COD_A_SINTACTICO_NO_CADENA_NUL, /**< Se esperaba una cadena nul, pero el símbolo no era */
+    COD_A_SINTACTICO_DESPLAZAMIENTO_ANIDADO, /**< Se ha encontrado un operador de apertura de desplazamiento dentro de un desplazamiento */
     COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS, /**< Los paréntesis en la expresión no están balanceaados correctamente */
     COD_A_SINTACTICO_PARENTESIS_VACIOS, /**< Los paréntesis no están agrupando ningún símbolo */
     COD_A_SINTACTICO_SIMBOLO_IMPROCEDENTE, /**< No se esperaba un símbolo de este tipo */
