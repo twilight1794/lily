@@ -12,12 +12,13 @@ static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identific
 
 /**
  * Reduce una lista de expresiones, aplicando las operaciones y reemplazos pertinentes
- * @param instruccion Directiva a procesar
+ * @param simbolo_principal Directiva o mnemónico a procesar
+ * @param params Lista que contiene los símbolos a reducir
  * @param identificadores Tabla de símbolos
  * @param [out] ctx Contexto del estado de la operación
  * @return Si la lista de símbolos pudo ser reducida al máximo
  */
-static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, struct lily_ctx* ctx);
+static bool lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_principal, struct lily_lde_lde* params, struct lily_dict_dict* identificadores, struct lily_ctx* ctx);
 
 /**
  * Ensambla una directiva
@@ -47,8 +48,8 @@ static void lily_a_semantico_anad_identificador(struct lily_dict_dict* identific
     }
 }
 
-static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, struct lily_ctx* ctx) {
-    struct lily_lde_nodo* nodo = instruccion->params->inicio;
+static bool lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_principal, struct lily_lde_lde* params, struct lily_dict_dict* identificadores, struct lily_ctx* ctx) {
+    struct lily_lde_nodo* nodo = params->inicio;
     struct lily_lde_nodo* nodo_viejo;
     struct lily_dict_nodo* dict_nodo; // Puntero para consultas a identificadores
     struct lily_simbolo_simbolo* nuevo; // Puntero para símbolos recién creados
@@ -101,42 +102,42 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccio
                 cad = simbolo->valor; // Salvamos por un momento esto
                 nodo_viejo = nodo;
                 nodo = nodo->posterior;
-                lily_lde_remove_node(instruccion->params, nodo_viejo);
+                lily_lde_remove_node(params, nodo_viejo);
 
                 for (size_t j = 0; j < strlen(cad); j++) {
                     nuevo = lily_simbolo_simbolo_create();
                     if (nuevo == NULL) {
                         ctx->codigo = COD_MALLOC_FALLO;
-                        ctx->ultimo = instruccion->simbolo;
+                        ctx->ultimo = simbolo_principal;
                         return false;
                     }
                     nuevo->tipo = SIMB_NUMERO;
                     nuevo->valor = malloc(sizeof(union lily_simbolo_numero));
                     if (nuevo->valor == NULL) {
                         ctx->codigo = COD_MALLOC_FALLO;
-                        ctx->ultimo = instruccion->simbolo;
+                        ctx->ultimo = simbolo_principal;
                         return false;
                     }
                     ((union lily_simbolo_numero*) nuevo->valor)->positivo = ((char*) simbolo->valor)[j];
-                    lily_lde_insert(instruccion->params, i, nuevo);
+                    lily_lde_insert(params, i, nuevo);
                     i++;
                 }
                 if (simbolo->tipo == SIMB_CADENA_NUL) {
                     nuevo = lily_simbolo_simbolo_create();
                     if (nuevo == NULL) {
                         ctx->codigo = COD_MALLOC_FALLO;
-                        ctx->ultimo = instruccion->simbolo;
+                        ctx->ultimo = simbolo_principal;
                         return false;
                     }
                     nuevo->tipo = SIMB_NUMERO;
                     nuevo->valor = malloc(sizeof(union lily_simbolo_numero));
                     if (nuevo->valor == NULL) {
                         ctx->codigo = COD_MALLOC_FALLO;
-                        ctx->ultimo = instruccion->simbolo;
+                        ctx->ultimo = simbolo_principal;
                         return false;
                     }
                     ((union lily_simbolo_numero*) nuevo->valor)->positivo = 0;
-                    lily_lde_insert(instruccion->params, i, nuevo);
+                    lily_lde_insert(params, i, nuevo);
                     i++;
                 }
                 // Limpiar símbolo viejo II
@@ -148,7 +149,12 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccio
 #define es(op) simbolo->subtipo == op
                 nodo_viejo = nodo;
                 nodo = nodo->posterior;
-                if (lily_simbolo_aridad(simbolo->subtipo) == 1) {
+                if (lily_simbolo_aridad(simbolo->subtipo) == 0 && simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
+                    lily_a_semantico_reducir(simbolo_principal, (struct lily_lde_lde*) simbolo->valor, identificadores, ctx);
+                    i++;
+                    break; // <- Este operador no será eliminado como los demás
+                }
+                else if (lily_simbolo_aridad(simbolo->subtipo) == 1) {
                     op1 = (struct lily_simbolo_simbolo*) nodo_viejo->anterior->valor;
                     if (op1->tipo != SIMB_NUMERO) {
                         ctx->codigo = COD_A_SEMANTICO_OPERANDO_OBJETO;
@@ -210,26 +216,19 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccio
                     // Borrar op2
                     free(op2->valor);
                     free(op2);
-                    lily_lde_remove_node(instruccion->params, nodo_viejo->anterior);
+                    lily_lde_remove_node(params, nodo_viejo->anterior);
                 }
                 // Borrar operador
                 free(((struct lily_simbolo_simbolo*) nodo_viejo->valor)->valor);
                 free(nodo_viejo->valor);
-                lily_lde_remove_node(instruccion->params, nodo_viejo);
+                lily_lde_remove_node(params, nodo_viejo);
                 i++;
                 break;
         }
         if (ctx->codigo != COD_OK) {
             return false;
         }
-        if (!reducido) {
-            log_debug_gen("a_semantico: no se ha reducido completamente %s", lily_simbolo_instruccion_print(instruccion));
-            break;
-        }
         ++i;
-    }
-    if (reducido) {
-        log_debug_gen("a_semantico: se ha reducido %s", lily_simbolo_instruccion_print(instruccion));
     }
     return reducido;
 }
@@ -476,8 +475,9 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
             if (instruccion->simbolo != NULL && !esta_definido(instruccion)) {
                 // Si el símbolo no ha sido traducido, intentaremos traducirlo
                 log_debug_gen(_("a_semantico: procesando %s."), lily_simbolo_instruccion_print(instruccion));
-                bool reducido = lily_a_semantico_reducir(instruccion, identificadores, ctx);
+                bool reducido = lily_a_semantico_reducir(instruccion->simbolo, instruccion->params, identificadores, ctx);
                 if (reducido) {
+                    log_debug_gen("a_semantico: se ha reducido %s", lily_simbolo_instruccion_print(instruccion));
                     if (instruccion->simbolo->tipo == SIMB_DIRECTIVA) {
                         // Si ya está reducido, y es directiva...
                         lily_a_semantico_directiva(instruccion, identificadores, pc, ctx);
@@ -508,7 +508,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     free(cad);
                 }
                 else {
-                    log_debug_gen("a_semantico: %s pospuesto", lily_simbolo_simbolo_print(instruccion->simbolo))
+                    log_debug_gen("a_semantico: no se ha reducido completamente %s", lily_simbolo_instruccion_print(instruccion));
                     num_pendientes++;
                 }
             }
