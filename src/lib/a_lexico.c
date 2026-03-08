@@ -176,8 +176,8 @@ enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const si
             (*i)++;
         }
     }
-    // Ver razón de fin: solo debe detenerse si hay después operador, en blanco o fin de archivo
-    if ((blob[*i] == '.' && punto) || (!lex_esblanco(blob[*i]) && !lex_esoperador(blob[*i]) && blob[*i] != 0)) {
+    // Ver razón de fin: solo debe detenerse si hay después operador, en blanco, inicio de comentario o fin de archivo
+    if ((blob[*i] == '.' && punto) || (!lex_esblanco(blob[*i]) && !lex_esoperador(blob[*i]) && blob[*i]  != ';' && blob[*i] != 0)) {
         free(valor_texto);
         return COD_A_LEXICO_CARACTER_INVALIDO;
     }
