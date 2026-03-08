@@ -52,7 +52,7 @@ char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo) {
             patron = "(%lu:%lu) Directiva %s";
             buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_directivas[simbolo->subtipo]) + 1);
             if (buff == NULL) return NULL;
-            sprintf(buff, patron, LC, lily_a_lexico_directivas[simbolo->subtipo]);
+            sprintf(buff, patron, LC, lily_a_lexico_directivas[simbolo->subtipo-1]);
             break;
         case SIMB_ETI:
             patron = "(%lu:%lu) Etiqueta %s";
@@ -163,7 +163,7 @@ char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo) {
                 patron = "(%lu:%lu) Operador %s";
                 buff = (char*) malloc(snprintf(NULL, 0, patron, LC, lily_a_lexico_operadores[simbolo->subtipo]) + 1);
                 if (buff == NULL) return NULL;
-                sprintf(buff, patron, LC, lily_a_lexico_operadores[simbolo->subtipo]);
+                sprintf(buff, patron, LC, lily_a_lexico_operadores[simbolo->subtipo-1]);
             }
             break;
         default:

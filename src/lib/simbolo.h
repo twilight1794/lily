@@ -67,6 +67,7 @@ enum lily_simbolo_operador {
 };
 
 enum lily_simbolo_directiva {
+    DIR_INDETERMINADA,
     // Definicion de constantes
     DIR_DB,
     DIR_DWL,
