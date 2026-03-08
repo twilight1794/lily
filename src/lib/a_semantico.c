@@ -163,8 +163,8 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_instruccion* instruccio
 
                 }
                 else if (lily_simbolo_aridad(simbolo->subtipo) == 2) {
-                    op2 = (struct lily_simbolo_simbolo*) nodo->anterior->valor;
-                    op1 = (struct lily_simbolo_simbolo*) nodo->anterior->anterior->valor;
+                    op2 = (struct lily_simbolo_simbolo*) nodo_viejo->anterior->valor;
+                    op1 = (struct lily_simbolo_simbolo*) nodo_viejo->anterior->anterior->valor;
                     if (op2->tipo != SIMB_NUMERO || op1->tipo != SIMB_NUMERO) {
                         ctx->codigo = COD_A_SEMANTICO_OPERANDO_OBJETO;
                         ctx->ultimo = (op2->tipo != SIMB_NUMERO)?op2:op1;

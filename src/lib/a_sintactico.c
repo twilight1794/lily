@@ -149,20 +149,16 @@ static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, st
                     lily_lde_remove_node(simbolos, nodo_viejo);
                 }
                 else {
-                    while (
-                       (pila_actual->final != NULL && (
-                               ((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->subtipo != SIMB_PARENTESIS_AP ||
-                               ((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor)->subtipo != SIMB_DESPLAZAMIENTO_AP)) &&
-                       (
-                           (lily_simbolo_precedencia((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor) > lily_simbolo_precedencia(simbolo)) ||
-                           ((lily_simbolo_precedencia((struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor) == lily_simbolo_precedencia(simbolo)) && !(simbolo->subtipo == OP_BIT_NOT || simbolo->subtipo == OP_LOG_NEG))
-                       )
-                   ) {
-                        lily_lde_insert(lista_actual, lily_lde_size(lista_actual), ((struct lily_lde_nodo*) pila_actual->final->valor)->valor);
+                    while (pila_actual->final != NULL) {
+                        struct lily_simbolo_simbolo* simbolo_final = (struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor;
+                        if (simbolo_final->subtipo == SIMB_PARENTESIS_AP || simbolo_final->subtipo == SIMB_DESPLAZAMIENTO_AP) break;
+                        if (!(lily_simbolo_precedencia(simbolo_final) < lily_simbolo_precedencia(simbolo) || (
+                            (lily_simbolo_precedencia(simbolo_final) == lily_simbolo_precedencia(simbolo)) && simbolo->subtipo != OP_BIT_NOT && simbolo->subtipo == OP_LOG_NEG))) break;
+                        lily_lde_insert(lista_actual, lily_lde_size(lista_actual), simbolo_final);
                         // FIX: validar NULL
                         lily_lde_remove_node(simbolos, pila_actual->final->valor);
                         lily_lde_remove_node(pila_actual, pila_actual->final);
-                   }
+                    }
                     lily_lde_insert(pila_actual, lily_lde_size(pila_actual), *nodo);
                     *nodo = (*nodo)->posterior;
                     if (*nodo != NULL) simbolo = (*nodo)->valor;
