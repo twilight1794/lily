@@ -36,7 +36,7 @@ struct lily_cli_archivo* lily_cli_archivo_create(const char* ruta, size_t escrib
 
 int lily_cli_archivo_close(struct lily_cli_archivo* obj) {
     if (obj == NULL) return -1;
-    munmap(obj->p, obj->st.st_size);
+    if (munmap(obj->p, obj->st.st_size)) return -1;
     close(obj->fd);
     free(obj);
     return 0;

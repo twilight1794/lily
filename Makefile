@@ -32,16 +32,17 @@ src/common/nums.o: src/common/nums.c src/common/nums.h
 src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\" -DCPUDIR=\"$(CPUDIR)\"
 src/cli/main.o: src/cli/main.c
 src/cli/mmap.o: src/cli/mmap.c src/cli/mmap.h
+src/cli/mmap_windows.o: src/cli/mmap_windows.c src/cli/mmap_windows.h
 src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h
-src/lib/simbolo.o: src/lib/simbolo.c src/lib/simbolo.h
 src/lib/a_semantico.o: src/lib/a_semantico.c src/lib/a_semantico.h
 src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
 src/lib/lily.o: src/lib/lily.c src/lib/lily.h
 src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/lib/lua_ensamble.o: src/lib/lua_ensamble.c src/lib/lua_ensamble.h
+src/lib/simbolo.o: src/lib/simbolo.c src/lib/simbolo.h
 src/web/main.o: src/web/main.c
 
-DEPS_LIBLILY := src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_sintactico.o src/lib/a_semantico.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/simbolo.o
+DEPS_LIBLILY := src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_semantico.o src/lib/a_sintactico.o src/lib/lily.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/simbolo.o
 
 dist/liblily.so: $(DEPS_LIBLILY)
 	$(CC) -shared -fPIC $(LDFLAGS) $(DEPS_LIBLILY) -llua $(LDLIBS) -o $@
@@ -53,7 +54,7 @@ DEPS_LILY_LINUX := src/cli/main.o src/cli/mmap.o
 dist/lily: $(DEPS_LILY_LINUX) dist/liblily.so
 	$(CC) $(LDFLAGS) $(DEPS_LILY_LINUX) -llily $(LDLIBS) -o $@
 
-DEPS_LILY_WIN := src/cli/main.o
+DEPS_LILY_WIN := src/cli/main.o src/cli/mmap_windows.o
 dist/lily.exe: $(DEPS_LILY_WIN) dist/liblily.dll
 	$(CC) $(LDFLAGS) $(DEPS_LILY_WIN) -llily $(LDLIBS) -o $@
 

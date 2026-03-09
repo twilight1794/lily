@@ -9,17 +9,18 @@
 #include <unistd.h>
 
 #include <libintl.h>
-
-#include "mmap.h"
 #include "../common/defs.h"
 #include "../common/dict.h"
 #include "../common/estado.h"
 #include "../common/lde.h"
 #include "../common/log.h"
-#include "../lib/a_lexico.h"
-#include "../lib/a_sintactico.h"
-#include "../lib/a_semantico.h"
-#include "../lib/lua_cpu.h"
+#include "../lib/lily.h"
+
+#if defined(__unix__) || defined(__APPLE__)
+#include "mmap.h"
+#elif defined(_WIN32)
+#include "mmap_windows.h"
+#endif
 
 #ifndef LILY_VERSION
 #define LILY_VERSION "???"
@@ -64,6 +65,8 @@ struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict
 char* obt_extension(char *nombre);
 void obt_nombre_archivo(char* nombre, enum lily_main_etapa etapa, char* archivo_salida);
 char* obt_etapa_str(enum lily_main_etapa etapa);
+struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo);
+int cerrar_archivo(struct lily_lily_archivo* st);
 
 int main(int argc, char **argv){
     // Si no hay parámetros, no hay qué seguir
@@ -236,14 +239,6 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     } else archivo_entrada = argv[optind++];
 
-    // Abrimos archivo
-    struct lily_cli_archivo* archivo_entrada_obj = lily_cli_archivo_create(archivo_entrada, 0);
-    if (archivo_entrada_obj == NULL) {
-        log_fatal_gen(_("File %s cannot be open."), archivo_entrada);
-        puts(strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
     // Determinar operación inicial y final
     /// Parámetro origen->origen, destino, arriba en la lectura de argumentos
     /// Extensión origen->origen
@@ -302,90 +297,53 @@ int main(int argc, char **argv){
     }
     log_info_gen(_("Output file: '%s'."), archivo_salida);
 
-    // Análisis léxico
-    struct lily_lde_lde* simbolos = lily_a_lexico(archivo_entrada_obj->p, &ctx);
-    log_info_gen(_("lily_a_lexico: %d."), ctx.codigo);
-    if (ctx.codigo != COD_OK) {
-        char caracter_prob = archivo_entrada_obj->p[ctx.i_desp];
-        log_fatal_gen(_("type=%d, initial_i=%lu, offset_i=%lu (0x%x \"%c\")."), ctx.tipo SEP ctx.i_inicial SEP ctx.i_desp SEP caracter_prob SEP isprint(caracter_prob)?caracter_prob:'?');
-        exit(EXIT_FAILURE);
-    }
-    /*for (size_t i = 0; i < lily_lde_size(simbolos); i++) {
-        char* simb_cad = lily_a_lexico_simbolo_print(lily_lde_get(simbolos,i)->valor);
-        log_debug_gen("a_lexico rest [%p]: %s", lily_lde_get(simbolos,i)->valor SEP simb_cad);
-        free(simb_cad);
-    }*/
-    lily_cli_archivo_close(archivo_entrada_obj); // Ya no necesitamos más el archivo
-
-    // Análisis sintáctico
-    struct lily_lde_lde* ast = lily_a_sintactico(simbolos, &ctx);
-    log_info_gen(_("lily_a_sintactico: %d."), ctx.codigo);
-    if (ctx.codigo != COD_OK) {
-        log_fatal_gen(_("codigo=%d, %d.%d (%lu)"), ctx.codigo SEP ctx.ultimo->tipo SEP ctx.ultimo->subtipo SEP ctx.ultimo->linea);
+    // Abrir archivo de entrada
+    struct lily_cli_archivo* archivo_entrada_obj = lily_cli_archivo_create(archivo_entrada, 0);
+    if (archivo_entrada_obj == NULL) {
+        log_fatal_gen(_("File %s cannot be open."), archivo_entrada);
         exit(EXIT_FAILURE);
     }
 
-    // Determinar arquitectura a usar
-    char* arquitectura_final = NULL;
-    char* arquitectura_asm = lily_a_semantico_obt_arquitectura_declarada(ast, &ctx);
-    if (arquitectura != NULL) {
-        arquitectura_final = arquitectura;
-        if (strcmp((arquitectura_asm == NULL)?"":arquitectura_asm, arquitectura)) {
-            log_warn_gen(_("The architecture specified at parameter '%s' is different to architecture specified at file '%s'."), arquitectura SEP arquitectura_asm);
+    uint8_t* datos_entrada = NULL;
+    size_t tam_entrada = 0;
+    uint8_t* datos_proceso = NULL;
+    size_t tam_proceso = 0;
+    uint8_t* datos_salida = NULL;
+    size_t tam_salida = 0;
+    // Realizar cadena de acciones
+    for (enum lily_main_etapa etapa_actual = etapa_inicial; etapa_actual <= etapa_final; etapa_actual++) {
+        if (etapa_actual == LILY_MAIN_ENSAMBLADO) {
+            // TODO: revisar por qué no usamos uint8_t también en esta entrada
+            datos_proceso = lily_lily_ensamble(archivo_entrada_obj->p, arquitectura, &obt_archivo, &cerrar_archivo, &tam_proceso, &ctx);
         }
-    } else if (arquitectura_asm != NULL)
-        arquitectura_final = arquitectura_asm;
-    else {
-        log_fatal(_("An architecture was not specified."));
-        exit(EXIT_FAILURE);
-    }
-    log_info_gen(_("The architecture selected is '%s'"), arquitectura_final);
-    /// Generar ruta para archivo de arquitectura
-    //// Primero, en el propio directorio
-    struct lily_cli_archivo* archivo_arquitectura_obj = lily_cli_archivo_create(arquitectura_final, 0);
-    log_info_gen(_("Searching architecture description file at ./%s"), arquitectura_final);
-    if (archivo_arquitectura_obj == NULL) {
-        // Si no, en el directorio predeterminado
-        size_t ruta_tam = strlen(arquitectura_final) + strlen(CPUDIR) + 6;
-        char* archivo_arquitectura_ruta = (char*) malloc(ruta_tam * sizeof(char));
-        if (archivo_arquitectura_ruta == NULL) {
-            log_fatal(_("Error while searching for architecture description file."));
+        else if (etapa_actual == LILY_MAIN_ENLAZADO) {
             exit(EXIT_FAILURE);
         }
-        sprintf(archivo_arquitectura_ruta, "%s/%s.lua", CPUDIR, arquitectura_final);
-        log_debug_gen(_("Searching architecture description file at %s"), archivo_arquitectura_ruta);
-        archivo_arquitectura_obj = lily_cli_archivo_create(archivo_arquitectura_ruta, 0);
-        if (archivo_arquitectura_obj == NULL) {
-            log_fatal_gen(_("The description file for architecture '%s' could not be found."), arquitectura_final);
+        else if (etapa_actual == LILY_MAIN_DESENSAMBLADO) {
             exit(EXIT_FAILURE);
         }
-        log_debug_gen(_("Description file for architecture '%s' found."), arquitectura_final);
+        else if (etapa_actual == LILY_MAIN_EJECUCION) {
+            exit(EXIT_FAILURE);
+        }
+        if (etapa_final == etapa_actual) {
+            datos_salida = datos_proceso;
+            tam_salida = tam_proceso;
+            break;
+        }
+        datos_entrada = datos_proceso;
+        tam_entrada = tam_proceso;
     }
-    /// Abrir ruta generada
-    lua_State* L = lily_lua_cpu_cargar(archivo_arquitectura_obj->p, &ctx);
-    log_info_gen(_("lily_lua_cpu_cargar: %d."), ctx.codigo);
     if (ctx.codigo != COD_OK) {
-        log_fatal_gen(_("codigo=%d (%s)"), ctx.codigo SEP ctx.lua_msg);
-        exit(EXIT_FAILURE);
-    }
-    lily_cli_archivo_close(archivo_arquitectura_obj);
-
-    // Análisis semántico
-    size_t tam_bytes;
-    uint8_t* bytes = lily_a_semantico(ast, L, 0, &tam_bytes, &ctx);
-    log_info_gen(_("lily_a_semantico: %d (%ld bytes)."), ctx.codigo SEP tam_bytes);
-    if (ctx.codigo != COD_OK) {
-        log_fatal_gen(_("codigo=%d, %s, Lua: '%s')"), ctx.codigo SEP lily_simbolo_simbolo_print(ctx.ultimo) SEP ctx.lua_msg);
         exit(EXIT_FAILURE);
     }
 
-    // Salida
-    struct lily_cli_archivo* archivo_salida_obj = lily_cli_archivo_create(archivo_salida, tam_bytes);
+    // Abrir archivo de salida
+    struct lily_cli_archivo* archivo_salida_obj = lily_cli_archivo_create(archivo_salida, tam_salida);
     if (archivo_salida_obj == NULL) {
         log_fatal_gen(_("File %s cannot be open: %s."), archivo_salida SEP strerror(errno));
         exit(EXIT_FAILURE);
     }
-    memcpy(archivo_salida_obj->p, bytes, tam_bytes);
+    memcpy(archivo_salida_obj->p, datos_salida, tam_salida);
     lily_cli_archivo_close(archivo_salida_obj);
     exit(EXIT_SUCCESS);
 }
@@ -491,4 +449,52 @@ char* obt_etapa_str(enum lily_main_etapa etapa) {
     return "";
 }
 
-char* obt_archivo(const char* archivo) {}
+#if defined(__unix__) || defined(__APPLE__)
+struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo) {
+    struct lily_lily_archivo* obj = (struct lily_lily_archivo*) malloc(sizeof(struct lily_lily_archivo));
+    if (obj == NULL) return NULL;
+    obj->tipo = tipo;
+    if (tipo == 0) {
+        // Archivo de descripción de procesador
+        /// Primero, buscamos en el propio directorio
+        log_info_gen(_("Searching architecture description file at ./%s"), archivo);
+        obj->obj = (void*) lily_cli_archivo_create(archivo, 0);
+        if (obj->obj == NULL) {
+            // Si no, en el directorio predeterminado
+            size_t ruta_tam = strlen(archivo) + strlen(CPUDIR) + 6;
+            char* archivo_arquitectura_ruta = (char*) malloc(ruta_tam * sizeof(char));
+            if (archivo_arquitectura_ruta == NULL) {
+                log_fatal(_("Error while searching for architecture description file."));
+                free(obj);
+                return NULL;
+            }
+            sprintf(archivo_arquitectura_ruta, "%s/%s.lua", CPUDIR, archivo);
+            log_debug_gen(_("Searching architecture description file at %s"), archivo_arquitectura_ruta);
+            obj->obj = lily_cli_archivo_create(archivo_arquitectura_ruta, 0);
+            if (obj->obj == NULL) {
+                log_fatal_gen(_("The description file for architecture '%s' could not be found."), archivo);
+                free(archivo_arquitectura_ruta);
+                free(obj);
+                return NULL;
+            }
+            free(archivo_arquitectura_ruta);
+            log_debug_gen(_("Description file for architecture '%s' found."), archivo);
+        }
+    }
+    else {
+        // Archivo ensamblador
+        obj->obj = (void*) lily_cli_archivo_create(archivo, 0);
+        if (obj->obj == NULL) {
+            free(obj);
+            return NULL;
+        }
+    }
+    obj->archivo = ((struct lily_cli_archivo*) obj->obj)->p;
+    return obj;
+}
+int cerrar_archivo(struct lily_lily_archivo* st) {
+    return lily_cli_archivo_close((struct lily_cli_archivo*) st->obj);
+}
+#elif defined(_WIN32)
+#error "Windows aún no está soportado"
+#endif

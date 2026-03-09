@@ -15,8 +15,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-//#include "../common/estado.h"
-
 /**
  * Contenedor para el manejo de archivos mapeados en memoria
  */
