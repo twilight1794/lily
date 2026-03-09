@@ -10,7 +10,7 @@
  * Bit 1: Caracter blanco
  * Bit 2: Operador
  */
-char lily_a_lexico_ctipos[] = {
+static char lily_a_lexico_ctipos[] = {
     0, // NUL
     0, // SH
     0, // STX
