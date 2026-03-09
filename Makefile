@@ -9,6 +9,7 @@ RM := rm -rf
 BINDIR := /usr/local/bin
 LIBDIR := /usr/local/lib
 MANDIR := /usr/local/share/man/man1
+CPUDIR := /usr/local/share/lily/cpu
 # -----END USER CONFIGURATION-----
 
 V_LILY_VERSION=$(shell git tag --points-at HEAD)
@@ -28,7 +29,7 @@ src/common/dict.o: src/common/dict.c src/common/dict.h
 src/common/lde.o: src/common/lde.c src/common/lde.h
 src/common/log.o: src/common/log.c src/common/log.h
 src/common/nums.o: src/common/nums.c src/common/nums.h
-src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\"
+src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\" -DCPUDIR=\"$(CPUDIR)\"
 src/cli/main.o: src/cli/main.c
 src/cli/mmap.o: src/cli/mmap.c src/cli/mmap.h
 src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h
@@ -65,6 +66,8 @@ dist:
 install-linux:
 	cp dist/lily $(BINDIR)/lily
 	cp dist/liblily.so $(LIBDIR)/liblily.so
+	mkdir -p $(CPUDIR)
+	cp misc/cpu/* $(CPUDIR)/
 	ldconfig
 
 install-windows:
@@ -75,6 +78,7 @@ install-windows:
 remove-linux:
 	$(RM) $(BINDIR)/lily
 	$(RM) $(LIBDIR)/liblily.so
+	$(RM) $(CPUDIR)
 
 remove-windows:
 	$(RM) $(BINDIR)

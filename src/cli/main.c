@@ -30,6 +30,9 @@
 #ifndef LILY_MODIFICADO
 #define LILY_MODIFICADO ""
 #endif
+#ifndef CPUDIR
+#define CPUDIR "misc/cpu"
+#endif
 
 enum lily_main_estricto {
     LILY_MAIN_RELAJADO,
@@ -338,49 +341,34 @@ int main(int argc, char **argv){
     }
     log_info_gen(_("The architecture selected is '%s'"), arquitectura_final);
     /// Generar ruta para archivo de arquitectura
-    int archivo_arquitectura_fd = open(arquitectura_final, O_RDONLY);
-    if (archivo_arquitectura_fd == -1) {
-        char* archivo_arquitectura_ruta = lily_cadena_create();
+    //// Primero, en el propio directorio
+    struct lily_cli_archivo* archivo_arquitectura_obj = lily_cli_archivo_create(arquitectura_final, 0);
+    log_info_gen(_("Searching architecture description file at ./%s"), arquitectura_final);
+    if (archivo_arquitectura_obj == NULL) {
+        // Si no, en el directorio predeterminado
+        size_t ruta_tam = strlen(arquitectura_final) + strlen(CPUDIR) + 6;
+        char* archivo_arquitectura_ruta = (char*) malloc(ruta_tam * sizeof(char));
         if (archivo_arquitectura_ruta == NULL) {
             log_fatal(_("Error while searching for architecture description file."));
             exit(EXIT_FAILURE);
         }
-        char* tmp = lily_cadena_concat(archivo_arquitectura_ruta, "misc/cpu/"); // FIX: cambiar por constante definida en Makefile
-        if (tmp == NULL) {
-            log_fatal(_("Error while searching for architecture description file."));
+        sprintf(archivo_arquitectura_ruta, "%s/%s.lua", CPUDIR, arquitectura_final);
+        log_debug_gen(_("Searching architecture description file at %s"), archivo_arquitectura_ruta);
+        archivo_arquitectura_obj = lily_cli_archivo_create(archivo_arquitectura_ruta, 0);
+        if (archivo_arquitectura_obj == NULL) {
+            log_fatal_gen(_("The description file for architecture '%s' could not be found."), arquitectura_final);
             exit(EXIT_FAILURE);
         }
-        archivo_arquitectura_ruta = tmp;
-        tmp = lily_cadena_concat(archivo_arquitectura_ruta, arquitectura_final);
-        if (tmp == NULL) {
-            log_fatal(_("Error while searching for architecture description file."));
-            exit(EXIT_FAILURE);
-        }
-        archivo_arquitectura_ruta = tmp;
-        tmp = lily_cadena_concat(archivo_arquitectura_ruta, ".lua");
-        if (tmp == NULL) {
-            log_fatal(_("Error while searching for architecture description file."));
-            exit(EXIT_FAILURE);
-        }
-        archivo_arquitectura_ruta = tmp;
-        archivo_arquitectura_fd = open(archivo_arquitectura_ruta, O_RDONLY);
-        if (archivo_arquitectura_fd == -1) {
-            log_fatal_gen(_("The architecture '%s' could not be found."), arquitectura_final);
-            exit(EXIT_FAILURE);
-        }
+        log_debug_gen(_("Description file for architecture '%s' found."), arquitectura_final);
     }
     /// Abrir ruta generada
-    struct stat archivo_arquitectura_st;
-    fstat(archivo_arquitectura_fd, &archivo_arquitectura_st);
-    char* archivo_arquitectura_p = (char*) mmap(NULL, archivo_arquitectura_st.st_size, PROT_READ, MAP_SHARED, archivo_arquitectura_fd, 0);
-    lua_State* L = lily_lua_cpu_cargar(archivo_arquitectura_p, &ctx);
+    lua_State* L = lily_lua_cpu_cargar(archivo_arquitectura_obj->p, &ctx);
     log_info_gen(_("lily_lua_cpu_cargar: %d."), ctx.codigo);
     if (ctx.codigo != COD_OK) {
         log_fatal_gen(_("codigo=%d (%s)"), ctx.codigo SEP ctx.lua_msg);
         exit(EXIT_FAILURE);
     }
-    munmap(archivo_arquitectura_p, archivo_arquitectura_st.st_size);
-    close(archivo_arquitectura_fd);
+    lily_cli_archivo_close(archivo_arquitectura_obj);
 
     // Análisis semántico
     size_t tam_bytes;
