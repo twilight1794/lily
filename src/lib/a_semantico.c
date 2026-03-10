@@ -231,6 +231,7 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_princi
 }
 
 static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, struct lily_ctx* ctx) {
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
     struct lily_simbolo_simbolo* simbolo_param;
 
     union lily_simbolo_numero* pc_numero = (union lily_simbolo_numero*) malloc(sizeof(union lily_simbolo_numero));
@@ -243,11 +244,8 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
 
     switch (instruccion->simbolo->subtipo) {
         case DIR_DB:
-            if (instruccion->etiqueta == NULL) {
-                ctx->codigo = COD_A_SEMANTICO_INSTRUCCION_SIN_ETI;
-                ctx->ultimo = instruccion->simbolo;
-                break;
-            }
+            if (instruccion->etiqueta == NULL)
+                log_warn_v(l, "a_semantico_directiva", "Directiva sin etiqueta %s", lily_simbolo_simbolo_print(instruccion->simbolo));
             instruccion->tam_bytes = lily_lde_size(instruccion->params);
             instruccion->bytes = (uint8_t*) calloc(lily_lde_size(instruccion->params), sizeof(uint8_t));
             if (instruccion->bytes == NULL) {
@@ -259,15 +257,13 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
                 lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint8_t), simbolo->signo, true);
             }
-            lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
+            if (instruccion->etiqueta != NULL)
+                lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
             break;
         case DIR_DWL:
         case DIR_DWM:
-            if (instruccion->etiqueta == NULL) {
-                ctx->codigo = COD_A_SEMANTICO_INSTRUCCION_SIN_ETI;
-                ctx->ultimo = instruccion->simbolo;
-                break;
-            }
+            if (instruccion->etiqueta == NULL)
+                log_warn_v(l, "a_semantico_directiva", "Directiva sin etiqueta %s", lily_simbolo_simbolo_print(instruccion->simbolo));
             instruccion->tam_bytes = lily_lde_size(instruccion->params) * sizeof(uint16_t);
             instruccion->bytes = (uint8_t*) malloc(instruccion->tam_bytes);
             if (instruccion->bytes == NULL) {
@@ -279,15 +275,13 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
                 lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint16_t), false, instruccion->simbolo->subtipo == DIR_DWL);
             }
-            lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
+            if (instruccion->etiqueta != NULL)
+                lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
             break;
         case DIR_DDL:
         case DIR_DDM:
-            if (instruccion->etiqueta == NULL) {
-                ctx->codigo = COD_A_SEMANTICO_INSTRUCCION_SIN_ETI;
-                ctx->ultimo = instruccion->simbolo;
-                break;
-            }
+            if (instruccion->etiqueta == NULL)
+                log_warn_v(l, "a_semantico_directiva", "Directiva sin etiqueta %s", lily_simbolo_simbolo_print(instruccion->simbolo));
             instruccion->tam_bytes = lily_lde_size(instruccion->params) * sizeof(uint32_t);
             instruccion->bytes = (uint8_t*) malloc(instruccion->tam_bytes);
             if (instruccion->bytes == NULL) {
@@ -299,15 +293,13 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
                 lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint32_t), false, instruccion->simbolo->subtipo == DIR_DDL);
             }
-            lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
+            if (instruccion->etiqueta != NULL)
+                lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
             break;
         case DIR_DQL:
         case DIR_DQM:
-            if (instruccion->etiqueta == NULL) {
-                ctx->codigo = COD_A_SEMANTICO_INSTRUCCION_SIN_ETI;
-                ctx->ultimo = instruccion->simbolo;
-                break;
-            }
+            if (instruccion->etiqueta == NULL)
+                log_warn_v(l, "a_semantico_directiva", "Directiva sin etiqueta %s", lily_simbolo_simbolo_print(instruccion->simbolo));
             instruccion->tam_bytes = lily_lde_size(instruccion->params) * sizeof(uint64_t);
             instruccion->bytes = (uint8_t*) malloc(instruccion->tam_bytes);
             if (instruccion->bytes == NULL) {
@@ -319,7 +311,8 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
                 lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint64_t), false, instruccion->simbolo->subtipo == DIR_DQL);
             }
-            lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
+            if (instruccion->etiqueta != NULL)
+                lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
             break;
         case DIR_DR:
         case DIR_DRD:
@@ -327,11 +320,8 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             ctx->ultimo = instruccion->simbolo;
             break;
         case DIR_DFS:
-            if (instruccion->etiqueta == NULL) {
-                ctx->codigo = COD_A_SEMANTICO_INSTRUCCION_SIN_ETI;
-                ctx->ultimo = instruccion->simbolo;
-                break;
-            }
+            if (instruccion->etiqueta == NULL)
+                log_warn_v(l, "a_semantico_directiva", "Directiva sin etiqueta %s", lily_simbolo_simbolo_print(instruccion->simbolo));
             if (lily_lde_size(instruccion->params) != 1) {
                 ctx->codigo = COD_A_SEMANTICO_DFS_MULTIPLES_PARAMS;
                 ctx->ultimo = instruccion->simbolo;
@@ -345,7 +335,8 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             }
             instruccion->tam_bytes = ((union lily_simbolo_numero*) simbolo_param->valor)->positivo;
             instruccion->bytes = (uint8_t*) calloc(instruccion->tam_bytes, sizeof(uint8_t));
-            lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
+            if (instruccion->etiqueta != NULL)
+                lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
             break;
         case DIR_CONST:
         case DIR_VAR:
