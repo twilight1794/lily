@@ -87,6 +87,8 @@ struct lily_ctx {
     struct lily_simbolo_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
     // Análisis semántico
     char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
+    // Utilidades
+    void* log_cfg; /**< Parámetros para mensajes */
 };
 
 #endif

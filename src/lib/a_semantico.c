@@ -65,10 +65,7 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_princi
             case SIMB_DIRECTIVA:
             case SIMB_ETI:
             case SIMB_FUNCION:
-                // <debug>
-                log_fatal("a_semantico: esto no debería pasar");
                 ctx->codigo = COD_NO_IMPLEMENTADO;
-                // </debug>
                 break;
             case SIMB_OBJETO:
             case SIMB_NUMERO:
@@ -435,6 +432,7 @@ char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, stru
 }
 
 uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, struct lily_ctx* ctx) {
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
     uint8_t* bytes = NULL;
 
     // Diccionario para identificadores
@@ -466,18 +464,18 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         *pc = pc_inicial;
         nodo = lily_lde_get(ast, 0);
         ++iteraciones;
-        log_debug_gen(_("a_semantico: Iteración %lu"), iteraciones);
-        log_debug_gen(_("a_semantico: PC vale 0x%02zX"), *pc);
+        log_debug_v(l, "a_semantico", _("Iteración %lu"), iteraciones);
+        log_debug_v(l, "a_semantico", _("PC vale 0x%02zX"), *pc);
 
         // Por cada instrucción...
         while ( nodo != NULL) {
             instruccion = nodo->valor;
             if (instruccion->simbolo != NULL && !esta_definido(instruccion)) {
                 // Si el símbolo no ha sido traducido, intentaremos traducirlo
-                log_debug_gen(_("a_semantico: procesando %s."), lily_simbolo_instruccion_print(instruccion));
+                log_debug_v(l, "a_semantico", _("procesando %s."), lily_simbolo_instruccion_print(instruccion));
                 bool reducido = lily_a_semantico_reducir(instruccion->simbolo, instruccion->params, identificadores, ctx);
                 if (reducido) {
-                    log_debug_gen("a_semantico: se ha reducido %s", lily_simbolo_instruccion_print(instruccion));
+                    log_debug_v(l, "a_semantico", "se ha reducido %s", lily_simbolo_instruccion_print(instruccion));
                     if (instruccion->simbolo->tipo == SIMB_DIRECTIVA) {
                         // Si ya está reducido, y es directiva...
                         lily_a_semantico_directiva(instruccion, identificadores, pc, ctx);
@@ -504,11 +502,11 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                         sprintf(cad+(i*6), "0x%02X", instruccion->bytes[i]);
                         if (i+1 < instruccion->tam_bytes) sprintf(cad+(i*6)+4, ", ");
                     }
-                    log_debug_gen("a_semantico: %s generó %lu bytes (%s)", lily_simbolo_simbolo_print(instruccion->simbolo) SEP instruccion->tam_bytes SEP cad);
+                    log_debug_v(l, "a_semantico", "a_semantico: %s generó %lu bytes (%s)", lily_simbolo_simbolo_print(instruccion->simbolo), instruccion->tam_bytes, cad);
                     free(cad);
                 }
                 else {
-                    log_debug_gen("a_semantico: no se ha reducido completamente %s", lily_simbolo_instruccion_print(instruccion));
+                    log_debug_v(l, "a_semantico", "no se ha reducido completamente %s", lily_simbolo_instruccion_print(instruccion));
                     num_pendientes++;
                 }
             }
@@ -537,7 +535,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
             instruccion->direccion = *pc;
             // Actualizamos PC
             *pc += instruccion->tam_bytes;
-            log_debug_gen("a_semantico: PC vale ahora 0x%02zX", *pc);
+            log_debug_v(l, "a_semantico", "PC vale ahora 0x%02zX", *pc);
             nodo = nodo->posterior;
         }
         // ¿Salimos por un error?

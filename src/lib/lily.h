@@ -17,7 +17,7 @@ struct lily_lily_archivo {
     int tipo; /** Tipo de archivo */
 };
 
-uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int), int (fun_cerrar_archivo)(struct lily_lily_archivo*), size_t* tam_salida, struct lily_ctx* ctx);
+uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, struct lily_ctx*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), size_t* tam_salida, struct lily_ctx* ctx);
 
 //uint8_t* lily_lily_desensamble(uint8_t* bytes, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int), int (fun_cerrar_archivo)(struct lily_lily_archivo*), struct lily_ctx* ctx);
 

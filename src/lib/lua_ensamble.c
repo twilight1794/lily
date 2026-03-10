@@ -16,9 +16,8 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
  * Lee la lista de parámetros en \a params para una instrucción, y prepara sus valores en la pila para Lua
  * @param L Sesión de Lua
  * @param params Lista de parámetros para el mnemónico
- * @param [out] ctx Estado de la ejecución al momento de salir de la función
  */
-static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params, struct lily_ctx* ctx);
+static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params);
 
 /**
  * Obtiene el resultado del ensamble de una instrucción
@@ -238,7 +237,7 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     return res;
 }
 
-static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params, struct lily_ctx* ctx) {
+static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* params) {
     lua_Integer tam = (lua_Integer) lily_lde_size(params);
     for (lua_Integer i = 0;  i < tam; i++) {
         struct lily_lde_nodo* nodo = lily_lde_get(params, i);
@@ -263,17 +262,8 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
                     // FIX: por ahora, un entero
                     lua_pushinteger(L, (lua_Integer) ((union lily_simbolo_numero*) simbolo->valor)->positivo);
                     lua_seti(L, -2, j + 1);
-                } else {
-                    // FIX: quitar este mensaje de log, es una condición que debería ser imposible
-                    log_warn_gen("El preprocesado se olvidó %s", lily_simbolo_simbolo_print(simbolo_desp));
-                    return;
                 }
             }
-        }
-        else {
-            // FIX: quitar este mensaje de log, es una condición que debería ser imposible
-            log_warn_gen("El preprocesado se olvidó %s", lily_simbolo_simbolo_print(simbolo));
-            return;
         }
     }
 }
@@ -309,8 +299,9 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
 }
 
 static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    log_debug_gen(_("lua_cpu: %s es de tipo función"), (char*) instruccion->simbolo->valor);
-    lily_lua_cpu_est_parametros(L, instruccion->params, ctx);
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
+    log_debug_v(l, "lua_cpu_ensamblar_funcion", _("lua_cpu: %s es de tipo función"), (char*) instruccion->simbolo->valor);
+    lily_lua_cpu_est_parametros(L, instruccion->params);
     if (lua_pcall(L, lily_lde_size(instruccion->params), 1, 0) == LUA_OK) {
         lua_Integer tam;
         instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, ctx);
@@ -323,7 +314,8 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_ins
 }
 
 static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    log_debug_gen(_("lua_cpu: %s es de tipo List<int>"), (char*) instruccion->simbolo->valor);
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
+    log_debug_v(l, "lua_cpu_ensamblar_lista", _("lua_cpu: %s es de tipo List<int>"), (char*) instruccion->simbolo->valor);
     lua_pop(L, 1);
     lua_Integer tam;
     instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, ctx);
@@ -331,7 +323,8 @@ static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instr
 }
 
 static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    log_debug_gen(_("lua_cpu: %s es de tipo Tuple<char*, funcion> -> %s"), (char*) instruccion->simbolo->valor SEP lua_tostring(L, -1));
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
+    log_debug_v(l, "lua_cpu_ensamblar_redireccion", _("lua_cpu: %s es de tipo Tuple<char*, funcion> -> %s"), (char*) instruccion->simbolo->valor, lua_tostring(L, -1));
     lua_pop(L, 1);
     lua_geti(L, -1, 2); // <- Función para modificar el resultado (idx 9)
     lua_geti(L, -2, 1); // <- Cadena con el mnemónico al cual redirigir (idx 10)
@@ -371,12 +364,13 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
 }
 
 static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    log_debug_gen(_("lua_cpu: %s es de tipo List<Tuple<List<Args>, Value>>"), (char*) instruccion->simbolo->valor);
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
+    log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: %s es de tipo List<Tuple<List<Args>, Value>>"), (char*) instruccion->simbolo->valor);
     lua_pop(L, 1);
     lua_len(L, -1);
     lua_Integer tam_i = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    log_debug_gen(_("lua_cpu: hay %lld casos para %s"), tam_i SEP (char*) instruccion->simbolo->valor);
+    log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: hay %lld casos para %s"), tam_i, (char*) instruccion->simbolo->valor);
     for (lua_Integer i = 1; i <= tam_i; i++) {
         // Bucle para cada opción
         lua_geti(L, -1, i); // <- Tuple<List<Args>, values> (idx 9)
@@ -418,7 +412,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             }
         }
         msg_cad_params[k] = '\0';
-        log_debug_gen(_("lua_cpu: comprobando caso (%s)"), msg_cad_params);
+        log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: comprobando caso (%s)"), msg_cad_params);
 
         // Comprobar que los tamaños de las listas de argumentos coincidan
         if ((size_t) tam_params != lily_lde_size(instruccion->params)) {
@@ -439,7 +433,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
 
         // Es la opción
         if (coincide) {
-            log_debug_gen(_("lua_cpu: seleccionado caso (%s)"), msg_cad_params);
+            log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: seleccionado caso (%s)"), msg_cad_params);
             lua_geti(L, -1, 2); // values (idx 10)
             if (lua_isfunction(L, -1)) {
                 lily_lua_cpu_ensamblar_funcion(L, instruccion, ctx);

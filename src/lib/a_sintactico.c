@@ -11,6 +11,7 @@
 static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, struct lily_lde_nodo** nodo, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx);
 
 static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, struct lily_lde_nodo** nodo, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
     struct lily_lde_lde* pila_simbolos = lily_lde_create();
     if (pila_simbolos == NULL) {
         ctx->codigo = COD_MALLOC_FALLO;
@@ -25,7 +26,7 @@ static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, st
     // Algoritmo shunting-yard
     while (*nodo != NULL && simbolo->linea == instruccion->simbolo->linea) {
         char *simb_cad = lily_simbolo_simbolo_print(simbolo);
-        log_debug_gen("a_sintactico_rpn: %s", simb_cad);
+        log_debug_v(l, "a_sintactico", "rpn: %s", simb_cad);
         free(simb_cad);
         switch (simbolo->tipo) {
             case SIMB_OBJETO:
@@ -158,7 +159,7 @@ static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, st
                 }
                 break;
             default:
-                log_debug("Si llegamos acá, es que algo anda mal");
+                log_debug(l, "a_sintactico", "Si llegamos acá, es que algo anda mal");
                 ctx->codigo = COD_A_SINTACTICO_SIMBOLO_IMPROCEDENTE;
                 ctx->ultimo = simbolo;
                 return;
@@ -177,6 +178,7 @@ static void lily_a_sintactico_modo_instruccion(struct lily_lde_lde* simbolos, st
 }
 
 struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, struct lily_ctx* ctx) {
+    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
     struct lily_lde_lde* ast = lily_lde_create();
     if (ast == NULL) {
         ctx->codigo = COD_MALLOC_FALLO;
@@ -209,7 +211,7 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, struct lil
         // Primero, vemos si hay etiqueta
         if (simbolo->tipo == SIMB_ETI) {
             simb_cad = lily_simbolo_simbolo_print(simbolo);
-            log_debug_gen("a_sintactico: %s", simb_cad);
+            log_debug(l, "a_sintactico", simb_cad);
             free(simb_cad);
             instruccion->etiqueta = simbolo;
             nodo_viejo = nodo;
@@ -226,7 +228,7 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, struct lil
                 break;
             }
             simb_cad = lily_simbolo_instruccion_print(instruccion);
-            log_debug_gen("a_sintactico sim: %s", simb_cad);
+            log_debug_v(l, "a_sintactico", "sim: %s", simb_cad);
             free(simb_cad);
             continue;
         }
@@ -235,7 +237,7 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, struct lil
         // Ahora vemos si lo siguiente es mnemónico o directiva
         if (simbolo->tipo == SIMB_MNEMO || simbolo->tipo == SIMB_DIRECTIVA) {
             simb_cad = lily_simbolo_simbolo_print(simbolo);
-            log_debug_gen("a_sintactico: %s", simb_cad);
+            log_debug(l, "a_sintactico", simb_cad);
             free(simb_cad);
             instruccion->simbolo = simbolo;
             nodo_viejo = nodo;
@@ -256,7 +258,7 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, struct lil
             break;
         }
         simb_cad = lily_simbolo_instruccion_print(instruccion);
-        log_debug_gen("a_sintactico sim: %s", simb_cad);
+        log_debug_v(l, "a_sintactico", "sim: %s", simb_cad);
         free(simb_cad);
     } while (nodo != NULL);
 
@@ -265,11 +267,13 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, struct lil
         return NULL;
     }
 
-    log_debug_gen("sizeof(simbolos)=%lu", lily_lde_size(simbolos));
+    //<debug>
+    log_debug_v(l, "a_sintactico", "sizeof(simbolos)=%lu", lily_lde_size(simbolos));
     for (size_t i = 0; i < lily_lde_size(simbolos); i++) {
         simb_cad = lily_simbolo_simbolo_print(lily_lde_get(simbolos,i)->valor);
-        log_debug_gen("a_sintactico rest: %s", simb_cad);
+        log_debug_v(l, "a_sintactico", "rest: %s", simb_cad);
         free(simb_cad);
     }
+    //</debug>
     return ast;
 }

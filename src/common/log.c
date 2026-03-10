@@ -1,19 +1,19 @@
 #include "log.h"
 
-void lily_log(enum lily_log_nivel tipo, const char* archivo, unsigned int linea, const char* msg) {
+void lily_log(const struct lily_log_config* config, enum lily_log_nivel tipo, const char* archivo, unsigned int linea, const char* categoria, const char* msg, const char* formato, ...) {
     // Relevancia mínima
-    if (tipo < lily_log_conf.nivel_minimo) return;
+    if (tipo < config->nivel_minimo) return;
 
     // Fecha-hora
     time_t rawtime;
     time(&rawtime);
-    struct tm *timeinfo = localtime(&rawtime);
+    const struct tm *timeinfo = localtime(&rawtime);
     char dbuff[11];
-    if (lily_log_conf.incluir_fecha) {
+    if (config->incluir_fecha) {
         strftime(dbuff, 11, "%F", timeinfo);
         printf("%s ", dbuff);
     }
-    if (lily_log_conf.incluir_hora) {
+    if (config->incluir_hora) {
         strftime(dbuff, 11, "%T", timeinfo);
         printf("%s ", dbuff);
     }
@@ -21,31 +21,44 @@ void lily_log(enum lily_log_nivel tipo, const char* archivo, unsigned int linea,
     // Tipo
     switch (tipo) {
     case LILY_LOG_DEBUG:
-        if (lily_log_conf.colores) printf("\x1b[36;1mDEBUG\x1b[0m ");
+        if (config->colores) printf("\x1b[36;1mDEBUG\x1b[0m ");
         else printf("DEBUG ");
         break;
     case LILY_LOG_INFO:
-        if (lily_log_conf.colores) printf("\x1b[32;1mINFO\x1b[0m  ");
+        if (config->colores) printf("\x1b[32;1mINFO\x1b[0m  ");
         else printf("INFO  ");
         break;
     case LILY_LOG_WARN:
-        if (lily_log_conf.colores) printf("\x1b[33;1mWARN\x1b[0m  ");
+        if (config->colores) printf("\x1b[33;1mWARN\x1b[0m  ");
         else printf("WARN  ");
         break;
     case LILY_LOG_ERROR:
-        if (lily_log_conf.colores) printf("\x1b[31;1mERROR\x1b[0m ");
+        if (config->colores) printf("\x1b[31;1mERROR\x1b[0m ");
         else printf("ERROR ");
         break;
     case LILY_LOG_FATAL:
-        if (lily_log_conf.colores) printf("\x1b[35;1mFATAL\x1b[0m ");
+        if (config->colores) printf("\x1b[35;1mFATAL\x1b[0m ");
         else printf("FATAL ");
         break;
-    case LILY_LOG_NONE:
-        break;
+    }
+    if (config->colores) {
+        if (config->incluir_archivo) printf("\x1b[90m%s:%-4d \x1b[1m%s:\x1b[0m ", archivo, linea, categoria);
+        else printf("\x1b[1m%s:\x1b[0m ", categoria);
+    } else {
+        if (config->incluir_archivo) printf("%s:%-4d %s: ", archivo, linea, categoria);
+        else printf("%s: ", categoria);
     }
 
     // Archivo-línea
-    if (lily_log_conf.incluir_archivo && lily_log_conf.colores) printf("\x1b[90m%s:%d \x1b[0m%s\x1b[0m\n", archivo, linea, msg);
-    else if (lily_log_conf.incluir_archivo) printf("%s:%d: %s\n", archivo, linea, msg);
-    else printf("%s\n", msg);
+    if (msg != NULL) {
+        // Mensaje normal
+        printf("%s\n", msg);
+    } else {
+        // Mensaje compuesto
+        va_list args;
+        va_start(args, formato);
+        vprintf(formato, args);
+        va_end(args);
+        putchar('\n');
+    }
 }
