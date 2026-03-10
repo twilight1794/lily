@@ -1,10 +1,10 @@
 /*
- * @file pow.h
+ * @file a_lexico_a_lexico_pow.h
  * Pequeñas macros para calcular potencias enteras conocidas rápidamente
  */
 
-#ifndef LILY_C_POW
-#define LILY_C_POW
+#ifndef LILY_L_A_LEXICO_POW
+#define LILY_L_A_LEXICO_POW
 
 static long long pow10_vals[] = {
     1, 10, 100, 1000, 10000,

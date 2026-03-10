@@ -1,10 +1,15 @@
-#include "../lib/a_lexico.h"
+#include "a_lexico.h"
+#include "a_lexico_ctipos.h"
+#include "a_lexico_pow.h"
 
 /**
  * Listado de directivas, para comparar
  */
 char* lily_a_lexico_directivas[] = { "DB", "DWL", "DWM", "DDL", "DDM", "DQL", "DQM", "DR", "DRD", "DFS", "CONST", "VAR", "IF", "IFDEF", "IFNDEF","ELSE", "ELIF", "ELIFDEF", "ELIFNDEF", "WHILE", "LOOP", "INC", "CPU", "ORG", "STOP", "STRUCT", "UNION", "MACRO", "PROC", "END", NULL };
 
+/**
+ * Listado de operadores, para comparar
+ */
 char* lily_a_lexico_operadores[] = { "(", ")", "[", "]", ",", "+", "-", "*", "/", "%", ".", "&", "|", "^", "~", "&&", "||", "!", "<<", ">>", "<", ">", "<=", ">=", "=", "!=" };
 
 void lily_a_lexico_modo_comentario(const char* blob, size_t* i, size_t* linea, size_t* linea_pos) {

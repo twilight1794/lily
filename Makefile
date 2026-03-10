@@ -33,7 +33,7 @@ src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$
 src/cli/main.o: src/cli/main.c
 src/cli/mmap.o: src/cli/mmap.c src/cli/mmap.h
 src/cli/mmap_windows.o: src/cli/mmap_windows.c src/cli/mmap_windows.h
-src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h
+src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h src/lib/a_lexico_pow.h
 src/lib/a_semantico.o: src/lib/a_semantico.c src/lib/a_semantico.h
 src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
 src/lib/lily.o: src/lib/lily.c src/lib/lily.h

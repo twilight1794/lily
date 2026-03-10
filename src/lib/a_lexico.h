@@ -19,9 +19,7 @@
 #include "../common/estado.h"
 #include "../common/lde.h"
 #include "../common/log.h"
-#include "../common/pow.h"
 
-#include "../lib/a_lexico_ctipos.h"
 #include "../lib/simbolo.h"
 
 #include <libintl.h>
