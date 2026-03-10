@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Title</title>
+    <title>lily-web</title>
     <style>/*<![CDATA[*/
     form {
         display: grid;
         gap: min(1rem, 5%);
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr auto;
     }
     textarea {
         width: calc(100% - 1rem);
@@ -17,12 +17,11 @@
         resize: vertical;
     }
     fieldset:nth-of-type(3) {
-        grid-column: 2;
-        grid-row: 1 / span 2;
+        grid-column: 1 / span 2;
     }
     /*]]>*/</style>
-    <script type="text/javascript" src="/lily/dist/liblily.js"></script>
-    <script type="text/javascript" src="main.js"></script>
+    <script fetchpriority="high" type="text/javascript" src="/lily/dist/liblily.js"></script>
+    <script defer="defer" type="text/javascript" src="main.js"></script>
 </head>
 <body>
 <h1>lily-web</h1>

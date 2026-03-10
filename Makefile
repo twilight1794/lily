@@ -16,7 +16,7 @@ V_LILY_VERSION=$(shell git tag --points-at HEAD)
 V_LILY_COMMIT=$(shell git rev-parse HEAD|cut -c 1-8)
 V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; fi)
 
-TARGETS := linux windows web
+TARGETS := dist linux clean windows clean web
 .PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean test-windows test-linux
 
 all: linux windows web
@@ -40,26 +40,35 @@ src/lib/lily.o: src/lib/lily.c src/lib/lily.h
 src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/lib/lua_ensamble.o: src/lib/lua_ensamble.c src/lib/lua_ensamble.h
 src/lib/simbolo.o: src/lib/simbolo.c src/lib/simbolo.h
-src/web/main.o: src/web/main.c
 
 DEPS_LIBLILY := src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_semantico.o src/lib/a_sintactico.o src/lib/lily.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/simbolo.o
 
+dist/liblily.so: LDFLAGS += -shared -fPIC
+dist/liblily.so: LDLIBS += -llua
 dist/liblily.so: $(DEPS_LIBLILY)
-	$(CC) -shared -fPIC $(LDFLAGS) $(DEPS_LIBLILY) -llua $(LDLIBS) -o $@
+	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
+dist/liblily.dll: LDFLAGS += -shared
 dist/liblily.dll: $(DEPS_LIBLILY)
-	$(CC) -shared $(LDFLAGS) $(DEPS_LIBLILY) $(LDLIBS) -o $@
+	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+
+dist/liblily.js: CC=emcc
+dist/liblily.js: CFLAGS += -I/usr/local/include -Oz -sWASM=1 -sSTRICT
+dist/liblily.js: LDFLAGS += -fPIC -Oz -I/usr/local/include -L/usr/local/lib -sSTRICT -sSAFE_HEAP=1 -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
+dist/liblily.js: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_malloc', '_free']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction"]'
+dist/liblily.js: LDLIBS += -lluawasm
+dist/liblily.js: $(DEPS_LIBLILY)
+	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 DEPS_LILY_LINUX := src/cli/main.o src/cli/mmap.o
+dist/lily: LDLIBS += -llily
 dist/lily: $(DEPS_LILY_LINUX) dist/liblily.so
-	$(CC) $(LDFLAGS) $(DEPS_LILY_LINUX) -llily $(LDLIBS) -o $@
+	$(CC) $(LDFLAGS) $(DEPS_LILY_LINUX) $(LDLIBS) -o $@
 
 DEPS_LILY_WIN := src/cli/main.o src/cli/mmap_windows.o
+dist/lily.exe: LDLIBS += -llily
 dist/lily.exe: $(DEPS_LILY_WIN) dist/liblily.dll
-	$(CC) $(LDFLAGS) $(DEPS_LILY_WIN) -llily $(LDLIBS) -o $@
-
-dist/liblily.js: | dist
-	emcc main.c -lluawasm -s WASM=1 -O2 -o $@ -s EXPORTED_FUNCTIONS="['_run_lua']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]' -s MODULARIZE=1 -s 'EXPORT_NAME="initWasmModule"'
+	$(CC) $(LDFLAGS) $(DEPS_LILY_WIN) $(LDLIBS) -o $@
 
 dist:
 	mkdir -p dist
