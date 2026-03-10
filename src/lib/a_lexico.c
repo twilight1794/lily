@@ -356,7 +356,7 @@ struct lily_lde_lde* lily_a_lexico(const char* blob, struct lily_ctx* ctx) {
             i_inicial = i;
             ctx->codigo = lily_a_lexico_modo_directiva(blob, &i, &i_inicial, &linea, &linea_pos, &sim);
             if (ctx->codigo == COD_OK) {
-                log_debug_v(l, "a_lexico", _("(%lu, %lu, linea_pos=%lu, i_inicial=%lu): +directiva '%s'"), sim->linea, i_inicial-(sim->linea_pos)+1, sim->linea_pos, i_inicial, (char*) sim->valor);
+                log_debug_v(l, "a_lexico", _("(%lu, %lu, linea_pos=%lu, i_inicial=%lu): +directiva '%s'"), sim->linea, i_inicial-(sim->linea_pos)+1, sim->linea_pos, i_inicial, lily_a_lexico_directivas[sim->subtipo-1]);
                 nodo = lily_lde_insert(simbolos, lily_lde_size(simbolos), (void*) sim);
                 if (nodo == NULL) {
                     ctx->codigo = COD_MALLOC_FALLO;
@@ -464,7 +464,7 @@ struct lily_lde_lde* lily_a_lexico(const char* blob, struct lily_ctx* ctx) {
             i_inicial = i;
             ctx->codigo = lily_a_lexico_modo_operador(blob, &i, &i_inicial, &linea, &linea_pos, &sim);
             if (ctx->codigo == COD_OK) {
-                log_debug_v(l, "a_lexico", _("(%lu, %lu): +operador %d"), sim->linea, i_inicial-(sim->linea_pos)+1, sim->subtipo);
+                log_debug_v(l, "a_lexico", _("(%lu, %lu): +operador %s"), sim->linea, i_inicial-(sim->linea_pos)+1, lily_a_lexico_operadores[sim->subtipo-1]);
                 nodo = lily_lde_insert(simbolos, lily_lde_size(simbolos), (void*) sim);
                 if (nodo == NULL) {
                     ctx->codigo = COD_MALLOC_FALLO;
