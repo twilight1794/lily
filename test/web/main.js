@@ -10,6 +10,7 @@ Module().then(Module => {
     lily = Module;
     document.getElementById("run").addEventListener("click", (e) => {
         e.preventDefault();
+        if (!e.target.parentNode.checkValidity()) return;
         e.target.disabled = true;
 
         const e_af = document.getElementById("af");
@@ -17,6 +18,7 @@ Module().then(Module => {
         const e_res = document.getElementById("res");
         const e_est = document.getElementById("est");
         e_est.textContent = "Assemblying...";
+        e_res.textContent = "";
 
         // Crear configuración de log
         const p_log = Module._malloc(8);
@@ -75,7 +77,7 @@ Module().then(Module => {
             e_est.textContent = "Estado: " + estado.toString() + " (" + tam_salida + " bytes)";
             for (let i = 0; i<tam_salida; i++) {
                 const v = Module.getValue(p_res + i, "i8");
-                e_res.textContent += v.toString(16) + " ";
+                e_res.textContent += v.toString(16).padStart(2, "0") + " ";
             }
         } finally {
             Module._free(p_log);
