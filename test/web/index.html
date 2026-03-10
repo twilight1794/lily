@@ -8,7 +8,7 @@
         display: grid;
         gap: min(1rem, 5%);
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
     }
     textarea {
         width: calc(100% - 1rem);
@@ -16,27 +16,33 @@
         border: 0;
         resize: vertical;
     }
-    fieldset:last-of-type {
+    fieldset:nth-of-type(3) {
         grid-column: 2;
         grid-row: 1 / span 2;
     }
     /*]]>*/</style>
-    <script async type="text/javascript" src="/lily/dist/liblily.js"></script>
+    <script type="text/javascript" src="/lily/dist/liblily.js"></script>
+    <script type="text/javascript" src="main.js"></script>
 </head>
 <body>
 <h1>lily-web</h1>
 <form>
     <fieldset>
         <legend><label for="af">Assembly file</label></legend>
-        <textarea id="af"></textarea>
+        <textarea id="af" autocorrect="off" spellcheck="false" required="required"></textarea>
     </fieldset>
     <fieldset>
         <legend><label for="ds">Description scheme</label></legend>
-        <textarea id="ds"></textarea>
+        <textarea id="ds" autocorrect="off" spellcheck="false" required="required"></textarea>
     </fieldset>
     <fieldset>
         <legend>Assembly result</legend>
-        <div></div>
+        <div id="res"></div>
+    </fieldset>
+    <button id="run">Assembly</button>
+    <fieldset>
+        <legend>Status</legend>
+        <div id="est">Ready</div>
     </fieldset>
 </form>
 </body>
