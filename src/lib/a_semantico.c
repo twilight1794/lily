@@ -445,7 +445,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     }
 
     // Contador de localidad
-    uint64_t* pc = malloc(sizeof(size_t));
+    size_t* pc = malloc(sizeof(size_t));
     if (pc == NULL) {
         ctx->codigo = COD_MALLOC_FALLO;
         return bytes;
@@ -467,7 +467,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         nodo = lily_lde_get(ast, 0);
         ++iteraciones;
         log_debug_gen(_("a_semantico: Iteración %lu"), iteraciones);
-        log_debug_gen(_("a_semantico: PC vale 0x%02lX"), *pc);
+        log_debug_gen(_("a_semantico: PC vale 0x%02zX"), *pc);
 
         // Por cada instrucción...
         while ( nodo != NULL) {
@@ -537,7 +537,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
             instruccion->direccion = *pc;
             // Actualizamos PC
             *pc += instruccion->tam_bytes;
-            log_debug_gen("a_semantico: PC vale ahora 0x%02lX", *pc);
+            log_debug_gen("a_semantico: PC vale ahora 0x%02zX", *pc);
             nodo = nodo->posterior;
         }
         // ¿Salimos por un error?
