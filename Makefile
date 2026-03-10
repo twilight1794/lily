@@ -2,7 +2,7 @@
 TARGET := all
 
 CC := gcc
-CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99 -g
+CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99
 LDFLAGS := -Ldist
 LDLIBS := -lm
 RM := rm -rf
@@ -16,13 +16,24 @@ V_LILY_VERSION=$(shell git tag --points-at HEAD)
 V_LILY_COMMIT=$(shell git rev-parse HEAD|cut -c 1-8)
 V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; fi)
 
-TARGETS := dist linux clean windows clean web
-.PHONY: all $(TARGETS) install-windows install-linux remove-linux remove-windows doxy clean test-windows test-linux
+TARGETS := linux windows web
+.PHONY: all dist $(TARGETS) linux-dbg windows-dbg web-dbg install-windows install-linux remove-linux remove-windows doxy clean test-windows test-linux
 
 all: linux windows web
+# Release
+linux: CFLAGS += -Os
 linux: dist/lily
 windows: dist/lily.exe
+web: CFLAGS += -Oz
+web: LDFLAGS += -Oz -sASSERTIONS=0
 web: dist/liblily.js
+# Debug
+linux-dbg: CFLAGS += -ggdb3
+linux-dbg: dist/lily
+windows-dbg: dist/lily.exe
+web-dbg: CFLAGS += -gsource-map
+web-dbg: LDFLAGS += -gsource-map -sASSERTIONS
+web-dbg: dist/liblily.js
 
 src/common/cadena.o: src/common/cadena.c src/common/cadena.h
 src/common/dict.o: src/common/dict.c src/common/dict.h
@@ -53,8 +64,8 @@ dist/liblily.dll: $(DEPS_LIBLILY)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 dist/liblily.js: CC=emcc
-dist/liblily.js: CFLAGS += -I/usr/local/include -Oz -sWASM=1 -sSTRICT
-dist/liblily.js: LDFLAGS += -fPIC -Oz -I/usr/local/include -L/usr/local/lib -sSTRICT -sSAFE_HEAP=1 -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
+dist/liblily.js: CFLAGS += -I/usr/local/include -sWASM=1 -sSTRICT
+dist/liblily.js: LDFLAGS += -fPIC -I/usr/local/include -L/usr/local/lib -sSTRICT -sSAFE_HEAP=1 -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
 dist/liblily.js: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_malloc', '_free']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction"]'
 dist/liblily.js: LDLIBS += -lluawasm
 dist/liblily.js: $(DEPS_LIBLILY)
@@ -116,3 +127,5 @@ test-linux: dist/test
 	LD_LIBRARY_PATH=dist dist/test
 test-windows: dist/test.exe
 	dist/test.exe
+test-web:
+	python3 -m http.server
