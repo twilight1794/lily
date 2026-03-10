@@ -64,14 +64,6 @@ int main(int argc, char **argv){
         f_help(argv[0]);
         return 0;
     }
-    struct lily_ctx ctx = {
-        .codigo = COD_OK,
-        .tipo = SIMB_INDETERMINADO,
-        .i_inicial = 0,
-        .i_desp = 0,
-        .ultimo = NULL,
-        .lua_msg = NULL
-    };
     struct lily_log_config lily_log_conf = {
         .colores = true,
         .incluir_fecha = true,
@@ -80,6 +72,15 @@ int main(int argc, char **argv){
         .nivel_minimo = LILY_LOG_INFO
     };
     struct lily_log_config* l = &lily_log_conf;
+    struct lily_ctx ctx = {
+        .codigo = COD_OK,
+        .tipo = SIMB_INDETERMINADO,
+        .i_inicial = 0,
+        .i_desp = 0,
+        .ultimo = NULL,
+        .lua_msg = NULL,
+        .log_cfg = l,
+    };
 
     char* archivo_listado_ruta = NULL;
     struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
