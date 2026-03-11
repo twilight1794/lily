@@ -6,6 +6,9 @@ CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99
 LDFLAGS := -Ldist
 LDLIBS := -lm
 RM := rm -rf
+LN := ln -s
+#LN := mklink /J
+PYTHON := python
 BINDIR := /usr/local/bin
 LIBDIR := /usr/local/lib
 MANDIR := /usr/local/share/man/man1
@@ -128,4 +131,8 @@ test-linux: dist/test
 test-windows: dist/test.exe
 	dist/test.exe
 test-web:
-	python3 -m http.server
+	$(RM) dist/index.html
+	$(RM) dist/main.js
+	$(LN) ../test/web/index.html dist/index.html
+	$(LN) ../test/web/main.js dist/main.js
+	$(PYTHON) -m http.server -d dist
