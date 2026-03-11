@@ -3,49 +3,109 @@
 <html lang="en">
 <head>
     <title>lily-web</title>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0" />
     <style>/*<![CDATA[*/
-    form {
-        display: grid;
-        gap: min(1rem, 5%);
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr auto auto;
-    }
-    textarea {
-        width: calc(100% - 1rem);
-        height: 100%;
-        border: 0;
-        resize: vertical;
-    }
-    fieldset:nth-of-type(3) {
-        grid-column: 1 / span 2;
-    }
-    #res {
-        min-height: 1rem;
-    }
+        [role="tablist"] { display: flex; }
+        [role="tab"] {
+            display: inline-block;
+            padding: .5rem;
+            color: white;
+            background: pink;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            text-decoration: none;
+            &[aria-selected="true"] {
+                font-weight: bold;
+                background: deeppink;
+            }
+        }
+        [role="tabpanel"]:target {
+            display: block;
+            outline: none;
+            border: deeppink solid;
+            background: pink;
+            padding: 1rem;
+        }
+        [role="tabpanel"]:not(:target) { display: none; }
+        #assembly:target {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-rows: auto auto auto auto;
+            @media (max-width: 700px) {
+                grid-template-columns: 1fr;
+            }
+            & textarea {
+                width: calc(100% - 1rem);
+                min-height: 10rem;
+                height: 100%;
+                border: 0;
+                resize: vertical;
+                background: mistyrose;
+                font-family: monospace;
+                &:focus-visible { outline: deeppink solid; }
+            }
+            & fieldset {
+                border: none;
+                padding: 0;
+            }
+            & legend {
+                font-weight: bold;
+            }
+            @media (min-width: 701px) {
+                & fieldset:nth-of-type(1) { grid-row: 1 / span 3; }
+                & fieldset:nth-of-type(2) { grid-column: 2 / span 2; }
+            }
+            & #pa-res {
+                min-height: 1rem;
+                font-family: monospace;
+            }
+        }
     /*]]>*/</style>
     <script fetchpriority="high" type="text/javascript" src="/dist/liblily.js"></script>
     <script defer="defer" type="text/javascript" src="main.js"></script>
 </head>
 <body>
-<h1>lily-web</h1>
-<form>
-    <fieldset>
-        <legend><label for="af">Assembly file</label></legend>
-        <textarea id="af" autocorrect="off" spellcheck="false" required="required"></textarea>
-    </fieldset>
-    <fieldset>
-        <legend><label for="ds">Description scheme</label></legend>
-        <textarea id="ds" autocorrect="off" spellcheck="false" required="required"></textarea>
-    </fieldset>
-    <fieldset>
-        <legend>Assembly result</legend>
-        <div id="res"></div>
-    </fieldset>
-    <button id="run">Assembly</button>
-    <fieldset>
-        <legend>Status</legend>
-        <div id="est">Ready</div>
-    </fieldset>
-</form>
+    <h1>lily-web</h1>
+    <div role="tablist">
+        <a href="#assembly" id="tab-assembly" role="tab" aria-controls="assembly" tabindex="-1">Assembly</a>
+        <a href="#disassembly" id="tab-disassembly" role="tab" aria-controls="disassembly" tabindex="-1">Disassembly</a>
+        <a href="#execution" id="tab-execution" role="tab" aria-controls="execution" tabindex="-1">Execution</a>
+    </div>
+    <form id="assembly" role="tabpanel" tabindex="0" aria-labelledby="tab-assembly">
+        <fieldset>
+            <legend><label for="pa-af">Assembly file</label></legend>
+            <textarea id="pa-af" name="af" autocorrect="off" spellcheck="false" required="required"></textarea>
+        </fieldset>
+        <fieldset>
+            <legend><label for="pa-ds">Description scheme</label></legend>
+            <textarea id="pa-ds" name="ds" autocorrect="off" spellcheck="false" required="required"></textarea>
+        </fieldset>
+        <fieldset>
+            <legend>Assembly result</legend>
+            <div id="pa-res"></div>
+        </fieldset>
+        <fieldset>
+            <legend>Status</legend>
+            <div id="pa-est">Ready</div>
+        </fieldset>
+        <button id="pa-run">Assembly</button>
+    </form>
+    <form id="disassembly" role="tabpanel" tabindex="0" aria-labelledby="tab-disassembly">
+    </form>
+    <form id="execution" role="tabpanel" tabindex="0" aria-labelledby="tab-execution">
+    </form>
+    <script>
+        /*<![CDATA[*/
+        function estilar_pestanas(ev) {
+            Array.from(document.querySelectorAll("[role='tab']")).forEach(e =>
+                e.ariaSelected = e.href == ev.newURL
+            );
+        }
+        if (window.location.hash == "") window.location.hash = "assembly";
+        window.addEventListener("hashchange", estilar_pestanas);
+        estilar_pestanas({ newURL: window.location.href });
+        /*]]>*/
+    </script>
 </body>
 </html>

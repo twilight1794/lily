@@ -2,21 +2,21 @@
 let lily;
 
 function limpiar(){
-    document.getElementById("est").textContent = "Ready";
-    document.getElementById("res").textContent = "";
+    document.getElementById("pa-est").textContent = "Ready";
+    document.getElementById("pa-res").textContent = "";
 }
 
 Module().then(Module => {
     lily = Module;
-    document.getElementById("run").addEventListener("click", (e) => {
+    document.getElementById("pa-run").addEventListener("click", (e) => {
         e.preventDefault();
         if (!e.target.parentNode.checkValidity()) return;
         e.target.disabled = true;
 
-        const e_af = document.getElementById("af");
-        const e_ds = document.getElementById("ds");
-        const e_res = document.getElementById("res");
-        const e_est = document.getElementById("est");
+        const e_af = document.getElementById("pa-af");
+        const e_ds = document.getElementById("pa-ds");
+        const e_res = document.getElementById("pa-res");
+        const e_est = document.getElementById("pa-est");
         e_est.textContent = "Assemblying...";
         e_res.textContent = "";
 
@@ -91,6 +91,6 @@ Module().then(Module => {
         }
         e.target.disabled = false;
     });
-    document.getElementById("af").addEventListener("input", limpiar);
-    document.getElementById("ds").addEventListener("input", limpiar);
+    document.getElementById("pa-af").addEventListener("input", limpiar);
+    document.getElementById("pa-ds").addEventListener("input", limpiar);
 });
