@@ -9,7 +9,7 @@
 #include "../lib/simbolo.h"
 
 enum lily_estado {
-    COD_OK,
+    COD_OK, /**< Todo bien */
     // Generales
     COD_MALLOC_FALLO, /**< [mc]alloc falló al reservar memoria */
     COD_CARACTER_INVALIDO, /**< Caracter inválido en el archivo */
