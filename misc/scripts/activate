@@ -1,0 +1,29 @@
+#!/bin/sh
+base_dir="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$base_dir" ]; then
+    echo "Debes estar dentro del repositorio para activar este entorno"
+    return 1
+fi
+
+deactivate(){
+    if [ -n "${LILY_OLD_PATH:-}" ]; then
+        export PATH="$LILY_OLD_PATH"
+        unset LILY_OLD_PATH
+    fi
+    if [ -n "${LILY_OLD_PS1:-}" ]; then
+        export PS1="$LILY_OLD_PS1"
+        unset LILY_OLD_PS1
+    fi
+    if [ -n "${LILY_GIT_REPO:-}" ]; then
+        unset LILY_GIT_REPO
+    fi
+    hash -r 2>/dev/null
+    unset deactivate
+}
+
+export LILY_OLD_PATH="$PATH"
+export PATH="$base_dir/misc/scripts:$PATH"
+export LILY_OLD_PS1="$PS1"
+export PS1="(lily) $PS1"
+export LILY_GIT_REPO="$base_dir"
+hash -r 2>/dev/null
