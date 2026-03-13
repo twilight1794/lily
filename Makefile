@@ -18,6 +18,7 @@ CPUDIR := /usr/local/share/lily/cpu
 V_LILY_VERSION=$(shell git tag --points-at HEAD)
 V_LILY_COMMIT=$(shell git rev-parse HEAD|cut -c 1-8)
 V_LILY_MODIFICADO=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; fi)
+CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\" -DCPUDIR=\"$(CPUDIR)\"
 
 TARGETS := linux windows web
 .PHONY: all dist $(TARGETS) linux-dbg windows-dbg web-dbg install-windows install-linux remove-linux remove-windows doxy clean test-windows test-linux
@@ -43,7 +44,6 @@ src/common/dict.o: src/common/dict.c src/common/dict.h
 src/common/lde.o: src/common/lde.c src/common/lde.h
 src/common/log.o: src/common/log.c src/common/log.h
 src/common/nums.o: src/common/nums.c src/common/nums.h
-src/cli/main.o: CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\" -DCPUDIR=\"$(CPUDIR)\"
 src/cli/main.o: src/cli/main.c
 src/cli/mmap.o: src/cli/mmap.c src/cli/mmap.h
 src/cli/mmap_windows.o: src/cli/mmap_windows.c src/cli/mmap_windows.h
