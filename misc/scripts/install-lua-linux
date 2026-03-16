@@ -65,7 +65,7 @@ EOF
 
 # Generar versión principal
 make clean
-make linux
+make linux-readline
 make install
 
 # Generar versión wasm
