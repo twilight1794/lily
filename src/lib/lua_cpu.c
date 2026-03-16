@@ -153,11 +153,11 @@ static int lily_lua_cpu_base_rawset(lua_State* L) {
         lua_error(L);
     }
     if (lua_type(L, 1) != LUA_TTABLE) {
-        lua_pushliteral(L, "rawget requiere una tabla para operar");
+        lua_pushliteral(L, "rawset requiere una tabla para operar");
         lua_error(L);
     }
     if (lua_isnoneornil(L, 2)) {
-        lua_pushliteral(L, "rawget necesita un índice entero");
+        lua_pushliteral(L, "rawset necesita un índice entero");
         lua_error(L);
     }
     lua_rawset(L, 1);
@@ -175,7 +175,7 @@ static int lily_lua_cpu_base_setmetatable(lua_State* L) {
     }
     int t = lua_type(L, 2);
     if (t != LUA_TTABLE && t != LUA_TNIL) {
-        lua_pushliteral(L, "rawlen requiere una tabla o nil como metatabla");
+        lua_pushliteral(L, "setmetatable requiere una tabla o nil como metatabla");
         lua_error(L);
     }
     // Si ya hay un campo __metatable, error
