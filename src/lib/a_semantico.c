@@ -255,7 +255,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             }
             for (size_t i = 0; i < lily_lde_size(instruccion->params); i++) {
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
-                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint8_t), simbolo->signo, true);
+                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint8_t), 2, true);
             }
             if (instruccion->etiqueta != NULL)
                 lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
@@ -273,7 +273,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             }
             for (size_t i = 0; i < lily_lde_size(instruccion->params); i++) {
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
-                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint16_t), false, instruccion->simbolo->subtipo == DIR_DWL);
+                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint16_t), 2, instruccion->simbolo->subtipo == DIR_DWL);
             }
             if (instruccion->etiqueta != NULL)
                 lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
@@ -291,7 +291,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             }
             for (size_t i = 0; i < lily_lde_size(instruccion->params); i++) {
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
-                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint32_t), false, instruccion->simbolo->subtipo == DIR_DDL);
+                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint32_t), 2, instruccion->simbolo->subtipo == DIR_DDL);
             }
             if (instruccion->etiqueta != NULL)
                 lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);
@@ -309,7 +309,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             }
             for (size_t i = 0; i < lily_lde_size(instruccion->params); i++) {
                 struct lily_simbolo_simbolo* simbolo = lily_lde_get(instruccion->params, i)->valor;
-                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint64_t), false, instruccion->simbolo->subtipo == DIR_DQL);
+                lily_nums_codificar_num(instruccion->bytes, simbolo->valor, sizeof(uint64_t), 2, instruccion->simbolo->subtipo == DIR_DQL);
             }
             if (instruccion->etiqueta != NULL)
                 lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, ctx);

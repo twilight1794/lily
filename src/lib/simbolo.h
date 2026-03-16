@@ -116,6 +116,7 @@ enum lily_simbolo_directiva {
 union lily_simbolo_numero {
     int64_t negativo; /**< Para números negativos */
     uint64_t positivo; /**< Para números positivos */
+    uint8_t bytes[8]; /**< Array para acceder a su representación en bytes */
 };
 
 /**
