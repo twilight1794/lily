@@ -19,10 +19,8 @@
 #include "../common/estado.h"
 #include "../common/lde.h"
 #include "../common/log.h"
+#include "simbolo.h"
 
-#include "../lib/simbolo.h"
-
-#include <libintl.h>
 
 // Modos del analizador léxico
 /**

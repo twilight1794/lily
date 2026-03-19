@@ -11,7 +11,6 @@
 #include "../common/log.h"
 #include  "simbolo.h"
 
-#include <libintl.h>
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>

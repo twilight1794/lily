@@ -8,7 +8,6 @@
 #include <getopt.h>
 #include <unistd.h>
 
-#include <libintl.h>
 #include "../common/defs.h"
 #include "../common/dict.h"
 #include "../common/estado.h"
