@@ -15,7 +15,7 @@
  */
 
 #if defined(WIN32)
-char* _(char *cad) { return cad; }
+#define _(STRING) STRING
 #define breakpoint *((int *) NULL) = 0
 
 #elif defined(__APPLE__)
@@ -25,15 +25,14 @@ char* _(char *cad) { return cad; }
 #define breakpoint                                                             \
   {                                                                            \
     *((int *)NULL) = 0;                                                        \
-    raise(SIGABRT);                                                            \
+    raise(SIGTRAP);                                                            \
   }
 
 #else
 #include <signal.h>
 #include <libintl.h>
 #define _(STRING) gettext(STRING)
-#define breakpoint raise(SIGABRT)
+#define breakpoint raise(SIGTRAP)
 #endif
 
 #endif
-#define _(STRING) gettext(STRING)
