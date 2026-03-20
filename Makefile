@@ -53,9 +53,11 @@ src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
 src/lib/lily.o: src/lib/lily.c src/lib/lily.h
 src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
 src/lib/lua_ensamble.o: src/lib/lua_ensamble.c src/lib/lua_ensamble.h
+src/lib/lua_entorno.o: src/lib/lua_entorno.c src/lib/lua_entorno.h
+src/lib/lua_int.o: src/lib/lua_int.c src/lib/lua_entorno.h
 src/lib/simbolo.o: src/lib/simbolo.c src/lib/simbolo.h
 
-DEPS_LIBLILY := src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_semantico.o src/lib/a_sintactico.o src/lib/lily.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/simbolo.o
+DEPS_LIBLILY := src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_semantico.o src/lib/a_sintactico.o src/lib/lily.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/lua_entorno.o src/lib/lua_int.o src/lib/simbolo.o
 
 dist/liblily.so: LDFLAGS += -shared -fPIC
 dist/liblily.so: LDLIBS += -llua

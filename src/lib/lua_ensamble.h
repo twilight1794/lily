@@ -11,7 +11,8 @@
 #include "../common/estado.h"
 #include "../common/lde.h"
 #include "../common/log.h"
-#include  "simbolo.h"
+#include "lua_int.h"
+#include "simbolo.h"
 
 #include <lua.h>
 

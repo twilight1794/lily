@@ -19,6 +19,18 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
         return NULL;
     }
 
+    // Cargar y preparar entorno de Lua
+    lua_State* L = lily_lua_entorno_preparar(ctx);
+    if (ctx->codigo != COD_OK) {
+        log_fatal_v(l, "lily_ensamble", _("codigo=%d (%s)"), ctx->codigo, ctx->lua_msg);
+        return NULL;
+    }
+    lily_lua_int_preparar(L, ctx);
+    if (ctx->codigo != COD_OK) {
+        log_fatal_v(l, "lily_ensamble", _("codigo=%d (%s)"), ctx->codigo, ctx->lua_msg);
+        return NULL;
+    }
+
     // Determinar arquitectura a usar
     char* arquitectura_final = NULL;
     char* arquitectura_asm = lily_a_semantico_obt_arquitectura_declarada(ast, ctx);
@@ -36,8 +48,8 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     log_info_v(l, "lily_ensamble", _("The architecture selected is '%s'"), arquitectura_final);
     struct lily_lily_archivo* archivo_arquitectura = fun_abrir_archivo(arquitectura_final, 0, ctx);
 
-    // Abrir ruta generada
-    lua_State* L = lily_lua_cpu_cargar(archivo_arquitectura->archivo, ctx);
+    // Abrir esquema de la arquitectura en la ruta generada
+    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, ctx);
     log_info_v(l, "lily_ensamble", _("lily_lua_cpu_cargar: %d."), ctx->codigo);
     if (ctx->codigo != COD_OK) {
         log_fatal_v(l, "lily_ensamble", _("codigo=%d (%s)"), ctx->codigo, ctx->lua_msg);

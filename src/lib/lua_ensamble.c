@@ -287,11 +287,34 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
     }
     for (lua_Integer i = 0; i < *tam; i++) {
         lua_geti(L, -1, i+1);
-        if (!lua_isinteger(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO;
-            return NULL;
+        if (lua_isinteger(L, -1)) {
+            bytes[i] = lua_tointeger(L, -1);
         }
-        bytes[i] = lua_tointeger(L, -1);
+        else if (lua_isuserdata(L, -1)) {
+            enum lily_lua_tipo tipo = lily_lua_int_obj(L);
+            size_t tamano;
+            // NOTE: Por ahora, asumiremos que todos los userdata son enteros exactos
+            lily_lua_int_tipo_valores(tipo, &tamano, NULL, NULL);
+            if (tamano > 1) {
+                // Agrandar array si el entero es multibyte
+                *tam += tamano - 1;
+                uint8_t* tmp = (uint8_t*) realloc(bytes, *tam);
+                if (tmp == NULL) {
+                    ctx->codigo = COD_MALLOC_FALLO;
+                    return NULL;
+                }
+                bytes = tmp;
+            }
+            uint8_t* bytes_obj = lua_touserdata(L, -1);
+            for (size_t j = 0; j < tamano; j++) {
+                bytes[i] = bytes_obj[j];
+                i++;
+            }
+        }
+        else {
+          ctx->codigo = COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO;
+          return NULL;
+        }
         lua_pop(L, 1);
     }
     lua_pop(L, 1);

@@ -1,5 +1,5 @@
 /**
-* @file lily.h
+ * @file lily.h
  * Funciones de entrada para los procesos principales
  */
 
@@ -9,6 +9,8 @@
 #include "a_lexico.h"
 #include "a_semantico.h"
 #include "a_sintactico.h"
+#include "lua_entorno.h"
+#include "lua_int.h"
 #include "../common/estado.h"
 
 struct lily_lily_archivo {

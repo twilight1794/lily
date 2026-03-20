@@ -1,9 +1,9 @@
 #include "nums.h"
 
-enum lily_estado lily_nums_codificar_num(uint8_t* buf, void* val, const size_t tam, const int signo, const bool endianness) {
+enum lily_estado lily_nums_codificar_num(uint8_t* buf, uint64_t* val, const size_t tam, const int signo, const bool endianness) {
     // Guardar número
     union lily_simbolo_numero num;
-    num.positivo = *((uint64_t*) val);
+    num.positivo = *val;
 
     // Validar signo y tamaño
     if (signo == 0) {
