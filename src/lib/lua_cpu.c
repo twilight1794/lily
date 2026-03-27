@@ -1,10 +1,10 @@
 #include "lua_cpu.h"
 
-void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx) {
+void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* estado, void** ctx) {
     // Cargar definición arquitectura a utilizar
     if (luaL_dostring(L, codigo) == LUA_OK) {
         if (!lua_istable(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_NO_TABLA;
+            *estado = COD_LUA_CPU_DESC_NO_TABLA;
             lua_close(L);
             return;
         }
@@ -15,12 +15,12 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx)
         lua_pushstring(L, "id");
         lua_gettable(L, -2);
         if (lua_isnil(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_NO_ID;
+            *estado = COD_LUA_CPU_DESC_NO_ID;
             lua_close(L);
             return;
         }
         if (!lua_isstring(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_ID_NO_CADENA;
+            *estado = COD_LUA_CPU_DESC_ID_NO_CADENA;
             lua_close(L);
             return;
         }
@@ -31,12 +31,12 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx)
         lua_pushstring(L, "registros");
         lua_gettable(L, -2);
         if (lua_isnil(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_NO_REGISTROS;
+            *estado = COD_LUA_CPU_DESC_NO_REGISTROS;
             lua_close(L);
             return;
         }
         if (!lua_istable(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_REGISTROS_NO_TABLA;
+            *estado = COD_LUA_CPU_DESC_REGISTROS_NO_TABLA;
             lua_close(L);
             return;
         }
@@ -46,12 +46,12 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx)
         lua_pushstring(L, "tipos");
         lua_gettable(L, -2);
         if (lua_isnil(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_NO_TIPOS;
+            *estado = COD_LUA_CPU_DESC_NO_TIPOS;
             lua_close(L);
             return;
         }
         if (!lua_istable(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_TIPOS_NO_TABLA;
+            *estado = COD_LUA_CPU_DESC_TIPOS_NO_TABLA;
             lua_close(L);
             return;
         }
@@ -61,12 +61,12 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx)
         lua_pushstring(L, "ensamble");
         lua_gettable(L, -2);
         if (lua_isnil(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_NO_ENSAMBLE;
+            *estado = COD_LUA_CPU_DESC_NO_ENSAMBLE;
             lua_close(L);
             return;
         }
         if (!lua_istable(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_ENSAMBLE_NO_TABLA;
+            *estado = COD_LUA_CPU_DESC_ENSAMBLE_NO_TABLA;
             lua_close(L);
             return;
         }
@@ -76,12 +76,12 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx)
         lua_pushstring(L, "opcodes");
         lua_gettable(L, -2);
         if (lua_isnil(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_NO_OPCODES;
+            *estado = COD_LUA_CPU_DESC_NO_OPCODES;
             lua_close(L);
             return;
         }
         if (!lua_istable(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_OPCODES_NO_TABLA;
+            *estado = COD_LUA_CPU_DESC_OPCODES_NO_TABLA;
             lua_close(L);
             return;
         }
@@ -91,20 +91,20 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx)
         lua_pushstring(L, "desensamble");
         lua_gettable(L, -2);
         if (lua_isnil(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_NO_DESENSAMBLE;
+            *estado = COD_LUA_CPU_DESC_NO_DESENSAMBLE;
             lua_close(L);
             return;
         }
         if (!lua_istable(L, -1)) {
-            ctx->codigo = COD_LUA_CPU_DESC_DESENSAMBLE_NO_TABLA;
+            *estado = COD_LUA_CPU_DESC_DESENSAMBLE_NO_TABLA;
             lua_close(L);
             return;
         }
         lua_pop(L, 1);
     }
     else {
-        ctx->codigo = COD_LUA_CPU_LUA_ERR;
-        ctx->lua_msg = (char*) lua_tostring(L, -1);
+        *estado = COD_LUA_CPU_LUA_ERR;
+        ((struct lily_a_semantico_ctx*) (*ctx))->lua_msg = (char*) lua_tostring(L, -1);
         lua_close(L);
         return;
     }

@@ -9,7 +9,8 @@
 #include "../common/defs.h"
 #include "../common/estado.h"
 #include "../common/log.h"
-#include  "simbolo.h"
+#include "a_semantico.h"
+#include "simbolo.h"
 
 #include <lua.h>
 #include <lualib.h>
@@ -23,6 +24,6 @@
  * @param codigo Cadena de caracteres que contiene el código del script
  * @param [out] ctx Estado de la ejecución al momento de salir de la función
  */
-void lily_lua_cpu_cargar(lua_State* L, const char* codigo, struct lily_ctx* ctx);
+void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* estado, void** ctx);
 
 #endif

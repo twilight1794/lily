@@ -712,7 +712,7 @@ int lily_lua_int_mt_tostring(lua_State *L) {
     return 1;
 }
 
-void lily_lua_int_preparar(lua_State* L, struct lily_ctx *ctx) {
+void lily_lua_int_preparar(lua_State* L) {
     lua_register(L, "int8", lily_lua_int_int8);
     lua_register(L, "uint8", lily_lua_int_uint8);
     lua_register(L, "sint8", lily_lua_int_sint8);

@@ -18,9 +18,14 @@
 #include "../common/defs.h"
 #include "../common/estado.h"
 #include "../common/lde.h"
-#include "../common/log.h"
+#include "mensajes.h"
 #include "simbolo.h"
 
+struct lily_a_lexico_ctx {
+    enum lily_simbolo_tipo tipo; /**< Tipo tentativo del símbolo que se estaba generando */
+    size_t i_inicial; /**< Posición en \a blob del símbolo tentativo */
+    size_t i_desp; /**< Desplazamiento desde \a i_inicial hasta el valor actual de \a i */
+};
 
 // Modos del analizador léxico
 /**
@@ -129,9 +134,11 @@ enum lily_estado lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const s
 /**
  * Función de entrada del analizador léxico
  * @param blob Cadena de texto que contiene el código fuente del archivo principal
- * @param [out] ctx Estado de la ejecución al momento de salir de la función, si no es \c NULL
+ * @param enviar_mensaje Función para enviar un mensaje
+ * @param [out] estado Estado de la operación
+ * @param [out] ctx Contexto de la operación
  * @return Lista de símbolos encontrados
  */
-struct lily_lde_lde* lily_a_lexico(const char* blob, struct lily_ctx* ctx);
+struct lily_lde_lde* lily_a_lexico(const char* blob, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
 #endif

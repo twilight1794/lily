@@ -62,8 +62,59 @@
             }
         }
     /*]]>*/</style>
-    <script fetchpriority="high" type="text/javascript" src="liblily.js"></script>
-    <script defer="defer" type="text/javascript" src="main.js"></script>
+    <script fetchpriority="high" type="module" src="liblily.mjs"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module">//<![CDATA[
+    import { Archivo, Maquina } from "./main.js";
+
+    function limpiar() {
+        document.getElementById("pa-est").textContent = "Ready";
+        document.getElementById("pa-res").textContent = "";
+    }
+
+    function abrir_archivo(nombre, tipo) {
+        if (tipo == Archivo.T_ESQUEMA_PROCESADOR)
+            return [ new Archivo(0, document.getElementById("pa-ds").value, tipo), 0 ];
+        else if (tipo == Archivo.T_ARCHIVO_REGULAR)
+            return [ undefined, 1 ];
+    }
+
+    function cerrar_archivo(obj) {
+        // Aquí no necesitamos hacer nada de nada
+        return 0;
+    }
+
+    function mensaje(mensaje) {
+        // Por ahora, solo para pruebas
+        console.log(mensaje);
+    }
+
+    document.getElementById("pa-run").addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!e.target.parentNode.checkValidity()) return;
+        e.target.disabled = true;
+
+        const e_af = document.getElementById("pa-af");
+        const e_ds = document.getElementById("pa-ds");
+        const e_res = document.getElementById("pa-res");
+        const e_est = document.getElementById("pa-est");
+        e_est.textContent = "Assemblying...";
+        e_res.textContent = "";
+
+        let maquinita = new Maquina(abrir_archivo, cerrar_archivo, mensaje);
+        let [estado, res] = maquinita.ensamblar(e_af.value, "");
+
+        e_est.textContent = "Estado: " + estado.toString() + " (" + res.length + " bytes)";
+
+        for (let byte of res) {
+            e_res.textContent += byte.toString(16).padStart(2, "0") + " ";
+        }
+        e.target.disabled = false;
+    });
+
+    document.getElementById("pa-af").addEventListener("input", limpiar);
+    document.getElementById("pa-ds").addEventListener("input", limpiar);
+    //]]></script>
 </head>
 <body>
     <h1>lily-web</h1>

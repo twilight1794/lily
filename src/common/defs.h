@@ -1,10 +1,14 @@
 /*
  * @file defs.h
- * Definiciones comunes
+ * Definiciones misceláneas
  */
 
 #ifndef LILY_C_DEFS
 #define LILY_C_DEFS
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @def breakpoint
@@ -15,13 +19,10 @@
  */
 
 #if defined(WIN32)
-#define _(STRING) STRING
 #define breakpoint *((int *) NULL) = 0
 
 #elif defined(__APPLE__)
 #include <signal.h>
-#include <libintl.h>
-#define _(STRING) gettext(STRING)
 #define breakpoint                                                             \
   {                                                                            \
     *((int *)NULL) = 0;                                                        \
@@ -30,9 +31,14 @@
 
 #else
 #include <signal.h>
-#include <libintl.h>
-#define _(STRING) gettext(STRING)
 #define breakpoint raise(SIGTRAP)
 #endif
+
+/**
+ * printf con memoria dinámica
+ * @param formato Formato printf
+ * @return Cadena formateada
+ */
+char* d_printf(char* formato, ...);
 
 #endif

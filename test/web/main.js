@@ -1,96 +1,330 @@
 "use strict";
-let lily;
+/**
+ * Interfaz principal para manipular máquinas virtuales Lily.
+ * @module liblily
+ */
 
-function limpiar(){
-    document.getElementById("pa-est").textContent = "Ready";
-    document.getElementById("pa-res").textContent = "";
+import Module from './liblily.mjs';
+const M = await Module();
+window.modulito = M;
+
+// Funciones auxiliares
+
+/**
+ * Evalúa si una variable es un número entero.
+ * @function
+ * @param {number} variable Variable a analizar.
+ * @returns {boolean} true si sí almacena un número entero.
+ */
+function esEntero(variable) { return typeof(variable) == "number" && Number.isInteger(variable); }
+
+// Errores
+
+class LilyError extends Error {
+    constructor(mensaje) {
+        super(mensaje);
+        this.name = this.constructor.name;
+    }
 }
 
-Module().then(Module => {
-    lily = Module;
-    document.getElementById("pa-run").addEventListener("click", (e) => {
-        e.preventDefault();
-        if (!e.target.parentNode.checkValidity()) return;
-        e.target.disabled = true;
+class CargarArchivoFaltanteError extends LilyError {
+    constructor() {
+        super("Debe establecerse la función de carga de archivo.");
+    }
+}
 
-        const e_af = document.getElementById("pa-af");
-        const e_ds = document.getElementById("pa-ds");
-        const e_res = document.getElementById("pa-res");
-        const e_est = document.getElementById("pa-est");
-        e_est.textContent = "Assemblying...";
-        e_res.textContent = "";
+class CerrarArchivoFaltanteError extends LilyError {
+    constructor() {
+        super("Debe establecerse la función de cierre de archivo.");
+    }
+}
 
-        // Crear configuración de log
-        const p_log = Module._malloc(8);
-        Module.setValue(p_log, 0, "i8");  // bool colores;
-        Module.setValue(p_log + 1, 0, "i8");  // bool incluir_fecha;
-        Module.setValue(p_log + 2, 0, "i8");  // bool incluir_hora;
-        Module.setValue(p_log + 3, 0, "i8");  // bool incluir_archivo;
-        Module.setValue(p_log + 4, 0, "i32"); // enum lily_log_nivel nivel_minimo;
+class MensajeFaltanteError extends LilyError {
+    constructor() {
+        super("Debe establecerse la función de mensajes.");
+    }
+}
 
-        // Establecer parámetros para uint8_t* lily_lily_ensamble
-        /// const char* datos_entrada
-        const p_datos_entrada = Module._malloc(Module.lengthBytesUTF8(e_af.value) + 1);
-        Module.stringToUTF8(e_af.value, p_datos_entrada, Module.lengthBytesUTF8(e_af.value) + 1);
-        /// char* arquitectura
-        const p_arquitectura = 0; // <- Esto será nulo siempre acá
-        /// struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, struct lily_ctx*),
-        const p_fun_abrir_archivo = Module.addFunction((param_nombre, param_tipo, param_ctx) => {
-            const nombre = Module.UTF8ToString(param_nombre);
-            console.log("Querying for Lua scheme ", nombre);
-            //// Primero, la cadena...
-            const p_fun_abrir_archivo_d = Module._malloc(Module.lengthBytesUTF8(e_ds.value) + 1);
-            Module.stringToUTF8(e_ds.value, p_fun_abrir_archivo_d, Module.lengthBytesUTF8(e_ds.value) + 1);
-            //// ...y el struct_lily_lily_archivo que la contendrá
-            const p_fun_abrir_archivo_ret = Module._malloc(12);
-            Module.setValue(p_fun_abrir_archivo_ret, 0, "i32");                     // void* obj;
-            Module.setValue(p_fun_abrir_archivo_ret+4, p_fun_abrir_archivo_d, "i32"); // char* archivo;
-            Module.setValue(p_fun_abrir_archivo_ret+8, 0, "i32");               // int tipo;
-            return p_fun_abrir_archivo_ret;
-        }, "piii");
-        /// int (fun_cerrar_archivo)(struct lily_lily_archivo*),
-        const p_fun_cerrar_archivo = Module.addFunction((param_nombre, param_tipo, param_ctx) => {
-            return 0;
+class ArquitecturaFaltanteError extends LilyError {
+    constructor() {
+        super("Debe especificar el identificador de un esquema de procesador.");
+    }
+}
+
+class NoImplementadoError extends LilyError {
+    constructor() {
+        super("Esta funcionalidad aún no ha sido implementada.");
+    }
+}
+
+class IdentificadorArchivoNoEnteroError extends LilyError {
+    constructor() {
+        super("El parámetro 'identificador' para Archivo debe ser un entero.");
+    }
+}
+
+class ContenidoArchivoNoCadenaError extends LilyError {
+    constructor() {
+        super("El parámetro 'contenido' para Archivo debe ser una cadena.");
+    }
+}
+
+class TipoArchivoNoEnteroError extends LilyError {
+    constructor() {
+        super("El parámetro 'tipo' para Archivo debe ser un entero.");
+    }
+}
+
+class NoEsPunteroError extends LilyError {
+    constructor() {
+        super("El valor pasado no es un puntero.");
+    }
+}
+
+class TipoMensajeError extends LilyError {
+    constructor() {
+        super("El tipo de mensaje debe estar entre 0 y 8");
+    }
+}
+
+class SubtipoMensajeError extends LilyError {
+    constructor() {
+        super("El subtipo de mensaje debe ser un valor entero");
+    }
+}
+
+// Funciones para exportar
+
+/**
+ * Estructura para describir un archivo que será manipulado por Lily.
+ * @class
+ * @param {number} Identificador único para un archivo en el sistema cliente.
+ * @param {string} Contenido del archivo consultado.
+ * @param {number} Tipo de archivo.
+ */
+class Archivo {
+    static T_ESQUEMA_PROCESADOR = 0;
+    static T_ARCHIVO_REGULAR = 1;
+
+    static desde_puntero(ptr) {
+        this.ptr = ptr;
+    }
+
+    constructor(identificador, contenido, tipo) {
+        // Comprobar identificador
+        if (!esEntero(identificador))
+            throw new IdentificadorArchivoNoEnteroError();
+
+        // Comprobar contenido
+        if (typeof(contenido) != "string")
+            throw new ContenidoArchivoNoCadenaError();
+        const tam_contenido = M.lengthBytesUTF8(contenido) + 1;
+        const ptr_contenido = M._malloc(tam_contenido);
+        M.stringToUTF8(contenido, ptr_contenido, tam_contenido);
+
+        // Comprobar tipo
+        if (!esEntero(tipo) || [this.T_ESQUEMA_PROCESADOR, this.T_ARCHIVO_REGULAR].includes(tipo))
+            throw new TipoArchivoNoEnteroError();
+
+        // Crear estructura
+        this.ptr = M._malloc(12);
+        M.setValue(this.ptr, identificador, "i32");   // void* obj;
+        M.setValue(this.ptr+4, ptr_contenido, "i32"); // char* archivo;
+        M.setValue(this.ptr+8, tipo, "i32");          // int tipo;
+    }
+
+    destructor() {
+        const ptr_archivo = M.getValue(this.ptr + 4, "i32");
+        M._free(ptr_archivo); // char* archivo
+        M._free(this.ptr);    // struct lily_archivo
+    }
+}
+
+class Mensaje {
+    static T_LOG = 0;
+    static T_ADVERTENCIA = 1;
+    static T_ETIQUETA = 2;
+    static T_VARIABLE = 3;
+    static T_MEMORIA = 4;
+    static T_REGISTRO = 5;
+    static T_PILA = 6;
+    static T_DISPOSITIVO = 7;
+    static T_INTERRUPCION = 8;
+
+    constructor(tipo, subtipo, modulo, obj) {
+        if (!esEntero(tipo) || tipo < 0 || tipo > 8)
+            throw new TipoMensajeError();
+        this.tipo = tipo
+        if (!esEntero(subtipo)) {
+            throw new SubtipoMensajeError();
+        }
+        this.subtipo = subtipo;
+        this.modulo = modulo;
+        this.obj = obj;
+    }
+
+    mostrar_mensaje() {
+        if (this.tipo == this.T_LOG) {
+            return M.UTF8ToString(this.obj);
+        }
+        else if (this.tipo == this.T_ADVERTENCIA) {
+        // FIX: parametrizar esto, por ahora solo hay una opción
+            if (subtipo == 25) //< COD_A_SEMANTICO_INSTRUCCION_SIN_ETI
+                return "La directiva procesada necesita una etiqueta, y no ha sido provista";
+        }
+        return "";
+    }
+}
+
+/**
+ * Función para acceder a un archivo en el sistema cliente.
+ * @callback Maquina~carga_archivo_f
+ * @param {string} x Nombre del archivo a abrir.
+ * @param {number} x Tipo de archivo a abrir.
+ * @return {Archivo} Objeto que representa un archivo abierto.
+ */
+
+/**
+ * Función para cerrar un archivo previamente abierto con {{@link Maquina~carga_archivo}}.
+ * @callback Maquina~cierre_archivo_f
+ * @param {Archivo} x Objeto archivo a cerrar.
+ * @return {number} Código de estado. 0 si todo salió bien.
+ */
+
+/**
+ * Función para procesar un mensaje de Lily.
+ * @callback Maquina~mensaje_f
+ * @param {number} tipo Tipo del mensaje a recibir.
+ * @param {number} subtipo Tipo más específico del mensaje.
+ * @param {string} modulo Módulo del cual proviene el mensaje.
+ * @param {object} detalles Objeto que contiene datos adicionales sobre el mensaje.
+ * @return {number} Código de estado. 0 si todo salió bien.
+ */
+
+/**
+ * Instancia de una máquina virtual.
+ * @class
+ * @param {Maquina~carga_archivo_f} cargar_archivo: Función llamada por Lily para pedir al sistema cliente un archivo nuevo.
+ * @param {Maquina~cierre_archivo_f} cerrar_archivo Función llamada por Lily para cerrar un archivo.
+ * @param {Maquina~mensaje_f} mensaje Función llamada por Lily para procesar mensajes.
+ */
+class Maquina {
+    constructor(cargar_archivo, cerrar_archivo, mensaje) {
+        // Funciones para cargar archivo
+        if (typeof(cargar_archivo) != "function")
+            throw new CargarArchivoFaltanteError();
+        this.cargar_archivo = cargar_archivo;
+        if (typeof(cerrar_archivo) != "function")
+            throw new CerrarArchivoFaltanteError();
+        this.cerrar_archivo = cerrar_archivo;
+        if (typeof(mensaje) != "function")
+            throw new MensajeFaltanteError();
+        this.mensaje = mensaje;
+    }
+
+    /**
+     * Ensambla un bloque de código en ensamblador.
+     * @param {string} datos_entrada Código fuente a ensamblar.
+     * @param {string} arquitectura Identificador del esquema del microprocesador a utilizar.
+     * @return {Uint8Array} Código objeto resultante.
+     */
+    ensamblar(datos_entrada, arquitectura) {
+        let array_salida = undefined;
+
+        // const char* datos_entrada
+        const tam_datos_entrada = M.lengthBytesUTF8(datos_entrada) + 1;
+        this.p_datos_entrada = M._malloc(tam_datos_entrada);
+        M.stringToUTF8(datos_entrada, this.p_datos_entrada, tam_datos_entrada);
+
+        // char* arquitectura
+        this.p_arquitectura = 0;
+        if (arquitectura) {
+            const tam_arquitectura = M.lengthBytesUTF8(arquitectura) + 1;
+            this.p_arquitectura = M._malloc(tam_datos_entrada);
+            M.stringToUTF8(arquitectura, this.p_arquitectura, tam_arquitectura);
+        }
+
+        // struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*)
+        this.p_fun_cargar_archivo = M.addFunction((param_nombre, param_tipo, param_codigo) => {
+            // Deserializar parámetros
+            const nombre = M.UTF8ToString(param_nombre);
+            // Llamar al cliente por la estructura
+            console.log(this.cargar_archivo);
+            const [obj, codigo] = this.cargar_archivo(nombre, param_tipo);
+            M.setValue(param_codigo, codigo, "i32");
+            return obj.ptr;
+        }, "iiii");
+
+        // int (fun_cerrar_archivo)(struct lily_lily_archivo*)
+        this.p_fun_cerrar_archivo = M.addFunction((param_archivo) => {
+            const archivo = Archivo.desde_puntero(param_archivo);
+            const estado = this.cerrar_archivo();
+            //archivo.destructor();
+            return estado;
         }, "ii");
-        /// size_t* tam_salida
-        const p_tam_salida = Module._malloc(4);
-        Module.setValue(p_tam_salida, 0, "i32");
-        /// struct lily_ctx* ctx
-        const p_ctx = Module._malloc(48);
-        Module.setValue(p_ctx, 0, "i32");     // enum lily_estado codigo
-        Module.setValue(p_ctx + 4, 0, "i32"); // enum lily_simbolo_tipo tipo
-        Module.setValue(p_ctx + 8, 0, "i32"); // size_t i_inicial
-        Module.setValue(p_ctx + 12, 0, "i32"); // size_t i_desp
-        Module.setValue(p_ctx + 16, 0, "i32"); // struct lily_simbolo_simbolo* ultimo
-        Module.setValue(p_ctx + 20, 0, "i32"); // char* lua_msg
-        Module.setValue(p_ctx + 24, p_log, "i32"); // void* log_cfg
+
+        // int (fun_mensaje)(enum lily_lily_mensaje_tipo, int, char*, void*)
+        this.p_fun_mensaje = M.addFunction((param_tipo, param_subtipo, param_modulo, param_obj) => {
+            const modulo = M.UTF8ToString(param_modulo);
+            let mensaje = new Mensaje(param_tipo, param_subtipo, modulo, param_obj);
+            const estado = this.mensaje(mensaje);
+            return estado;
+        }, "iiiii");
+
+        // size_t* tam_salida
+        this.p_tam_salida = M._malloc(4);
+        M.setValue(this.p_tam_salida, 0, "i32");
+
+        // enum lily_estado* estado
+        this.p_estado = M._malloc(4);
+        M.setValue(this.p_estado, 0, "i32");
+
+        // void** ctx
+        this.p_ctx = M._malloc(4);
+        this.pp_ctx = M._malloc(4);
+        M.setValue(this.p_ctx, 0, "i32");
+        M.setValue(this.pp_ctx, this.p_ctx, "i32");
 
         // Llamar a lily_lily_ensamble
+        let estado = 0;
         try {
-            const p_res = Module.ccall("lily_lily_ensamble",
-                "number",
-                ["number", "number", "number", "number", "number", "number"],
-                [p_datos_entrada, p_arquitectura, p_fun_abrir_archivo, p_fun_cerrar_archivo, p_tam_salida, p_ctx]
-            );
-            const estado = Module.getValue(p_ctx, "i32");
-            const tam_salida = Module.getValue(p_tam_salida, "i32");
-            e_est.textContent = "Estado: " + estado.toString() + " (" + tam_salida + " bytes)";
-            for (let i = 0; i<tam_salida; i++) {
-                const v = Module.getValue(p_res + i, "i8");
-                e_res.textContent += v.toString(16).padStart(2, "0") + " ";
+            const p_res = M.ccall("lily_lily_ensamble",
+                                       "number",
+                                       ["number", "number", "number", "number", "number", "number", "number", "number"],
+                                       [this.p_datos_entrada, this.p_arquitectura, this.p_fun_cargar_archivo, this.p_fun_cerrar_archivo, this.p_fun_mensaje, this.p_tam_salida, this.p_estado, this.pp_ctx]
+                                      );
+            estado = M.getValue(this.p_estado, "i32");
+            array_salida = new Uint8Array(M.getValue(this.p_tam_salida, "i32"));
+            M._free(this.p_tam_salida);
+            for (let i = 0; i < array_salida.byteLength; i++) {
+                array_salida[i] = M.getValue(p_res + i, "i8");
             }
-        } finally {
-            Module._free(p_log);
-            Module._free(p_datos_entrada);
-            //Module._free(p_fun_abrir_archivo_d);
-            //Module._free(p_fun_abrir_archivo_ret);
-            Module._free(p_tam_salida);
-            Module._free(p_ctx);
-            Module.removeFunction(p_fun_abrir_archivo);
-            Module.removeFunction(p_fun_cerrar_archivo);
         }
-        e.target.disabled = false;
-    });
-    document.getElementById("pa-af").addEventListener("input", limpiar);
-    document.getElementById("pa-ds").addEventListener("input", limpiar);
-});
+        finally {
+            M._free(this.p_datos_entrada);
+            M._free(this.p_arquitectura);
+            //M.removeFunction(this.ptr_fun_cargar_archivo);
+            //M.removeFunction(this.ptr_fun_cerrar_archivo);
+            //M.removeFunction(this.ptr_fun_mensaje);
+            M._free(this.p_estado);
+            M._free(this.p_ctx);
+        }
+        return [estado, array_salida];
+    }
+
+    /**
+     * Desensambla un bloque de código objeto.
+     * @param {Uint8Array} datos_entrada Código objeto a desensamblar.
+     * @param {string} arquitectura Identificador del esquema del microprocesador a utilizar.
+     * @return {string} Código ensamblador resultante.
+     */
+    desensamblar(datos_entrada, arquitectura) {
+        if (typeof(arquitectura) != "string")
+            throw new ArquitecturaFaltanteError();
+    }
+}
+
+export {
+    Archivo,
+    Maquina
+};

@@ -15,17 +15,23 @@
 #include "../common/lde.h"
 #include "../common/log.h"
 #include "../common/nums.h"
-#include "simbolo.h"
 #include "lua_cpu.h"
 #include "lua_ensamble.h"
+#include "mensajes.h"
+#include "simbolo.h"
+
+struct lily_a_semantico_ctx {
+    struct lily_simbolo_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
+    char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
+};
 
 /**
  * Devuelve la arquitectura declarada en el archivo ensamblador
  * @param ast Árbol de sintaxis abstracta generado en el análisis sintáctico
- * @param ctx Contexto del estado de la operación
+ * @param [out] ctx Contexto del estado de la operación
  * @return Cadena con el identificador de la arquitectura
  */
-char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, struct lily_ctx* ctx);
+char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, enum lily_estado* estado, void** ctx);
 
 /**
  * Función de entrada del analizador semántico
@@ -33,8 +39,11 @@ char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, stru
  * @param L Sesión de Lua
  * @param pc_inicial Valor predeterminado para el contador de programa
  * @param [out] tam Número de bytes generados
- * @param [out] ctx Contexto del estado de la operación
+ * @param enviar_mensaje Función para enviar un mensaje
+ * @param [out] estado Estado de la operación
+ * @param [out] ctx Contexto de la operación
  * @return Array de bytes resultante
  */
-uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, struct lily_ctx* ctx);
+uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
+
 #endif

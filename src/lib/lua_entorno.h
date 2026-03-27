@@ -34,6 +34,6 @@ int lily_lua_entorno_base_tonumber(lua_State* L);
 int lily_lua_entorno_base_tostring(lua_State* L);
 int lily_lua_entorno_base_type(lua_State* L);
 
-lua_State* lily_lua_entorno_preparar(struct lily_ctx* ctx);
+lua_State* lily_lua_entorno_preparar(enum lily_estado* estado);
 
 #endif

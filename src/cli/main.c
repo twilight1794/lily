@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libintl.h>
 #include <getopt.h>
 #include <unistd.h>
 
@@ -20,6 +21,8 @@
 #elif defined(_WIN32)
 #include "mmap_windows.h"
 #endif
+
+#define _(CAD) gettext(CAD)
 
 #ifndef LILY_VERSION
 #define LILY_VERSION "???"
@@ -54,32 +57,27 @@ struct lily_dict_nodo* obt_param_valorado(char* arg, struct lily_dict_dict* dict
 char* obt_extension(char *nombre);
 void obt_nombre_archivo(char* nombre, enum lily_main_etapa etapa, char* archivo_salida);
 char* obt_etapa_str(enum lily_main_etapa etapa);
-struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, struct lily_ctx* ctx);
+int enviar_mensaje(enum lily_lily_mensaje_tipo tipo, int subtipo, char* modulo, void* obj);
+struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, int* estado);
 int cerrar_archivo(struct lily_lily_archivo* st);
 
-int main(int argc, char **argv){
+struct lily_log_config lily_log_conf = {
+    .colores = true,
+    .incluir_fecha = true,
+    .incluir_hora = true,
+    .incluir_archivo = true,
+    .nivel_minimo = LILY_LOG_INFO
+};
+
+int main(int argc, char **argv) {
     // Si no hay parámetros, no hay qué seguir
     if (argc == 1) {
         f_help(argv[0]);
         return 0;
     }
-    struct lily_log_config lily_log_conf = {
-        .colores = true,
-        .incluir_fecha = true,
-        .incluir_hora = true,
-        .incluir_archivo = true,
-        .nivel_minimo = LILY_LOG_INFO
-    };
     struct lily_log_config* l = &lily_log_conf;
-    struct lily_ctx ctx = {
-        .codigo = COD_OK,
-        .tipo = SIMB_INDETERMINADO,
-        .i_inicial = 0,
-        .i_desp = 0,
-        .ultimo = NULL,
-        .lua_msg = NULL,
-        .log_cfg = l,
-    };
+    enum lily_estado estado;
+    void* ctx;
 
     char* archivo_listado_ruta = NULL;
     struct lily_dict_dict macros = { .raiz = NULL, .tamano = 0 };
@@ -221,7 +219,7 @@ int main(int argc, char **argv){
                 return COD_OK;
             default:
                 if (optopt) log_error_v(l, "main", _("The parameter '%c' was not recognized."), optopt);
-                else  log_error_v(l, "main", _("The parameter '%s' was not recognized."), argv[longopt_idx+1]);
+                else log_error_v(l, "main", _("The parameter '%s' was not recognized."), argv[longopt_idx+1]);
         }
     };
 
@@ -307,7 +305,7 @@ int main(int argc, char **argv){
     for (enum lily_main_etapa etapa_actual = etapa_inicial; etapa_actual <= etapa_final; etapa_actual++) {
         if (etapa_actual == LILY_MAIN_ENSAMBLADO) {
             // TODO: revisar por qué no usamos uint8_t también en esta entrada
-            datos_proceso = lily_lily_ensamble(archivo_entrada_obj->p, arquitectura, &obt_archivo, &cerrar_archivo, &tam_proceso, &ctx);
+            datos_proceso = lily_lily_ensamble(archivo_entrada_obj->p, arquitectura, &obt_archivo, &cerrar_archivo, &enviar_mensaje, &tam_proceso, &estado, &ctx);
         }
         else if (etapa_actual == LILY_MAIN_ENLAZADO) {
             exit(EXIT_FAILURE);
@@ -326,7 +324,7 @@ int main(int argc, char **argv){
         datos_entrada = datos_proceso;
         tam_entrada = tam_proceso;
     }
-    if (ctx.codigo != COD_OK) {
+    if (estado != COD_OK) {
         exit(EXIT_FAILURE);
     }
 
@@ -442,10 +440,36 @@ char* obt_etapa_str(enum lily_main_etapa etapa) {
     return "";
 }
 
+int enviar_mensaje(enum lily_lily_mensaje_tipo tipo, int subtipo, char* modulo, void* obj) {
+    struct lily_log_config* l = &lily_log_conf;
+    switch (tipo) {
+    case LILY_MENSAJE_TLOG:
+        if (subtipo == LILY_LOG_DEBUG) log_debug(l, modulo, (char*) obj);
+        else if (subtipo == LILY_LOG_INFO) log_info(l, modulo, (char*) obj);
+        else if (subtipo == LILY_LOG_WARN) log_warn(l, modulo, (char*) obj);
+        else if (subtipo == LILY_LOG_ERROR) log_error(l, modulo, (char*) obj);
+        else if (subtipo == LILY_LOG_FATAL) log_fatal(l, modulo, (char*) obj);
+        break;
+    case LILY_MENSAJE_TADVERTENCIA:
+        log_warn(l, modulo, (char*) obj);
+        break;
+    case LILY_MENSAJE_TETIQUETA:
+    case LILY_MENSAJE_TVARIABLE:
+    case LILY_MENSAJE_TMEMORIA:
+    case LILY_MENSAJE_TREGISTRO:
+    case LILY_MENSAJE_TPILA:
+    case LILY_MENSAJE_TDISPOSITIVO:
+    case LILY_MENSAJE_TINTERRUPCION:
+        // FIX: no implementado aún, ignoramos
+        break;
+    }
+    return 0;
+}
+
 #if defined(__unix__) || defined(__APPLE__)
-struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, struct lily_ctx* ctx) {
+struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, int* estado) {
     struct lily_lily_archivo* obj = (struct lily_lily_archivo*) malloc(sizeof(struct lily_lily_archivo));
-    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
+    struct lily_log_config* l = &lily_log_conf;
     if (obj == NULL) return NULL;
     obj->tipo = tipo;
     if (tipo == 0) {
@@ -458,7 +482,7 @@ struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, struct lily
             size_t ruta_tam = strlen(archivo) + strlen(CPUDIR) + 6;
             char* archivo_arquitectura_ruta = (char*) malloc(ruta_tam * sizeof(char));
             if (archivo_arquitectura_ruta == NULL) {
-                ctx->codigo = COD_MALLOC_FALLO;
+                *estado = COD_MALLOC_FALLO;
                 log_fatal(l, "obt_archivo", _("Error while searching for architecture description file."));
                 free(obj);
                 return NULL;
@@ -467,7 +491,7 @@ struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, struct lily
             log_debug_v(l, "obt_archivo", _("Searching architecture description file at %s"), archivo_arquitectura_ruta);
             obj->obj = lily_cli_archivo_create(archivo_arquitectura_ruta, 0);
             if (obj->obj == NULL) {
-                log_fatal_v(l, "obt_archivo", _("The description file for architecture '%s' could not be found."), archivo);
+                log_error_v(l, "obt_archivo", _("The description file for architecture '%s' could not be found."), archivo);
                 free(archivo_arquitectura_ruta);
                 free(obj);
                 return NULL;

@@ -30,16 +30,17 @@ linux: dist/lily
 windows: dist/lily.exe
 web: CFLAGS += -Oz
 web: LDFLAGS += -Oz -sASSERTIONS=0
-web: dist/liblily.js
+web: dist/liblily.mjs
 # Debug
 linux-dbg: CFLAGS += -ggdb3
 linux-dbg: dist/lily
 windows-dbg: dist/lily.exe
 web-dbg: CFLAGS += -gsource-map
 web-dbg: LDFLAGS += -gsource-map -sASSERTIONS
-web-dbg: dist/liblily.js
+web-dbg: dist/liblily.mjs
 
 src/common/cadena.o: src/common/cadena.c src/common/cadena.h
+src/common/defs.o: src/common/defs.c src/common/defs.h
 src/common/dict.o: src/common/dict.c src/common/dict.h
 src/common/lde.o: src/common/lde.c src/common/lde.h
 src/common/log.o: src/common/log.c src/common/log.h
@@ -57,7 +58,7 @@ src/lib/lua_entorno.o: src/lib/lua_entorno.c src/lib/lua_entorno.h
 src/lib/lua_int.o: src/lib/lua_int.c src/lib/lua_entorno.h
 src/lib/simbolo.o: src/lib/simbolo.c src/lib/simbolo.h
 
-DEPS_LIBLILY := src/common/cadena.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_semantico.o src/lib/a_sintactico.o src/lib/lily.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/lua_entorno.o src/lib/lua_int.o src/lib/simbolo.o
+DEPS_LIBLILY := src/common/cadena.o src/common/defs.o src/common/dict.o src/common/lde.o src/common/log.o src/common/nums.o src/lib/a_lexico.o src/lib/a_semantico.o src/lib/a_sintactico.o src/lib/lily.o src/lib/lua_cpu.o src/lib/lua_ensamble.o src/lib/lua_entorno.o src/lib/lua_int.o src/lib/simbolo.o
 
 dist/liblily.so: LDFLAGS += -shared -fPIC
 dist/liblily.so: LDLIBS += -llua
@@ -68,12 +69,12 @@ dist/liblily.dll: LDFLAGS += -shared
 dist/liblily.dll: $(DEPS_LIBLILY)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-dist/liblily.js: CC=emcc
-dist/liblily.js: CFLAGS += -I/usr/local/include -sWASM=1 -sSTRICT
-dist/liblily.js: LDFLAGS += -fPIC -I/usr/local/include -L/usr/local/lib -sSTRICT -sSAFE_HEAP=1 -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
-dist/liblily.js: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_malloc', '_free']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction"]'
-dist/liblily.js: LDLIBS += -lluawasm
-dist/liblily.js: $(DEPS_LIBLILY)
+dist/liblily.mjs: CC=emcc
+dist/liblily.mjs: CFLAGS += -I/usr/local/include -sWASM=1 -sSTRICT
+dist/liblily.mjs: LDFLAGS += -fPIC -I/usr/local/include -L/usr/local/lib -sSTRICT -sSAFE_HEAP=1 -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
+dist/liblily.mjs: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_malloc', '_free']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction"]'
+dist/liblily.mjs: LDLIBS += -lluawasm
+dist/liblily.mjs: $(DEPS_LIBLILY)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 DEPS_LILY_LINUX := src/cli/main.o src/cli/mmap.o

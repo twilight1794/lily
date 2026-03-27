@@ -7,7 +7,6 @@
 #define LILY_L_LUA_INT
 
 #include "../common/defs.h"
-#include "../common/estado.h"
 #include "../common/nums.h"
 #include "simbolo.h"
 
@@ -151,6 +150,6 @@ int lily_lua_int_mt_le(lua_State* L);
 int lily_lua_int_mt_index(lua_State* L);
 int lily_lua_int_mt_tostring(lua_State* L);
 
-void lily_lua_int_preparar(lua_State* L, struct lily_ctx *ctx);
+void lily_lua_int_preparar(lua_State* L);
 
 #endif

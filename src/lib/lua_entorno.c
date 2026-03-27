@@ -206,7 +206,7 @@ int lily_lua_entorno_base_type(lua_State* L) {
     return 1;
 }
 
-lua_State* lily_lua_entorno_preparar(struct lily_ctx* ctx) {
+lua_State* lily_lua_entorno_preparar(enum lily_estado* estado) {
     lua_State* L = luaL_newstate();
     // Bibliotecas integradas
     luaopen_string(L);
@@ -232,7 +232,7 @@ lua_State* lily_lua_entorno_preparar(struct lily_ctx* ctx) {
     lua_setglobal(L, "_VERSION");
     char* _lily_version = (char*) malloc(snprintf(NULL, 0, "Lily %s (commit %s%s)", LILY_VERSION, LILY_COMMIT, LILY_MODIFICADO));
     if (_lily_version == NULL) {
-        ctx->codigo = COD_MALLOC_FALLO;
+        *estado = COD_MALLOC_FALLO;
         lua_close(L);
         return NULL;
     }

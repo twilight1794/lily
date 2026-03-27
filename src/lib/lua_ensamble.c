@@ -1,6 +1,6 @@
 #include "lua_ensamble.h"
 
-#include <ctype.h>
+#define cctx ((struct lily_a_semantico_ctx*) (*ctx))
 
 /**
  * Comprueba si \a simbolo cumple con alguno de los tipos conocidos por Lily
@@ -10,7 +10,7 @@
  * @param [out] ctx Estado de la ejecución al momento de salir de la función
  * @return \c true si el símbolo coincide con el tipo, \c false si no
  */
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, struct lily_ctx* ctx);
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, enum lily_estado* estado, void** ctx);
 
 /**
  * Lee la lista de parámetros en \a params para una instrucción, y prepara sus valores en la pila para Lua
@@ -26,7 +26,7 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
  * @param [out] ctx Estado de la ejecución al momento de salir de la función
  * @return Cadena de bytes que representan al mnemónico
  */
-static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, struct lily_ctx* ctx);
+static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, enum lily_estado* estado);
 
 /**
  * Ensambla un mnemónico definido como una función
@@ -34,7 +34,7 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
  * @param instruccion Instrucción que contiene el mnemónico a ensamblar
  * @param ctx Estado de la ejecución al momento de salir de la función
  */
-static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx);
+static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
 /**
  * Ensambla un mnemónico definido como una lista de bytes
@@ -42,7 +42,7 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_ins
  * @param instruccion Instrucción que contiene el mnemónico a ensamblar
  * @param ctx Estado de la ejecución al momento de salir de la función
  */
-static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx);
+static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
 /**
  * Ensambla un mnemónico definido como una redirección a otro mnemónico
@@ -50,7 +50,7 @@ static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instr
  * @param instruccion Instrucción que contiene el mnemónico a ensamblar
  * @param ctx Estado de la ejecución al momento de salir de la función
  */
-static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx);
+static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
 /**
  * Ensambla un mnemónico definido como una lista de diferentes combinaciones de argumentos
@@ -58,9 +58,9 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
  * @param instruccion Instrucción que contiene el mnemónico a ensamblar
  * @param ctx Estado de la ejecución al momento de salir de la función
  */
-static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx);
+static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, struct lily_ctx* ctx) {
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, enum lily_estado* estado, void** ctx) {
     union lily_simbolo_numero n;
     // Primero, comprobar si el tipo es uno precargado
     if (!strcmp(tipo, "int3") && simbolo->tipo == SIMB_NUMERO) {
@@ -199,7 +199,7 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     lua_gettable(L, -2);
     if (lua_isnil(L, -1)) {
         lua_pop(L, 2);
-        ctx->codigo = COD_LUA_CPU_TIPO_INEXISTENTE;
+        *estado = COD_LUA_CPU_TIPO_INEXISTENTE;
         return false;
     }
     // Ajustar valor de símbolo
@@ -222,14 +222,15 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     }
     // Llamar función
     if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
-        ctx->codigo = COD_LUA_CPU_TIPO_INEXISTENTE;
-        ctx->lua_msg = (char*) lua_tostring(L, -1);
+        *estado = COD_LUA_CPU_TIPO_INEXISTENTE;
+        // FIX: comprobar NULL
+        cctx->lua_msg = (char*) lua_tostring(L, -1);
         lua_pop(L, 2);
         return false;
     }
     if (!lua_isboolean(L, -1)) {
         lua_pop(L, 2);
-        ctx->codigo = COD_LUA_CPU_TIPO_FUNCION_NO_BOOLEANO;
+        *estado = COD_LUA_CPU_TIPO_FUNCION_NO_BOOLEANO;
         return false;
     }
     bool res = lua_toboolean(L, -1);
@@ -268,21 +269,21 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
     }
 }
 
-static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, struct lily_ctx* ctx) {
+static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, enum lily_estado* estado) {
     if (!lua_istable(L, -1)) {
-        ctx->codigo = COD_LUA_CPU_RES_ENSAMBLE_NO_TABLA;
+        *estado = COD_LUA_CPU_RES_ENSAMBLE_NO_TABLA;
         return NULL;
     }
     lua_len(L, -1);
     *tam = lua_tointeger(L, -1);
     lua_pop(L, 1);
     if (*tam == 0) {
-        ctx->codigo = COD_LUA_CPU_RES_ENSAMBLE_VACIO;
+        *estado = COD_LUA_CPU_RES_ENSAMBLE_VACIO;
         return NULL;
     }
     uint8_t* bytes = calloc(*tam, sizeof(uint8_t));
     if (bytes == NULL) {
-        ctx->codigo = COD_MALLOC_FALLO;
+        *estado = COD_MALLOC_FALLO;
         return NULL;
     }
     for (lua_Integer i = 0; i < *tam; i++) {
@@ -300,7 +301,7 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
                 *tam += tamano - 1;
                 uint8_t* tmp = (uint8_t*) realloc(bytes, *tam);
                 if (tmp == NULL) {
-                    ctx->codigo = COD_MALLOC_FALLO;
+                    *estado = COD_MALLOC_FALLO;
                     return NULL;
                 }
                 bytes = tmp;
@@ -312,8 +313,8 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
             }
         }
         else {
-          ctx->codigo = COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO;
-          return NULL;
+            *estado = COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO;
+            return NULL;
         }
         lua_pop(L, 1);
     }
@@ -321,33 +322,37 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
     return bytes;
 }
 
-static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
-    log_debug_v(l, "lua_cpu_ensamblar_funcion", _("lua_cpu: %s es de tipo función"), (char*) instruccion->simbolo->valor);
+static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+    char* msg_buf = d_printf("%s es de tipo función", (char*) instruccion->simbolo->valor);
+    enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_funcion", msg_buf);
+    free(msg_buf);
     lily_lua_cpu_est_parametros(L, instruccion->params);
     if (lua_pcall(L, lily_lde_size(instruccion->params), 1, 0) == LUA_OK) {
         lua_Integer tam;
-        instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, ctx);
+        instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, estado);
         instruccion->tam_bytes = (size_t) tam;
-    } else {
-        ctx->codigo = COD_LUA_CPU_LUA_ERR;
-        ctx->lua_msg = (char*) lua_tostring(L, -1);
+    }
+    else {
+        *estado = COD_LUA_CPU_LUA_ERR;
+        cctx->lua_msg = (char*) lua_tostring(L, -1);
         lua_pop(L, 1);
     }
 }
 
-static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
-    log_debug_v(l, "lua_cpu_ensamblar_lista", _("lua_cpu: %s es de tipo List<int>"), (char*) instruccion->simbolo->valor);
+static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+    char* msg_buf = d_printf("%s es de tipo List<int>", (char*) instruccion->simbolo->valor);
+    enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lista", msg_buf);
+    free(msg_buf);
     lua_pop(L, 1);
     lua_Integer tam;
-    instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, ctx);
+    instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, estado);
     instruccion->tam_bytes = (size_t) tam;
 }
 
-static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
-    log_debug_v(l, "lua_cpu_ensamblar_redireccion", _("lua_cpu: %s es de tipo Tuple<char*, funcion> -> %s"), (char*) instruccion->simbolo->valor, lua_tostring(L, -1));
+static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+    char* msg_buf = d_printf("%s es de tipo Tuple<char*, función> -> %s", (char*) instruccion->simbolo->valor, lua_tostring(L, -1));
+    enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_redireccion", msg_buf);
+    free(msg_buf);
     lua_pop(L, 1);
     lua_geti(L, -1, 2); // <- Función para modificar el resultado (idx 9)
     lua_geti(L, -2, 1); // <- Cadena con el mnemónico al cual redirigir (idx 10)
@@ -356,13 +361,13 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
     lua_pop(L, 1);
     lua_gettable(L, (int) tabla_mnemos_idx);
     if (lua_isfunction(L, -1))
-        lily_lua_cpu_ensamblar_funcion(L, instruccion, ctx);
+        lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
     else {
         int tipo_tentativo = lua_geti(L, -1, 1);
         if (tipo_tentativo == LUA_TNUMBER)
-            lily_lua_cpu_ensamblar_lista(L, instruccion, ctx);
+            lily_lua_cpu_ensamblar_lista(L, instruccion, enviar_mensaje, estado, ctx);
         else if (tipo_tentativo == LUA_TTABLE)
-            lily_lua_cpu_ensamblar_lparams(L, instruccion, ctx);
+            lily_lua_cpu_ensamblar_lparams(L, instruccion, enviar_mensaje, estado, ctx);
     }
     lua_pop(L, 1);
 
@@ -377,23 +382,27 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
     // Ejecutar función de transformación
     if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
         lua_Integer tam;
-        instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, ctx);
+        instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, estado);
         instruccion->tam_bytes = (size_t) tam;
-    } else {
-        ctx->codigo = COD_LUA_CPU_LUA_ERR;
-        ctx->lua_msg = (char*) lua_tostring(L, -1);
+    }
+    else {
+        *estado = COD_LUA_CPU_LUA_ERR;
+        cctx->lua_msg = (char*) lua_tostring(L, -1);
         lua_pop(L, 1);
     }
 }
 
-static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
-    struct lily_log_config* l = (struct lily_log_config*) ctx->log_cfg;
-    log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: %s es de tipo List<Tuple<List<Args>, Value>>"), (char*) instruccion->simbolo->valor);
+static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+    char* msg_buf = d_printf("%s es de tipo List<Tuple<List<Args>, Value>>", (char*) instruccion->simbolo->valor);
+    enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
+    free(msg_buf);
     lua_pop(L, 1);
     lua_len(L, -1);
     lua_Integer tam_i = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: hay %lld casos para %s"), tam_i, (char*) instruccion->simbolo->valor);
+    msg_buf = d_printf("hay %lld casos para %s", tam_i, (char*) instruccion->simbolo->valor);
+    enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
+    free(msg_buf);
     for (lua_Integer i = 1; i <= tam_i; i++) {
         // Bucle para cada opción
         lua_geti(L, -1, i); // <- Tuple<List<Args>, values> (idx 9)
@@ -407,7 +416,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         // Obtener lista de tipos de parámetros
         char** lista_params = (char**) malloc(sizeof(char*)*tam_params);
         if (lista_params == NULL) {
-            ctx->codigo = COD_MALLOC_FALLO;
+            *estado = COD_MALLOC_FALLO;
             return;
         }
         size_t tam_cad_params = 0;
@@ -422,7 +431,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         // Generar mensaje de log
         char* msg_cad_params = (char*) malloc(sizeof(char)*tam_cad_params);
         if (msg_cad_params == NULL) {
-            ctx->codigo = COD_MALLOC_FALLO;
+            *estado = COD_MALLOC_FALLO;
             return;
         }
         lua_Integer k = 0;
@@ -435,7 +444,9 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             }
         }
         msg_cad_params[k] = '\0';
-        log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: comprobando caso (%s)"), msg_cad_params);
+        msg_buf = d_printf("comprobando caso (%s)", msg_cad_params);
+        enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
+        free(msg_buf);
 
         // Comprobar que los tamaños de las listas de argumentos coincidan
         if ((size_t) tam_params != lily_lde_size(instruccion->params)) {
@@ -449,27 +460,29 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             /// Obtener símbolo de argumento
             struct lily_simbolo_simbolo* simbolo_param = lily_lde_get(instruccion->params, j)->valor;
             /// Comprobar argumento
-            coincide = lily_lua_cpu_comp_tipo_simbolo(L, lista_params[j], simbolo_param, ctx);
+            coincide = lily_lua_cpu_comp_tipo_simbolo(L, lista_params[j], simbolo_param, estado, ctx);
             if (!coincide) break;
         }
         lua_pop(L, 1); // quita idx 10
 
         // Es la opción
         if (coincide) {
-            log_debug_v(l, "lua_cpu_ensamblar_lparams", _("lua_cpu: seleccionado caso (%s)"), msg_cad_params);
+            msg_buf = d_printf("lua_cpu: seleccionado caso (%s)", msg_cad_params);
+            enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
+            free(msg_buf);
             lua_geti(L, -1, 2); // values (idx 10)
             if (lua_isfunction(L, -1)) {
-                lily_lua_cpu_ensamblar_funcion(L, instruccion, ctx);
+                lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
                 lua_pop(L, 1);
             }
             else {
                 int tipo_tentativo = lua_geti(L, -1, 1);
                 if (tipo_tentativo == LUA_TNUMBER) {
-                    lily_lua_cpu_ensamblar_lista(L, instruccion, ctx);
+                    lily_lua_cpu_ensamblar_lista(L, instruccion, enviar_mensaje, estado, ctx);
                     lua_pop(L, 1);
                 }
                 else if (tipo_tentativo == LUA_TSTRING) {
-                    lily_lua_cpu_ensamblar_redireccion(L, instruccion, ctx);
+                    lily_lua_cpu_ensamblar_redireccion(L, instruccion, enviar_mensaje, estado, ctx);
                     lua_pop(L, 2);
                 }
             }
@@ -480,11 +493,12 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         lua_pop(L, 1);
     }
     // Si llegamos acá, no hay opciones para los argumentos provistos
-    ctx->codigo = COD_LUA_CPU_CONJUNTO_ARGS_INEXISTENTE;
-    ctx->ultimo = instruccion->simbolo;
+    *estado = COD_LUA_CPU_CONJUNTO_ARGS_INEXISTENTE;
+    cctx->ultimo = instruccion->simbolo;
 }
 
-void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instruccion, struct lily_ctx* ctx) {
+void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+    *ctx = (struct lily_a_semantico_ctx*) calloc(1, sizeof(struct lily_a_semantico_ctx));
     // Obtener el mnemónico canónico
     char* mnemo = instruccion->simbolo->valor;
     for (size_t i = 0; i < strlen(mnemo); i++)
@@ -499,29 +513,30 @@ void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instr
     // Determinar tipo de mnemónico
     if (lua_isnil(L, -1)) {
         // El mnemónico no existe
-        ctx->codigo = COD_LUA_CPU_MNEMO_INEXISTENTE;
-        ctx->ultimo = instruccion->simbolo;
+        *estado = COD_LUA_CPU_MNEMO_INEXISTENTE;
+        cctx->ultimo = instruccion->simbolo;
         lua_pop(L, lua_gettop(L));
         return;
     }
     if (lua_isfunction(L, -1)) {
-        lily_lua_cpu_ensamblar_funcion(L, instruccion, ctx);
+        lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
         lua_pop(L, 1);
     }
     else {
         // En este punto puede ser: List<int>, Tuple<char*, function>, List<Tuple<List<Args>, Value>>
         int tipo_tentativo = lua_geti(L, -1, 1);
         if (tipo_tentativo == LUA_TNUMBER) {
-            lily_lua_cpu_ensamblar_lista(L, instruccion, ctx);
+            lily_lua_cpu_ensamblar_lista(L, instruccion, enviar_mensaje, estado, ctx);
             lua_pop(L, 1);
         }
         else if (tipo_tentativo == LUA_TSTRING) {
-            lily_lua_cpu_ensamblar_redireccion(L, instruccion, ctx);
+            lily_lua_cpu_ensamblar_redireccion(L, instruccion, enviar_mensaje, estado, ctx);
             lua_pop(L, 2);
         }
         else if (tipo_tentativo == LUA_TTABLE) {
-            lily_lua_cpu_ensamblar_lparams(L, instruccion, ctx);
+            lily_lua_cpu_ensamblar_lparams(L, instruccion, enviar_mensaje, estado, ctx);
             lua_pop(L, 2);
         }
     }
+    free(*ctx);
 }

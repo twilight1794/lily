@@ -49,6 +49,8 @@ enum lily_estado {
     COD_A_SEMANTICO_FIN_USUARIO, /**< Una directiva STOP ha detenido el proceso de ensamble */
     COD_A_SEMANTICO_OPERANDOS_INSUFICIENTES, /**< Hace falta operandos en la pila para un operador  */
     COD_A_SEMANTICO_OPERANDO_OBJETO, /**< Se intentó operar sobre un objeto */
+    // lib/lily.h
+    COD_LILY_SIN_ESQUEMA, /**< No se pudo encontrar un esquema de procesador para realizar la operación */
     // lib/lua_cpu.h
     COD_LUA_CPU_LUA_ERR, /**< Error generado por la máquina virtual de Lua */
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */
@@ -72,23 +74,6 @@ enum lily_estado {
     COD_LUA_CPU_RES_ENSAMBLE_NO_TABLA, /**< El resultado de la función de ensamble no es una tabla */
     COD_LUA_CPU_RES_ENSAMBLE_VACIO, /**< La tabla devuelta por la función de ensamble no contiene ningún byte */
     COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO, /**< Uno de los elementos de la tabla devuelta por la función de ensamble no es un entero */
-};
-
-/**
- * Estructura para almacenar detalles sobre el estado de la ejecución
- */
-struct lily_ctx {
-    enum lily_estado codigo; /**< Código de estado */
-    // Análisis léxico
-    enum lily_simbolo_tipo tipo; /**< Tipo tentativo del símbolo que se estaba generando */
-    size_t i_inicial; /**< Posición en \a blob del símbolo tentativo */
-    size_t i_desp; /**< Desplazamiento desde \a i_inicial hasta el valor actual de \a i */
-    // Análisis sintáctico
-    struct lily_simbolo_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
-    // Análisis semántico
-    char* lua_msg; /**< Para errores de Lua, mensaje devuelto */
-    // Utilidades
-    void* log_cfg; /**< Parámetros para mensajes */
 };
 
 #endif
