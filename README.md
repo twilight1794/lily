@@ -42,5 +42,7 @@ construir la biblioteca, para mantener simple la compilación y, el tamaño de l
 objetos generados.
 
 ## Licencia
-Este proyecto es software libre, bajo la licencia
-[GNU GPL versión 3](https://choosealicense.com/licenses/gpl/) o posterior.
+Este proyecto es software libre, bajo la licencia [GNU GPL versión
+3](https://choosealicense.com/licenses/gpl/) o posterior.  El código fuente en
+_misc/examples_, y en _test/_ tienen licencia
+[Unlicense](https://choosealicense.com/licenses/unlicense/).
