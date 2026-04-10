@@ -13,6 +13,23 @@ metahipervisor para muchos microprocesadores.
 - __Fácil de integrar:__ se provee una API sencilla, en C y en JavaScript, para la
   biblioteca compartida.
 
+## Instalación
+
+### Requerimientos
+La biblioteca compartida solo depende de liblua5.4. Si usas un sistema
+GNU/Linux, el script
+[misc/scripts/install-lua-linux](./misc/scripts/install-lua-linux) instalará los
+archivos .so y .a necesarios en tu sistema. Si vas a generar una compilación
+para web, se recomienda que uses este script en vez de instalar la versión
+provista por el administrador de paquetes de tu distribución. El cliente CLI
+requiere además libgettext.
+
+### Compilación
+Para compilar, necesitas make. La receta tratará de determinar tu sistema
+operativo automáticamente, así que en general, bastará con hacer `make` y `make
+install`. Para hacer otros ajustes, revisa el Makefile para todas las opciones
+disponibles.
+
 ## Contribuciones
 Son bienvenidas las contribuciones, especialmente si éstas son esquemas de
 microprocesador para nuevas arquitecturas, o mejoras de las existentes. Para
