@@ -299,6 +299,7 @@ else
 endif
 
 dist:
+	$(MKDIR) dist
 	-git submodule update --init --recursive
 	PAXDIR="$${PWD##*/}" && cd .. && tar --posix --exclude='.ccls-cache' --exclude='*.o' -czvf $$PAXDIR/dist/lily_$(V1).$(V2).tar.gz $$PAXDIR/doc $$PAXDIR/lib $$PAXDIR/misc $$PAXDIR/src $$PAXDIR/test $$PAXDIR/COPYIN* $$PAXDIR/Doxyfile $$PAXDIR/.editorconfig $$PAXDIR/Makefile $$PAXDIR/README*
 
