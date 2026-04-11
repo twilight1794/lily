@@ -1,0 +1,22 @@
+name: Generación de artefactos
+run-name: Generación de artefactos para ${{github.sha}}
+on: [ "push" ]
+jobs:
+  tarball:
+    runs-on: ubuntu-slim
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: generar
+        run: make dist
+      - name: subir
+        use: actions/upload-artifact@v7
+        with:
+          name: tarball
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          overwrite: true
+          compression-level: 0
