@@ -8,15 +8,17 @@ jobs:
       packages: write
       contents: read
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v6
-      - name: generar
-        run: make dist
+      - name: Generar
+        run: |
+          make dist;
+          echo "NOMBRE_DIST=$(find dist -regex .\*tar.gz)" >> $GITHUB_ENV
       - name: subir
         uses: actions/upload-artifact@v7
         with:
           name: tarball
-          path: dist/*.tar.gz
+          path: ${{env.NOMBRE_DIST}}
           if-no-files-found: error
           overwrite: true
           compression-level: 0
