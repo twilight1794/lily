@@ -21,4 +21,4 @@ jobs:
           path: ${{env.NOMBRE_DIST}}
           if-no-files-found: error
           overwrite: true
-          compression-level: 0
+          archive: false
