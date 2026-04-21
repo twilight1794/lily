@@ -1,0 +1,7 @@
+#!/bin/sh
+# Instala las dependencias necesarias para compilar Lily
+# Por ahora, solo gettext. Para Lua, véase ./install-lua
+
+curl https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz -o - | tar -xz
+cd gettext-1.0
+./configure && make && make install

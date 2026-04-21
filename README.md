@@ -16,19 +16,18 @@ metahipervisor para muchos microprocesadores.
 ## Instalación
 
 ### Requerimientos
-La biblioteca compartida solo depende de liblua5.4. Si usas un sistema
-GNU/Linux, el script
-[misc/scripts/install-lua-linux](./misc/scripts/install-lua-linux) instalará los
-archivos .so y .a necesarios en tu sistema. Si vas a generar una compilación
-para web, se recomienda que uses este script en vez de instalar la versión
-provista por el administrador de paquetes de tu distribución. El cliente CLI
-requiere además libgettext.
+La biblioteca compartida solo depende de liblua5.4. Si usas un sistema Unix, el
+script [misc/scripts/install-lua](./misc/scripts/install-lua) instalará los
+archivos de biblioteca necesarios en tu sistema. Si vas a generar una
+compilación para web, se recomienda que uses este script en vez de instalar la
+versión provista por el administrador de paquetes de tu distribución. El cliente
+CLI requiere además libgettext.
 
 ### Compilación
 Para compilar, necesitas make. La receta tratará de determinar tu sistema
 operativo automáticamente, así que en general, bastará con hacer `make` y `make
-install`. Para hacer otros ajustes, revisa el Makefile para todas las opciones
-disponibles.
+install`. Para hacer otros ajustes, revisa el [Makefile](./Makefile) para todas
+las opciones disponibles.
 
 ## Contribuciones
 Son bienvenidas las contribuciones, especialmente si éstas son esquemas de
@@ -40,6 +39,9 @@ Hay qué tener en cuenta una cosa en cuanto al código: se ha de tratar, en la
 medida de lo posible, de mantener al mínimo las dependencias necesarias para
 construir la biblioteca, para mantener simple la compilación y, el tamaño de los
 objetos generados.
+
+## Contexto
+[](https://mmedia1.fi-b.unam.mx/)
 
 ## Licencia
 Este proyecto es software libre, bajo la licencia [GNU GPL versión
