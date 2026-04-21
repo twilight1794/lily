@@ -1,19 +1,12 @@
 #include <errno.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <libintl.h>
 #include <getopt.h>
-#include <unistd.h>
 
-#include "../common/defs.h"
-#include "../common/dict.h"
-#include "../common/estado.h"
-#include "../common/lde.h"
-#include "../common/log.h"
 #include "../lib/lily.h"
 
 #if defined(__unix__) || defined(__APPLE__)

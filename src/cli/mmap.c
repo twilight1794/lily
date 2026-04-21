@@ -1,7 +1,5 @@
 #include "mmap.h"
 
-#include <stdio.h>
-
 struct lily_cli_archivo* lily_cli_archivo_create(const char* ruta, size_t escribir) {
     struct lily_cli_archivo* obj = (struct lily_cli_archivo*) malloc(sizeof(struct lily_cli_archivo));
     // Descriptor
