@@ -26,8 +26,8 @@
 #ifndef LILY_MODIFICADO
 #define LILY_MODIFICADO ""
 #endif
-#ifndef CPUDIR
-#define CPUDIR "misc/cpu"
+#ifndef MISCDIR
+#define MISCDIR "misc"
 #endif
 
 enum lily_main_estricto {
@@ -467,20 +467,31 @@ struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, int* estado
     obj->tipo = tipo;
     if (tipo == 0) {
         // Archivo de descripción de procesador
-        /// Primero, buscamos en el propio directorio
-        log_info_v(l, "obt_archivo", _("Searching architecture description file at ./%s"), archivo);
-        obj->obj = (void*) lily_cli_archivo_create(archivo, 0);
+        /// Primero, buscamos en el propio directorio un archivo <plataforma>.lua
+        size_t ruta_tam = strlen(archivo) + 5;
+        char* archivo_arquitectura_ruta = (char*) malloc(ruta_tam * sizeof(char));
+        if (archivo_arquitectura_ruta == NULL) {
+            *estado = COD_MALLOC_FALLO;
+            log_fatal(l, "obt_archivo", _("Error while searching for architecture description file."));
+            free(obj);
+            return NULL;
+        }
+        sprintf(archivo_arquitectura_ruta, "%s.lua", archivo);
+        log_debug_v(l, "obt_archivo", _("Searching architecture description file at ./%s"), archivo_arquitectura_ruta);
+        obj->obj = (void*) lily_cli_archivo_create(archivo_arquitectura_ruta, 0);
         if (obj->obj == NULL) {
             // Si no, en el directorio predeterminado
-            size_t ruta_tam = strlen(archivo) + strlen(CPUDIR) + 6;
-            char* archivo_arquitectura_ruta = (char*) malloc(ruta_tam * sizeof(char));
-            if (archivo_arquitectura_ruta == NULL) {
+            ruta_tam = strlen(archivo) + strlen(MISCDIR) + 10;
+            char* tmp = (char*) realloc(archivo_arquitectura_ruta, ruta_tam * sizeof(char));
+            if (tmp == NULL) {
                 *estado = COD_MALLOC_FALLO;
                 log_fatal(l, "obt_archivo", _("Error while searching for architecture description file."));
+                free(archivo_arquitectura_ruta);
                 free(obj);
                 return NULL;
             }
-            sprintf(archivo_arquitectura_ruta, "%s/%s.lua", CPUDIR, archivo);
+            archivo_arquitectura_ruta = tmp;
+            sprintf(archivo_arquitectura_ruta, "%s/cpu/%s.lua", MISCDIR, archivo);
             log_debug_v(l, "obt_archivo", _("Searching architecture description file at %s"), archivo_arquitectura_ruta);
             obj->obj = lily_cli_archivo_create(archivo_arquitectura_ruta, 0);
             if (obj->obj == NULL) {

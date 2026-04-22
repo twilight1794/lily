@@ -52,18 +52,6 @@ SHELL := /bin/sh
 
 V := $(V1).$(V2)
 
-# Macros para el código
-V_LILY_VERSION :=$(shell git tag --points-at HEAD)
-ifeq ($(strip $(V_LILY_VERSION)),)
-  V_LILY_VERSION := $(V)
-endif
-V_LILY_COMMIT :=$(shell git rev-parse HEAD|cut -c 1-8)
-ifeq ($(strip $(V_LILY_COMMIT)),)
-  V_LILY_COMMIT := nogit
-endif
-V_LILY_MODIFICADO :=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; fi)
-CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\" -DMISCDIR=\"$(INSTALL_MISC)\"
-
 # Determinación de SO host
 ifeq ($(PLAT_HOST),auto)
   OS_UNAME := $(shell uname -s)
@@ -193,6 +181,17 @@ else
   TO_TEST := test
 endif
 
+# Macros para el código
+V_LILY_VERSION :=$(shell git tag --points-at HEAD)
+ifeq ($(strip $(V_LILY_VERSION)),)
+  V_LILY_VERSION := $(V)
+endif
+V_LILY_COMMIT :=$(shell git rev-parse HEAD|cut -c 1-8)
+ifeq ($(strip $(V_LILY_COMMIT)),)
+  V_LILY_COMMIT := nogit
+endif
+V_LILY_MODIFICADO :=$(shell if test $$(git status --porcelain --untracked-files=no | wc -l) -gt 0; then echo '-changed'; fi)
+CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\" -DLILY_MODIFICADO=\"$(V_LILY_MODIFICADO)\" -DMISCDIR=\"$(INSTALL_MISC)\"
 
 # Establecer opciones de optimización y depuración
 ifeq ($(PLAT_TARGET),web)
@@ -279,12 +278,12 @@ ifneq (,$(filter mingw windows,$(PLAT_TARGET)))
 	$(INSTALL_DATA) dist/$(TO_MISC) $(INSTALL_MISC)/cpu
 else
 	$(INSTALL_EXEC) dist/$(TO_BIN) $(INSTALL_BIN)
-	$(INSTALL_DATA) dist/$(TO_INC) $(INSTALL_INC)
+#	$(INSTALL_DATA) dist/$(TO_INC) $(INSTALL_INC)
 	$(INSTALL_DATA) dist/$(TO_LIB) $(INSTALL_LIB)
-	$(INSTALL_DATA) dist/$(TO_DOC) $(INSTALL_DOC)
+#	$(INSTALL_DATA) dist/$(TO_DOC) $(INSTALL_DOC)
 	$(MKDIR) $(INSTALL_MISC)
 	$(MKDIR) $(INSTALL_MISC)/cpu
-	$(INSTALL_DATA) dist/$(TO_MISC) $(INSTALL_MISC)/cpu
+	$(INSTALL_DATA) $(addprefix misc/cpu/,$(TO_MISC)) $(INSTALL_MISC)/cpu
 	ldconfig
 endif
 
