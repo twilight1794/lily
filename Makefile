@@ -172,7 +172,7 @@ ifeq ($(PLAT_TARGET),posix)
 else
   TO_DOC := lily.html lily.lua.html
 endif
-TO_MISC := $(addsuffix .lua,z80 8086 lc3)
+TO_MISC := $(addsuffix .lua,zilog.z80 intel.8086 lc3)
 ifeq ($(PLAT_TARGET),web)
   TO_TEST := liblily.mjs
 else ifeq ($(PLAT_TARGET),windows)
