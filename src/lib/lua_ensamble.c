@@ -261,7 +261,7 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
                     lua_seti(L, -2, j + 1);
                 } else if (simbolo_desp->tipo == SIMB_NUMERO) {
                     // FIX: por ahora, un entero
-                    lua_pushinteger(L, (lua_Integer) ((union lily_simbolo_numero*) simbolo->valor)->positivo);
+                    lua_pushinteger(L, (lua_Integer) ((union lily_simbolo_numero*) simbolo_desp->valor)->positivo);
                     lua_seti(L, -2, j + 1);
                 }
             }
@@ -538,5 +538,4 @@ void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instr
             lua_pop(L, 2);
         }
     }
-    free(*ctx);
 }

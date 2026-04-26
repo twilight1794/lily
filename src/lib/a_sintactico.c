@@ -153,7 +153,6 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                 }
                 break;
             default:
-                breakpoint;
                 estado = COD_A_SINTACTICO_SIMBOLO_IMPROCEDENTE;
                 ctx->ultimo = simbolo;
         }
