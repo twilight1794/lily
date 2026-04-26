@@ -105,7 +105,7 @@ void lily_lua_int_tipo_valores(enum lily_lua_tipo tipo, size_t* tamano, int* sig
 
 enum lily_estado lily_lua_int_comp_argumentos(lua_State* L, uint8_t* bytes, enum lily_lua_tipo tipo) {
     size_t tamano; int signo; bool endianness;
-    char msg[38];
+    char msg[41];
     uint64_t val;
     enum lily_estado estado;
     if (lua_gettop(L) != 1) {
@@ -114,11 +114,11 @@ enum lily_estado lily_lua_int_comp_argumentos(lua_State* L, uint8_t* bytes, enum
         lua_error(L);
     }
     if (lua_type(L, 1) != LUA_TNUMBER) {
-        snprintf(msg, 38, "%s requiere un argumento numérico", lily_lua_int_tipo_cad(tipo));
+        snprintf(msg, 40, "%s requiere un argumento numérico", lily_lua_int_tipo_cad(tipo));
         lua_pushstring(L, msg);
         lua_error(L);
     }
-    val = lua_tointeger(L, -1);
+    val = lua_tointeger(L, 1);
     lily_lua_int_tipo_valores(tipo, &tamano, &signo, &endianness);
     estado = lily_nums_codificar_num(bytes, &val, tamano, signo, endianness);
     if (estado != COD_OK) {
