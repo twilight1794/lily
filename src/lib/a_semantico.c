@@ -225,6 +225,8 @@ static bool lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_princi
         if (*estado != COD_OK) {
             return false;
         }
+        // Las variables no definidas se resuelven fuera de aquí
+        if (!reducido && simbolo->tipo == SIMB_VARIABLE) break;
         ++i;
     }
     return reducido;
