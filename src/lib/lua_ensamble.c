@@ -10,7 +10,7 @@
  * @param [out] ctx Estado de la ejecución al momento de salir de la función
  * @return \c true si el símbolo coincide con el tipo, \c false si no
  */
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, enum lily_estado* estado, void** ctx);
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
 /**
  * Lee la lista de parámetros en \a params para una instrucción, y prepara sus valores en la pila para Lua
@@ -60,7 +60,7 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
  */
 static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
-static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, enum lily_estado* estado, void** ctx) {
+static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
     union lily_simbolo_numero n;
     // Primero, comprobar si el tipo es uno precargado
     if (!strcmp(tipo, "int3") && simbolo->tipo == SIMB_NUMERO) {
@@ -228,11 +228,12 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
         lua_pop(L, 2);
         return false;
     }
-    if (!lua_isboolean(L, -1)) {
-        lua_pop(L, 2);
-        *estado = COD_LUA_CPU_TIPO_FUNCION_NO_BOOLEANO;
-        return false;
-    }
+    // Aunque convertiremos el resultado de la función a un tipo booleano,
+    // devolver un tipo no booleano probablemente sea un error, así que
+    // informaremos del hecho
+    if (!lua_isboolean(L, -1))
+        // FIX: ¿Debemos devolver también el tipo de valor devuelto?
+        enviar_mensaje(LILY_MENSAJE_TADVERTENCIA, COD_LUA_CPU_TIPO_FUNCION_NO_BOOLEANO, "lua_cpu_comp_tipo_simbolo", (void *) tipo);
     bool res = lua_toboolean(L, -1);
     lua_pop(L, 2);
     return res;
@@ -460,7 +461,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             /// Obtener símbolo de argumento
             struct lily_simbolo_simbolo* simbolo_param = lily_lde_get(instruccion->params, j)->valor;
             /// Comprobar argumento
-            coincide = lily_lua_cpu_comp_tipo_simbolo(L, lista_params[j], simbolo_param, estado, ctx);
+            coincide = lily_lua_cpu_comp_tipo_simbolo(L, lista_params[j], simbolo_param, enviar_mensaje, estado, ctx);
             if (!coincide) break;
         }
         lua_pop(L, 1); // quita idx 10
