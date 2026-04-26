@@ -9,23 +9,138 @@
 ]]
 
 -- Correspondencias valor->bits
-r_vals = {
-    { 0, 'B' },
-    { 1, 'C' },
-    { 2, 'D' },
-    { 3, 'E' },
-    { 4, 'H' },
-    { 5, 'L' },
-    { 7, 'A' }
+function r_vals(v)
+    vals = {
+        B = 0, C = 1, D = 2,
+        E = 3, H = 4, L = 5,
+        A = 7
+    }
+    return (type(v) == "string" and #v == 1 and vals[v]) or (type(v) == "table" and #v == 1 and v[1] == "HL")
+end
+i_vals = {
+    IX = 0xdd,
+    IY = 0xfd
 }
-dd_vals = {
-    { 0, 'BC' },
-    { 1, 'DE' },
-    { 2, 'HL' },
-    { 3, 'SP' },
+cc_vals = {
+    NZ = 0, Z = 1,
+    NC = 2, C = 3,
+    PO = 4, PE = 5,
+    P = 6, M = 7
+}
+ccjr_vals = {
+    C = 7, NC = 6,
+    Z = 5, NZ = 4,
+}
+qq_vals = {
+    BC = 0,
+    DE = 1,
+    HL = 2,
+    AF = 3
+}
+ss_vals = {
+    BC = 0,
+    DE = 1,
+    HL = 2,
+    SP = 3
+}
+pp_vals = {
+    BC = 0,
+    DE = 1,
+    IX = 2,
+    SP = 3
+}
+rr_vals = {
+    BC = 0,
+    DE = 1,
+    IY = 2,
+    SP = 3
+}
+pt_vals = {
+    [0] = 0,
+    [0x08] = 1,
+    [0x10] = 2,
+    [0x18] = 3,
+    [0x20] = 4,
+    [0x28] = 5,
+    [0x30] = 6,
+    [0x38] = 7
 }
 
---
+-- Funciones de modificación comunes
+adc_tr = {
+    "ADD",
+    function (bytes)
+        if (#bytes < 3) then idx = 1
+        else idx = 2 end
+        bytes[idx] = bytes[idx] + 8
+        return bytes
+    end
+}
+sub_tr = {
+    "ADD",
+    function (bytes)
+        if (#bytes < 3) then idx = 1
+        else idx = 2 end
+        bytes[idx] = bytes[idx] + 0x10
+        return bytes
+    end
+}
+sbc_tr = {
+    "ADD",
+    function (bytes)
+        if (#bytes < 3) then idx = 1
+        else idx = 2 end
+        bytes[idx] = bytes[idx] + 0x18
+        return bytes
+    end
+}
+and_tr = {
+    "ADD",
+    function (bytes)
+        if (#bytes < 3) then idx = 1
+        else idx = 2 end
+        bytes[idx] = bytes[idx] + 0x20
+        return bytes
+    end
+}
+or_tr = {
+    "ADD",
+    function (bytes)
+        if (#bytes < 3) then idx = 1
+        else idx = 2 end
+        bytes[idx] = bytes[idx] + 0x30
+        return bytes
+    end
+}
+xor_tr = {
+    "ADD",
+    function (bytes)
+        if (#bytes < 3) then idx = 1
+        else idx = 2 end
+        bytes[idx] = bytes[idx] + 0x28
+        return bytes
+    end
+}
+cp_tr = {
+    "ADD",
+    function (bytes)
+        if (#bytes < 3) then idx = 1
+        else idx = 2 end
+        bytes[idx] = bytes[idx] + 0x38
+        return bytes
+    end
+}
+dec_tr = {
+    "INC",
+    function (bytes)
+        if (#bytes == 3) then idx = 2
+        else idx = 1 end
+        bytes[idx] = bytes[idx] + 1
+        return bytes
+    end
+}
+
+-- Objeto a devolver
 return {
     id = "zilog.z80",
     registros = {
@@ -143,175 +258,183 @@ return {
             desplazamiento = 196
         }
     },
-    operandos = {},
+    tipos = {
+        r = function (v) return r_vals(v) end,
+        di = function (v) return type(v) == "table" and (#v == 1 or #v == 2) and i_vals[v[1]] and (not v[2] or (type(v2) == "number" and v[2] >= -128 and v[2] < 128)) end,
+        n = function (v) return type(v) == "number" and v >= 0 and v < 256 end,
+        nn = function (v) return type(v) == "number" and v >= 0 and v < 65565 end,
+        d = function (v) return type(v) == "number" and v >= -128 and v < 128 end,
+        b = function (v) return type(v) == "number" and v >= 0 and v < 8 end,
+        e = function (v) return type(v) == "number" and v >= -126 and v < 130 end,
+        -- FIX: implementar table:en
+        cc = function (v) return cc_vals[v] end,
+        qq = function (v) return qq_vals[v] end,
+        ss = function (v) return ss_vals[v] end,
+        pp = function (v) return pp_vals[v] end,
+        rr = function (v) return rr_vals[v] end,
+        im = function (v) return type(v) == "number" and v >= 0 and v < 3 end,
+        dbc = function (v) return type(v) == "table" and #v == 1 and v[1] == "BC" end,
+        dde = function (v) return type(v) == "table" and #v == 1 and v[1] == "DE" end,
+        dnn = function (v) return type(v) == "table" and #v == 1 and type(v[1]) == "number" and v[1] >= 0 and v[1] <= 65565 end,
+        ra = function (v) return v == "A" end,
+        rir = function (v) return v == "I" end,
+        rr = function (v) return v == "R" end,
+        ri = function (v) return v == "IX" or v == "IY" end,
+        rhl = function (v) return v == "HL" end,
+        rsp = function (v) return v == "SP" end,
+        rde = function (v) return v == "DE" end,
+        raf = function (v) return v == "AF" end,
+        dsp = function (v) return type(v) == "table" and #v == 1 and v[1] == "SP" end,
+        dn = function (v) return type(v) == "table" and #v == 1 and type(v[1]) == "number" and v[1] >= 0 and v[1] < 256 end,
+        dc = function (v) return type(v) == "table" and #v == 1 and v[1] == "C" end,
+        pt = function (v) return pt_vals[v] end,
+        dhl = function (v) return type(v) == "table" and #v == 1 and v[1] == "SP" end, -- solo para JP
+        ccjr = function (v) return ccjr_vals[v] end,
+        rix = function (v) return v == "IX" end, -- solo para ADD
+        riy = function (v) return v == "IY" end -- solo para ADD
+    },
     ensamble = {
         LD = {
             -- Grupo de carga de 8 bits
             {
                 { "r", "r" },
-                function (r1, r2) return 64 + r_vals[r1]<<3 + r_vals[r2] end
+                function (r1, r2)
+                    return { 64 + (r_vals(r1)<<3) + r_vals(r2) } end
             },
             {
                 { "r", "n" },
-                function () end
+                function (r, n) return { 6 + (r_vals(r)<<3), n } end
             },
             {
-                { "r", "dhl" },
-                function () end
+                { "r", "di" },
+                function (r, di)
+                    return {
+                        i_vals[di[1]],
+                        0x46 + (r_vals(r)<<3),
+                        di[2] or 0
+                    }
+                end
             },
             {
-                { "r", "dix" },
-                function () end
+                { "di", "r" },
+                function (di, r)
+                    return {
+                        i_vals[di[1]],
+                        0x70 + r_vals(r),
+                        di[2] or 0
+                    }
+                end
             },
             {
-                { "r", "diy" },
-                function () end
-            },
-            {
-                { "dhl", "r" },
-                function () end
-            },
-            {
-                { "dix", "r" },
-                function () end
-            },
-            {
-                { "diy", "r" },
-                function () end
-            },
-            {
-                { "dhl", "n" },
-                function () end
-            },
-            {
-                { "dix", "n" },
-                function () end
-            },
-            {
-                { "diy", "n" },
-                function () end
+                { "di", "n" },
+                function (di, n)
+                    return {
+                        i_vals[di[1]], 0x36,
+                        di[2] or 0, n
+                    }
+                end
             },
             {
                 { "ra", "dbc" },
-                function () end
+                { 0x0a }
             },
             {
                 { "ra", "dde" },
-                function () end
+                { 0x1a }
             },
             {
                 { "ra", "dnn" },
-                function () end
+                function (ra, dnn) return { 0x3a, uint16l(dnn[1]) } end
             },
             {
                 { "dbc", "ra" },
-                function () end
+                { 0x02 }
             },
             {
                 { "dde", "ra" },
-                function () end
+                { 0x12 }
             },
             {
                 { "dnn", "ra" },
-                function () end
+                function (dnn, ra) return { 0x32, uint16l(dnn[1]) } end
             },
             {
-                { "ra", "ri" },
-                function () end
+                { "ra", "rir" },
+                { 0xed, 0x57 }
             },
             {
                 { "ra", "rr" },
-                function () end
+                { 0xed, 0x5f }
             },
             {
-                { "ri", "ra" },
-                function () end
+                { "rir", "ra" },
+                { 0xed, 0x47 }
             },
             {
                 { "rr", "ra" },
-                function () end
+                { 0xed, 0x4f }
             },
             -- Grupo de carga de 16 bits
             {
-                { "dd", "nn" },
-                function () end
+                { "ss", "nn" },
+                function (ss, nn) return { 1 + (ss_vals[ss]<<4), uint16l(nn) } end
             },
             {
-                { "rix", "nn" },
-                function () end
-            },
-            {
-                { "riy", "nn" },
-                function () end
+                { "ri", "nn" },
+                function (ri, nn) return { i_vals[ri], 0x21, uint16l(nn) } end
             },
             {
                 { "rhl", "dnn" },
-                function () end
+                function (rhl, dnn) return { 0x2a, uint16l(dnn[1]) } end
             },
             {
-                { "dd", "dnn" },
-                function () end
+                { "ss", "dnn" },
+                function (dd, dnn) return { 0xed, 0x4a + (ss_vals[ss]<<4), uint16l(dnn[1]) } end
             },
             {
-                { "rix", "dnn" },
-                function () end
-            },
-            {
-                { "riy", "dnn" },
-                function () end
+                { "ri", "dnn" },
+                function (ri, dnn) return { i_vals[ri], 0x2a, uint16l(dnn[1]) } end
             },
             {
                 { "dnn", "rhl" },
-                function () end
+                function (dnn, rhl) return { 0x22, uint16l(dnn[1]) } end
             },
             {
-                { "dnn", "dd" },
-                function () end
+                { "dnn", "ss" },
+                function (dnn, ss) return { 0xed, 0x67, uint16l(dnn[1]) } end
             },
             {
-                { "dnn", "rix" },
-                function () end
-            },
-            {
-                { "dnn", "riy" },
-                function () end
+                { "dnn", "ri" },
+                function (dnn, ri) return { i_vals[ri], 0x22, uint16l(dnn[1]) }  end
             },
             {
                 { "rsp", "rhl" },
-                function () end
+                { 0xf9 }
             },
             {
-                { "rsp", "riy" },
-                function () end
+                { "rsp", "ri" },
+                function (rsp, ri) return { i_vals[ri], 0xf9 } end
             },
         },
         PUSH = {
             {
                 { "qq" },
-                function () end
+                function (qq) return { 0xc5 + qq_vals[qq] } end
             },
             {
-                { "rix" },
-                function () end
+                { "ri" },
+                function (ri) return { i_vals[ri], 0xe5 } end
             },
-            {
-                { "riy" },
-                function () end
-            }
         },
         POP =  {
             {
                 { "qq" },
-                function () end
+                function (qq) return { 0xc1 + qq_vals[qq] } end
             },
             {
-                { "rix" },
-                function () end
+                { "ri" },
+                function (ri) return { i_vals[ri], 0xe1 } end
             },
-            {
-                { "riy" },
-                function () end
-            }
         },
         -- Grupo de búsqueda, intercambio y transferencia
         EX = {
@@ -328,13 +451,9 @@ return {
                 { 0xe3 }
             },
             {
-                { 'dsp', 'rix' },
-                { 0xdd, 0xe3 }
+                { 'dsp', 'ri' },
+                { i_vals[ri], 0xe3 }
             },
-            {
-                { 'dsp', 'riy' },
-                { 0xfd, 0xe3 }
-            }
         },
         EXX = { 0xd9 },
         LDI = { 0xed, 0xa0 },
@@ -348,268 +467,181 @@ return {
         ADD = {
             -- Grupo aritmético de 8 bits
             {
-                { "r2" },
-                function () end
+                { "r" },
+                function (r) return { 0x80 + r_vals(r) } end
             },
             {
                 { "n" },
-                function () end
+                function (n) return { 0xc6, n } end
             },
             {
-                { "dix" },
-                function () end
-            },
-            {
-                { "diy" },
-                function () end
+                { "di" },
+                function (di) return { i_vals[di[1]], 0x86, di[2] or 0 } end
             },
             -- Grupo aritmético de 16 bits
             {
                 { "rhl", "ss" },
-                function () end
+                function (rhl, ss) return { 9 + (ss_vals[ss]<<4) } end
             },
             {
                 { "rix", "pp" },
-                function () end
+                function (rix, pp) return { 0xdd, 9 + (pp_vals[pp]<<4) } end
             },
             {
                 { "riy", "rr" },
-                function () end
+                function (riy, rr) return { 0xfd, 9 + (rr_vals[rr]<<4) } end
             }
         },
         ADC = {
+            -- Grupo aritmético de 8 bits
             {
-                { "r2" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "r" },
+                adc_tr
             },
             {
                 { "n" },
-                {
-                    "ADD",
-                    function () end
-                }
+                adc_tr
             },
             {
-                { "dix" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "di" },
+                adc_tr
             },
-            {
-                { "diy" },
-                {
-                    "ADD",
-                    function () end
-                }
-            },
+            -- Grupo aritmético de 16 bits
             {
                 { "rhl", "ss" },
-                function () end
+                function (rhl, ss) return { 0xed, 0x4a + (ss_vals[ss]<<4) } end
             }
         },
         SUB = {
             {
-                { "r2" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "r" },
+                sub_tr
             },
             {
                 { "n" },
-                {
-                    "ADD",
-                    function () end
-                }
+                sub_tr
             },
             {
-                { "dix" },
-                {
-                    "ADD",
-                    function () end
-                }
-            },
-            {
-                { "diy" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "di" },
+                sub_tr
             }
         },
         SBC = {
+            -- Grupo aritmético de 8 bits
             {
-                { "r2" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "r" },
+                sbc_tr
             },
             {
                 { "n" },
-                {
-                    "ADD",
-                    function () end
-                }
+                sbc_tr
             },
             {
-                { "dix" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "di" },
+                sbc_tr
             },
-            {
-                { "diy" },
-                {
-                    "ADD",
-                    function () end
-                }
-            },
+            -- Grupo aritmético de 16 bits
             {
                 { "rhl", "ss" },
-                function () end
+                function (rhl, ss) return { 0xed, 0x42 + (ss_vals[ss]<<4) } end
             }
         },
         AND = {
             {
-                { "r2" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "r" },
+                and_tr
             },
             {
                 { "n" },
-                {
-                    "ADD",
-                    function () end
-                }
+                and_tr
             },
             {
-                { "dix" },
-                {
-                    "ADD",
-                    function () end
-                }
-            },
-            {
-                { "diy" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "di" },
+                and_tr
             }
         },
         OR = {
             {
-                { "r2" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "r" },
+                or_tr
             },
             {
                 { "n" },
-                {
-                    "ADD",
-                    function () end
-                }
+                or_tr
             },
             {
-                { "dix" },
-                {
-                    "ADD",
-                    function () end
-                }
-            },
-            {
-                { "diy" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "di" },
+                or_tr
             }
         },
         XOR = {
             {
-                { "r2" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "r" },
+                xor_tr
             },
             {
                 { "n" },
-                {
-                    "ADD",
-                    function () end
-                }
+                xor_tr
             },
             {
-                { "dix" },
-                {
-                    "ADD",
-                    function () end
-                }
-            },
-            {
-                { "diy" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "di" },
+                xor_tr
             }
         },
         CP = {
             {
-                { "r2" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "r" },
+                cp_tr
             },
             {
                 { "n" },
-                {
-                    "ADD",
-                    function () end
-                }
+                cp_tr
             },
             {
-                { "dix" },
-                {
-                    "ADD",
-                    function () end
-                }
-            },
-            {
-                { "diy" },
-                {
-                    "ADD",
-                    function () end
-                }
+                { "di" },
+                cp_tr
             }
         },
         INC = {
+            -- Grupo aritmético de 8 bits
             {
-                { "r2" },
-                function () end
+                { "r" },
+                function (r) return { 4 + (r_vals[r]<<3) } end
             },
             {
-                { "dix" },
-                function () end
+                { "di" },
+                function (di) return { i_vals[di[1]], 0x34, di[2] or 0 } end
+            },
+            -- Grupo aritmético de 16 bits
+            {
+                { "ss" },
+                function (ss) return { 3 + (ss_vals[ss]<<4) } end
             },
             {
-                { "diy" },
-                function () end
-            },
+                { "ri" },
+                function (ri) return { i_vals[ri[1]], 0x23 } end
+            }
         },
-        DEC = {},
+        DEC = {
+            -- Grupo aritmético de 8 bits
+            {
+                { "r" },
+                dec_tr
+            },
+            {
+                { "di" },
+                dec_tr
+            },
+            -- Grupo aritmético de 16 bits
+            {
+                { "ss" },
+                function (ss) return { 0xb + (ss_vals[ss]<<4) } end
+            },
+            {
+                { "ri" },
+                function (ri) return { i_vals[ri[1]], 0x2b } end
+            }
+        },
         -- Grupo de propósito general y control de CPU
         DAA = { 0x27 },
         CPL = { 0x2f },
@@ -636,138 +668,126 @@ return {
         RLC = {
             {
                 { "r" },
-                function () end
+                function (r) return { 0xcb, r_vals[r] } end
             },
             {
-                { "dhl" },
-                { 0xcb, 0x06 }
-            },
-            {
-                { "dix" },
-                function () end
-            },
-            {
-                { "diy" },
-                function () end
-            },
+                { "di" },
+                function (di) return { i_vals[di[1]], 0xcb, di[2] or 0, 0x6} end
+            }
         },
         RL = {
             "RLC",
-            function () end
+            function (bytes)
+                bytes[2] = bytes[2] + 0x10
+                return bytes
+            end
         },
         RRC = {
             "RLC",
-            function () end
+            function (bytes)
+                bytes[2] = bytes[2] + 8
+                return bytes
+            end
         },
         RR = {
             "RLC",
-            function () end
+            function (bytes)
+                bytes[2] = bytes[2] + 0x18
+                return bytes
+            end
         },
         SLA = {
             "RLC",
-            function () end
+            function (bytes)
+                bytes[2] = bytes[2] + 0x20
+                return bytes
+            end
         },
         SRA = {
             "RLC",
-            function () end
+            function (bytes)
+                bytes[2] = bytes[2] + 0x28
+                return bytes
+            end
         },
         SRL = {
             "RLC",
-            function () end
+            function (bytes)
+                bytes[2] = bytes[2] + 0x38
+                return bytes
+            end
         },
-        RLD = {
-            "RLC",
-            function () end
-        },
-        RRD = {
-            "RLC",
-            function () end
-        },
+        RLD = { 0xed, 0x6f },
+        RRD = { 0xed, 0x67 },
         -- Grupo de bits
         BIT = {
             {
-                { "b", "r" }
+                { "b", "r" },
+                function (b, r) return { 0xcb, 0x40 + (b<<3) + r_vals[r] } end,
             },
             {
-                { "b", "dhl" }
-            },
-            {
-                { "b", "dix" }
-            },
-            {
-                { "b", "diy" }
+                { "b", "di" },
+                function (b, di) return { i_vals[di[1]], 0xcb, di[2] or 0, 0x46 + (b<<3) } end
             }
         },
         SET = {
             "BIT",
-            function () end
+            function (bytes)
+                bytes[#bytes] = bytes[#bytes] + 0xc0
+                return bytes
+            end
         },
-        RES = { -- Ver si es igual que bit
-            {
-                { "b", "m" },
-                function () end
-            }
+        RES = {
+            "BIT",
+            function (bytes)
+                bytes[#bytes] = bytes[#bytes] + 0x80
+                return bytes
+            end
         },
         -- Grupo de salto
         JP = {
             {
                 { "nn" },
-                function () end
+                function (nn) return { 0xc3, uint16l(nn) } end
             },
             {
                 { "cc", "nn" },
-                function () end
+                function (cc, nn) return { 0xc2 + cc_vals[cc], uint16l(nn) } end
             },
             {
                 { "dhl" },
                 { 0xe9 }
             },
             {
-                { "dix" },
-                { 0xdd, 0xe9 }
+                { "di" },
+                function (di) return { i_vals[di[1]], 0xe9 } end
             },
-            {
-                { "diy" },
-                { 0xfd, 0xe9 }
-            }
         },
         JR = {
             {
                 { "e" },
-                function () end
+                function (e) return { 0x18, e-2 } end
             },
             {
-                { "fc", "e" },
-                function () end
+                { "ccjr", "e" },
+                function (ccjr, e) return { ccjr_vals[ccjr]<<3, e-2 } end
             },
-            {
-                { "fnc", "e" },
-                function () end
-            },
-            {
-                { "fz", "e" },
-                function () end
-            },
-            {
-                { "fnz", "e" },
-                function () end
-            }
         },
         DJNZ = {
             {
                 { "e" },
-                function () end
+                function (e) return { 0x10, e-2 } end
             }
         },
         -- Grupo de llamada y retorno
         CALL = {
             {
                 { "nn" },
-                function () end
+                function (nn) return { 0xcd, uint16l(nn) } end
             },
             {
                 { "cc", "nn" },
-                function () end
+                function (cc, nn) return { 0xc4 + cc_vals[cc], uint16l(nn) } end
             }
         },
         RET = {
@@ -777,26 +797,26 @@ return {
             },
             {
                 { "cc" },
-                function () end
+                function (cc) return { 0xc0 + cc_vals[cc] } end
             }
         },
         RETI = { 0xed, 0x4d },
         RETN = { 0xed, 0x45 },
         RST = {
             {
-                { "p" },
-                function () end
+                { "pt" },
+                function (pt) return { 0xc7 + pt_vals[pt] } end
             }
         },
         -- Grupo de E/S
         IN = {
             {
                 { "ra", "dn" },
-                function () end
+                function (ra, dn) return { 0xdb, dn[1] } end
             },
             {
                 { "r", "dc" },
-                function () end
+                function (r, dc) return { 0xed, 0x40 + r_vals[r] } end
             }
         },
         INI = { 0xed, 0xa2 },
@@ -805,12 +825,12 @@ return {
         INDR = { 0xed, 0xba },
         OUT = {
             {
-                { "dn", "g:ra" },
-                function () end
+                { "dn", "ra" },
+                function (dn, ra) return { 0xd3, dn[1] } end
             },
             {
                 { "dc", "r" },
-                function () end
+                function (dc, r) return { 0xed, 0x41 + r_vals[r] } end
             }
         },
         OUTI = { 0xed, 0xa3 },
