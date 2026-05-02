@@ -358,10 +358,9 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 ctx->ultimo = instruccion->simbolo;
                 break;
             }
-            free(pc_numero);
             instruccion->direccion = *pc;
-            instruccion->tam_bytes = 0;
-            instruccion->bytes = (uint8_t*) calloc(instruccion->tam_bytes, sizeof(uint8_t));
+            instruccion->tam_bytes = 8; // Estamos guardando un long int
+            instruccion->bytes = (uint8_t*) calloc(8, sizeof(uint8_t));
             lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, ((union lily_simbolo_numero*) simbolo_param->valor), (instruccion->simbolo->subtipo == DIR_CONST), estado, ctx);
             break;
         case DIR_IF:
@@ -373,12 +372,10 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
         case DIR_WHILE:
         case DIR_LOOP:
         case DIR_INC:
-            free(pc_numero);
             *estado = COD_NO_IMPLEMENTADO;
             ctx->ultimo = instruccion->simbolo;
             break;
         case DIR_CPU:
-            free(pc_numero);
             *estado = COD_A_SEMANTICO_CPU_MULTIPLE;
             ctx->ultimo = instruccion->simbolo;
             break;
@@ -389,11 +386,11 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
         case DIR_MACRO:
         case DIR_PROC:
         case DIR_END:
-            free(pc_numero);
             *estado = COD_NO_IMPLEMENTADO;
             ctx->ultimo = instruccion->simbolo;
             break;
     }
+    free(pc_numero);
 }
 
 #define cctx ((struct lily_a_semantico_ctx*) (*ctx))
