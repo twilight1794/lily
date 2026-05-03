@@ -20,6 +20,15 @@
 #include "mensajes.h"
 #include "simbolo.h"
 
+/**
+ * Nivel de reducción de una expresión
+ */
+enum lily_a_semantico_reduccion {
+    SIN_REDUCCION, /**< La expresión no ha sido reducida */
+    REDUCCION_TEMPORAL, /**< La expresión ha sido reducida con un valor temporal, y será reevaluada en iteraciones posteriores */
+    REDUCCION_DEFINITIVA, /**< La expresión ha sido reducida definitivamente */
+};
+
 struct lily_a_semantico_ctx {
     struct lily_simbolo_simbolo* ultimo; /**< Último símbolo procesado antes de fallar */
     char* lua_msg; /**< Para errores de Lua, mensaje devuelto */

@@ -327,8 +327,8 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_ins
     char* msg_buf = d_printf("%s es de tipo función", (char*) instruccion->simbolo->valor);
     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_funcion", msg_buf);
     free(msg_buf);
-    lily_lua_cpu_est_parametros(L, instruccion->params);
-    if (lua_pcall(L, lily_lde_size(instruccion->params), 1, 0) == LUA_OK) {
+    lily_lua_cpu_est_parametros(L, instruccion->params_tmp);
+    if (lua_pcall(L, lily_lde_size(instruccion->params_tmp), 1, 0) == LUA_OK) {
         lua_Integer tam;
         instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, estado);
         instruccion->tam_bytes = (size_t) tam;
@@ -450,7 +450,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         free(msg_buf);
 
         // Comprobar que los tamaños de las listas de argumentos coincidan
-        if ((size_t) tam_params != lily_lde_size(instruccion->params)) {
+        if ((size_t) tam_params != lily_lde_size(instruccion->params_tmp)) {
             // Diferentes tamaños, ésta no es la opción
             lua_pop(L, 2);
             continue;
@@ -459,7 +459,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         for (lua_Integer j = 0; j < tam_params; j++) {
             // Bucle para analizar cada argumento
             /// Obtener símbolo de argumento
-            struct lily_simbolo_simbolo* simbolo_param = lily_lde_get(instruccion->params, j)->valor;
+            struct lily_simbolo_simbolo* simbolo_param = lily_lde_get(instruccion->params_tmp, j)->valor;
             /// Comprobar argumento
             coincide = lily_lua_cpu_comp_tipo_simbolo(L, lista_params[j], simbolo_param, enviar_mensaje, estado, ctx);
             if (!coincide) break;

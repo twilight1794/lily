@@ -16,8 +16,6 @@
 #include "../common/lde.h"
 #include "mensajes.h"
 
-#define esta_definido(obj) (obj->direccion != SIZE_MAX)
-
 /**
  * Tipo de símbolo
  */
@@ -110,7 +108,6 @@ enum lily_simbolo_directiva {
     DIR_END
 };
 
-
 /**
  * Amalgama para números
  */
@@ -137,7 +134,14 @@ struct lily_simbolo_simbolo {
  * Crea un objeto para guardar un símbolo
  * @return Un objeto para símbolo nuevo
  */
-struct lily_simbolo_simbolo* lily_simbolo_simbolo_create(void);
+struct lily_simbolo_simbolo *lily_simbolo_simbolo_create(void);
+
+/**
+ * Crea una copia de un símbolo y su valor
+ * @param orig Símbolo a copiar
+ * @return Un objeto para símbolo nuevo, copia de \a orig. \c NULL si hubo errores con \c malloc.
+ */
+struct lily_simbolo_simbolo* lily_simbolo_simbolo_clone(struct lily_simbolo_simbolo* orig);
 
 /**
  * Genera una representación en texto de \a simbolo
@@ -167,11 +171,13 @@ struct lily_simbolo_instruccion {
     struct lily_simbolo_simbolo* etiqueta; /**< Etiqueta asociada, si existe */
     struct lily_simbolo_simbolo* simbolo; /**< Mnemónico o directiva asociada, si existe */
     struct lily_lde_lde* params; /**< Lista de parámetros, o condiciones para bloques */
+    struct lily_lde_lde* params_tmp; /**< Como \a params, pero para reducciones tentativas */
     struct lily_lde_lde* instrucciones; /**< Para macros que agrupan instrucciones */
     struct lily_lde_lde* instruccionesn; /**< Como \a instrucciones, pero para la rama opuesta */
-    size_t direccion; /**< Dirección de memoria asociada. SIZE_MAX si aún no está determinada completamente */
+    size_t direccion; /**< Dirección de memoria asociada */
     size_t tam_bytes; /**< Tamaño del array guardado en \a bytes */
     uint8_t* bytes; /**< Representación en bytes de la instrucción */
+    bool reducido; /**< Si la instrucción ya se ha reducido exitosamente a una lista de bytes */
 };
 
 /**
@@ -188,8 +194,9 @@ struct lily_simbolo_instruccion* lily_simbolo_instruccion_create(void);
 char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* instruccion);
 
 struct lily_simbolo_identificador {
-    bool es_const; /**< Si se podrá modificar el valor asociado al identificador una vez asignado */
     union lily_simbolo_numero* valor; /**< Número asociado al identificador */
+    bool es_const; /**< Si se podrá modificar el valor asociado al identificador una vez asignado */
+    bool definido; /**< Si el valor asociado a este identificador es temporal o definitivo */
 };
 
 /**

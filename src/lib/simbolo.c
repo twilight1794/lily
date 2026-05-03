@@ -27,12 +27,74 @@ struct lily_simbolo_instruccion* lily_simbolo_instruccion_create(void) {
             free(obj);
             return NULL;
         }
+        obj->params_tmp = lily_lde_create();
+        if (obj->params_tmp == NULL) {
+            free(obj);
+            return NULL;
+        }
         obj->instrucciones = NULL;
         obj->instruccionesn = NULL;
-        obj->direccion = SIZE_MAX;
+        obj->direccion = 0;
         obj->tam_bytes = 0;
         obj->bytes = NULL;
+        obj->reducido = false;
     }
+    return obj;
+}
+
+struct lily_simbolo_simbolo* lily_simbolo_simbolo_clone(struct lily_simbolo_simbolo *orig) {
+    // Copiar símbolo
+    struct lily_simbolo_simbolo* obj = lily_simbolo_simbolo_create();
+    if (obj == NULL) return NULL;
+    memcpy(obj, orig, sizeof(struct lily_simbolo_simbolo));
+
+    // Copiar valor
+    size_t tam;
+    if (orig->tipo == SIMB_OBJETO ||
+        orig->tipo == SIMB_VARIABLE ||
+        orig->tipo == SIMB_CADENA_SIMPLE ||
+        orig->tipo == SIMB_CADENA_NUL) {
+        tam = strlen(orig->valor) + 1;
+        obj->valor = malloc(tam);
+        if (obj->valor == NULL) {
+            free(obj);
+            return NULL;
+        }
+        memcpy(obj->valor, orig->valor, tam);
+    }
+    else if (orig->tipo == SIMB_NUMERO) {
+        obj->valor = malloc(sizeof(union lily_simbolo_numero));
+        if (obj->valor == NULL) {
+            free(obj);
+            return NULL;
+        }
+        memcpy(obj->valor, orig->valor, sizeof(union lily_simbolo_numero));
+    }
+    else if (orig->tipo == SIMB_OPERADOR && orig->subtipo == SIMB_DESPLAZAMIENTO_AP) {
+        obj->valor = lily_lde_create();
+        if (obj->valor == NULL) {
+            free(obj);
+            return NULL;
+        }
+        // Como es desplazamiento, aparte hay qué copiar el contenido de la lista
+        lily_lde_foreach(orig->valor, nodo_orig) {
+            struct lily_simbolo_simbolo* sim_copia = lily_simbolo_simbolo_clone((struct lily_simbolo_simbolo*) nodo_orig->valor);
+            if (sim_copia == NULL) {
+                // FIX: borrar resto de elementos ya añadidos a la lista
+                free(obj->valor);
+                free(obj);
+                return NULL;
+            }
+            if (lily_lde_push(obj->valor, sim_copia) == NULL) {
+                // FIX: borrar resto de elementos ya añadidos a la lista
+                free(sim_copia);
+                free(obj->valor);
+                free(obj);
+                return NULL;
+            }
+        }
+    }
+    // SIMB_OPERADOR no tiene nada que deba copiarse
     return obj;
 }
 
@@ -259,7 +321,7 @@ char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* inst
     char* buff = lily_cadena_create();
     if (buff == NULL) return NULL;
     // Imprimir dirección
-    if (esta_definido(instruccion)) {
+    if (instruccion->reducido) {
         patron = "(%lu)";
         buff_local = (char*) malloc(snprintf(NULL, 0, patron, instruccion->direccion) + 1);
         if (buff_local == NULL) return NULL;
@@ -268,7 +330,8 @@ char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* inst
         if (buff_tmp == NULL) return NULL;
         buff = buff_tmp;
         free(buff_local);
-    } else {
+    }
+    else {
         buff_tmp = lily_cadena_concat(buff, "(—)");
         if (buff_tmp == NULL) return NULL;
         buff = buff_tmp;
@@ -299,8 +362,8 @@ char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* inst
         if (buff_tmp == NULL) return NULL;
         buff = buff_tmp;
         // Imprimir parámetros
-        for (size_t i = 0; i < lily_lde_size(instruccion->params); i++) {
-            struct lily_simbolo_simbolo* sim = lily_lde_get(instruccion->params, i)->valor;
+        for (size_t i = 0; i < lily_lde_size(instruccion->params_tmp); i++) {
+            struct lily_simbolo_simbolo* sim = lily_lde_get(instruccion->params_tmp, i)->valor;
             cad_tipo = lily_simbolo_simbolo_print(sim);
             if (cad_tipo == NULL) {
                 free(cad_tipo);
@@ -310,7 +373,7 @@ char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* inst
             if (buff_tmp == NULL) return NULL;
             buff = buff_tmp;
             free(cad_tipo);
-            if (lily_lde_get(instruccion->params, i)->posterior != NULL) {
+            if (lily_lde_get(instruccion->params_tmp, i)->posterior != NULL) {
                 buff_tmp = lily_cadena_concat(buff, ", ");
                 if (buff_tmp == NULL) return NULL;
                 buff = buff_tmp;
@@ -328,6 +391,7 @@ struct lily_simbolo_identificador* lily_simbolo_identificador_create(void) {
     if (obj != NULL) {
         obj->valor = 0;
         obj->es_const = false;
+        obj->definido = false;
     }
     return obj;
 }
