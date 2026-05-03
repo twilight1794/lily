@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
     for (enum lily_main_etapa etapa_actual = etapa_inicial; etapa_actual <= etapa_final; etapa_actual++) {
         if (etapa_actual == LILY_MAIN_ENSAMBLADO) {
             // TODO: revisar por qué no usamos uint8_t también en esta entrada
-            datos_proceso = lily_lily_ensamble(archivo_entrada_obj->p, arquitectura, &obt_archivo, &cerrar_archivo, &enviar_mensaje, &tam_proceso, &estado, &ctx);
+            datos_proceso = lily_lily_ensamble(archivo_entrada_obj->p, arquitectura, &opciones, &obt_archivo, &cerrar_archivo, &enviar_mensaje, &tam_proceso, &estado, &ctx);
         }
         else if (etapa_actual == LILY_MAIN_ENLAZADO) {
             exit(EXIT_FAILURE);

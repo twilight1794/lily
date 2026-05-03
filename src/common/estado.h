@@ -49,6 +49,7 @@ enum lily_estado {
     COD_A_SEMANTICO_FIN_USUARIO, /**< Una directiva STOP ha detenido el proceso de ensamble */
     COD_A_SEMANTICO_OPERANDOS_INSUFICIENTES, /**< Hace falta operandos en la pila para un operador  */
     COD_A_SEMANTICO_OPERANDO_OBJETO, /**< Se intentó operar sobre un objeto */
+    COD_A_SEMANTICO_MAXIMO_ITERACIONES, /**< Se alcanzó el límite de iteraciones para el análisis semántico */
     // lib/lily.h
     COD_LILY_SIN_ESQUEMA, /**< No se pudo encontrar un esquema de procesador para realizar la operación */
     // lib/lua_cpu.h

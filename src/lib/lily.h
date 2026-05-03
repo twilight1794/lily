@@ -32,6 +32,7 @@ struct lily_lily_archivo {
  * Función de entrada para ensamblar
  * @param datos_entrada Código fuente en ensamblador
  * @param arquitectura Arquitectura forzada
+ * @param opciones Listado de opciones definidas por el usuario
  * @param fun_abrir_archivo Función para solicitar un archivo al sistema cliente
  * @param fun_cerrar_archivo Función para cerrar un archivo en el sistema cliente
  * @param fun_mensaje Función para enviar un mensaje
@@ -39,7 +40,7 @@ struct lily_lily_archivo {
  * @param [out] estado Estado de la operación
  * @param [out] ctx Contexto de la operación
  */
-uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int(fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, size_t* tam_salida, enum lily_estado* estado, void** ctx);
+uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struct lily_dict_dict* opciones, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int(fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, size_t* tam_salida, enum lily_estado* estado, void** ctx);
 
 uint8_t* lily_lily_desensamble(uint8_t* bytes, f_mensajes_ptr fun_mensaje);
 

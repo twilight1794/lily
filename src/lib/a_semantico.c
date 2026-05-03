@@ -427,7 +427,7 @@ char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, enum
     return arquitectura;
 }
 
-uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, struct lily_dict_dict* opciones, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
     *ctx = calloc(1, sizeof(struct lily_a_semantico_ctx));
     char* msg_buf;
     uint8_t* bytes = NULL;
@@ -450,6 +450,15 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         *estado = COD_MALLOC_FALLO;
         return bytes;
     }
+
+    // Iteraciones máximas
+    size_t it_max_op = 10;
+    struct lily_dict_nodo* it_max_nodo = lily_dict_get(opciones, "iteraciones_max");
+    if (it_max_nodo != NULL) {
+        it_max_op = atoi(it_max_nodo->valor);
+        free(it_max_nodo);
+    }
+
     size_t iteraciones = 0;
     size_t num_indeterminadas;
     size_t num_temporales;
@@ -614,7 +623,12 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         msg_buf = d_printf("Instrucciones no reducidas: %zu, temporales: %zu", num_indeterminadas, num_temporales);
         enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
         free(msg_buf);
-    } while (num_indeterminadas + num_temporales > 0);
+    } while (num_indeterminadas + num_temporales > 0 && iteraciones < it_max_op);
+
+    if (iteraciones >= it_max_op) {
+        *estado = COD_A_SEMANTICO_MAXIMO_ITERACIONES;
+        return bytes;
+    }
 
     // Cuando acabemos, crear el array...
     *tam = sizeof(uint8_t)*(*pc);

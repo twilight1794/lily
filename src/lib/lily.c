@@ -5,7 +5,7 @@
     fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lily_ensamble", msg_buf); \
     free(msg_buf);
 
-uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, size_t* tam_salida, enum lily_estado* estado, void** ctx) {
+uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struct lily_dict_dict* opciones, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, size_t* tam_salida, enum lily_estado* estado, void** ctx) {
     char* msg_buf;
     // Análisis léxico
     struct lily_lde_lde* simbolos = lily_a_lexico(datos_entrada, fun_mensaje, estado, ctx);
@@ -77,7 +77,7 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     fun_cerrar_archivo(archivo_arquitectura);
 
     // Análisis semántico
-    uint8_t* datos_salida = lily_a_semantico(ast, L, 0, tam_salida, fun_mensaje, estado, ctx);
+    uint8_t* datos_salida = lily_a_semantico(ast, L, 0, tam_salida, opciones, fun_mensaje, estado, ctx);
     if (*estado != COD_OK) {
         struct lily_a_semantico_ctx* tmp_ctx = (struct lily_a_semantico_ctx*) *ctx;
         msg_buf = d_printf("codigo=%d, %s (%s)", *estado, lily_simbolo_simbolo_print(tmp_ctx->ultimo), tmp_ctx->lua_msg);

@@ -53,6 +53,6 @@ char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, enum
  * @param [out] ctx Contexto de la operación
  * @return Array de bytes resultante
  */
-uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
+uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inicial, size_t* tam, struct lily_dict_dict* opciones, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
 #endif
