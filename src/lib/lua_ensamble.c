@@ -354,8 +354,15 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_ins
     }
     else {
         *estado = COD_LUA_CPU_LUA_ERR;
-        cctx->lua_msg = (char*) lua_tostring(L, -1);
-        lua_pop(L, 1);
+        lua_len(L, -1);
+        char* cad = (char*) malloc(lua_tointeger(L, -1) * sizeof(char) + 1);
+        if (cad == NULL) {
+            *estado = COD_MALLOC_FALLO;
+            return;
+        }
+        strcpy(cad, lua_tostring(L, -2));
+        cctx->lua_msg = cad;
+        lua_pop(L, 2);
     }
 }
 
