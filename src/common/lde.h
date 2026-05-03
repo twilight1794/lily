@@ -97,4 +97,17 @@ enum lily_lde_estados lily_lde_remove_node(struct lily_lde_lde* lde, struct lily
  */
 size_t lily_lde_size(const struct lily_lde_lde* lde);
 
+// Macros para funciones auxiliares
+#define lily_lde_push(lde, valor) lily_lde_insert(lde, lily_lde_size(lde), valor)
+
+#define lily_lde_pop(lde) lily_lde_remove(lde, lily_lde_size(lde)-(lily_lde_size(lde)>0))
+
+#define lily_lde_shift(lde) lily_lde_remove(lde, 0)
+
+#define lily_lde_unshift(lde, valor) lily_lde_insert(lde, 0, valor)
+
+#define lily_lde_foreach(lde, nodo_actual) for (struct lily_lde_nodo* nodo_actual = lily_lde_get(lde, 0); nodo_actual != NULL; nodo_actual = nodo_actual->posterior)
+
+#define lily_lde_foreachm(lde, nodo_actual, nodo_posterior) for (struct lily_lde_nodo* nodo_actual = lily_lde_get(lde, 0), *nodo_posterior = nodo_actual->posterior; nodo_actual != NULL; nodo_actual = nodo_posterior, ((nodo_posterior==NULL)?NULL:(nodo_posterior=nodo_posterior->posterior)))
+
 #endif
