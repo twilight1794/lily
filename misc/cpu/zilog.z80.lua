@@ -752,7 +752,7 @@ return {
             },
             {
                 { "cc", "nn" },
-                function (cc, nn) return { 0xc2 + cc_vals[cc], uint16l(nn) } end
+                function (cc, nn) return { 0xc2 + (cc_vals[cc]<<3), uint16l(nn) } end
             },
             {
                 { "dhl" },
@@ -787,7 +787,7 @@ return {
             },
             {
                 { "cc", "nn" },
-                function (cc, nn) return { 0xc4 + cc_vals[cc], uint16l(nn) } end
+                function (cc, nn) return { 0xc4 + (cc_vals[cc]<<3), uint16l(nn) } end
             }
         },
         RET = {
@@ -797,7 +797,7 @@ return {
             },
             {
                 { "cc" },
-                function (cc) return { 0xc0 + cc_vals[cc] } end
+                function (cc) return { 0xc0 + (cc_vals[cc]<<3) } end
             }
         },
         RETI = { 0xed, 0x4d },
@@ -805,7 +805,7 @@ return {
         RST = {
             {
                 { "pt" },
-                function (pt) return { 0xc7 + pt_vals[pt] } end
+                function (pt) return { 0xc7 + (pt_vals[pt]<<3) } end
             }
         },
         -- Grupo de E/S
