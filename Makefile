@@ -25,7 +25,7 @@ V2 := 1
 # === MODIFICAR SOLO SI SE NECESITAN AJUSTES ESPECIALES ===
 # Opciones de compilación
 CC := gcc
-CFLAGS := -fPIC -Wall -Wextra -Wpedantic -funsigned-char -std=c99
+CFLAGS := -fPIC -Wall -Wextra -Wpedantic -Wno-switch-enum -funsigned-char -std=c99
 LDFLAGS := -Ldist
 LDLIBS := -lm
 
