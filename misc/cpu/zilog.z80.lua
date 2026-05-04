@@ -260,7 +260,7 @@ return {
     },
     tipos = {
         r = function (v) return r_vals(v) end,
-        di = function (v) return type(v) == "table" and (#v == 1 or #v == 2) and i_vals[v[1]] and (not v[2] or (type(v2) == "number" and v[2] >= -128 and v[2] < 128)) end,
+        di = function (v) return type(v) == "table" and (#v == 1 or #v == 2) and i_vals[v[1]] and ((not v[2]) or (type(v[2]) == "number" and v[2] >= -128 and v[2] < 128)) end,
         n = function (v) return type(v) == "number" and v >= 0 and v < 256 end,
         nn = function (v) return type(v) == "number" and v >= 0 and v < 65565 end,
         d = function (v) return type(v) == "number" and v >= -128 and v < 128 end,
@@ -619,7 +619,7 @@ return {
             },
             {
                 { "ri" },
-                function (ri) return { i_vals[ri[1]], 0x23 } end
+                function (ri) return { i_vals[ri], 0x23 } end
             }
         },
         DEC = {
@@ -639,7 +639,7 @@ return {
             },
             {
                 { "ri" },
-                function (ri) return { i_vals[ri[1]], 0x2b } end
+                function (ri) return { i_vals[ri], 0x2b } end
             }
         },
         -- Grupo de propósito general y control de CPU
