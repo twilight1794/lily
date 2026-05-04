@@ -17,6 +17,16 @@ int lily_lua_entorno_base_assert(lua_State* L) {
     return 2;
 }
 
+// FIX: esto se debe quitar al implementar apropiadamente las funciones de mensajes
+int lily_lua_entorno_base_debug(lua_State *L) {
+    if (lua_gettop(L) != 1) {
+        lua_pushliteral(L, "debug necesita 1 parámetro");
+        lua_error(L);
+    }
+    puts(lua_tostring(L, 1));
+    return 0;
+}
+
 int lily_lua_entorno_base_error(lua_State* L) {
     if (lua_gettop(L) != 1) {
         lua_pushliteral(L, "error necesita 1 parámetro");
@@ -223,6 +233,7 @@ lua_State* lily_lua_entorno_preparar(enum lily_estado* estado) {
     luaopen_math(L);
 
     lua_register(L, "assert", lily_lua_entorno_base_assert);
+    lua_register(L, "debug", lily_lua_entorno_base_debug);
     lua_register(L, "error", lily_lua_entorno_base_error);
     lua_register(L, "getmetatable", lily_lua_entorno_base_getmetatable);
     lua_register(L, "ipairs", lily_lua_entorno_base_ipairs);
