@@ -606,7 +606,7 @@ return {
             -- Grupo aritmético de 8 bits
             {
                 { "r" },
-                function (r) return { 4 + (r_vals[r]<<3) } end
+                function (r) return { 4 + (r_vals(r)<<3) } end
             },
             {
                 { "di" },
@@ -668,7 +668,7 @@ return {
         RLC = {
             {
                 { "r" },
-                function (r) return { 0xcb, r_vals[r] } end
+                function (r) return { 0xcb, r_vals(r) } end
             },
             {
                 { "di" },
