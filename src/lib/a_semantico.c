@@ -27,7 +27,7 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
  * @param pc Contador de instrucción
  * @param [out] ctx Contexto del estado de la operación
  */
-static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx);
+static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const union lily_simbolo_numero* pc, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx);
 
 static struct lily_simbolo_identificador* lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_simbolo_numero* valor, bool es_const, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
     struct lily_dict_nodo* nodo = lily_dict_get(identificadores, identificador);
@@ -233,7 +233,7 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
     return reducido;
 }
 
-static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const size_t* pc, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
+static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const union lily_simbolo_numero* pc, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
     char* msg_buf;
     struct lily_simbolo_simbolo* simbolo_param;
     union lily_simbolo_numero* pc_numero = (union lily_simbolo_numero*) malloc(sizeof(union lily_simbolo_numero));
@@ -242,7 +242,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
         ctx->ultimo = instruccion->simbolo;
         return;
     }
-    pc_numero->positivo = *pc;
+    pc_numero->positivo = pc->positivo;
 
     switch (instruccion->simbolo->subtipo) {
         case DIR_DB:
@@ -359,7 +359,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 ctx->ultimo = instruccion->simbolo;
                 break;
             }
-            instruccion->direccion = *pc;
+            instruccion->direccion = pc->positivo;
             instruccion->tam_bytes = 8; // Estamos guardando un long int
             instruccion->bytes = (uint8_t*) calloc(8, sizeof(uint8_t));
             lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, ((union lily_simbolo_numero*) simbolo_param->valor), (instruccion->simbolo->subtipo == DIR_CONST), estado, ctx);
@@ -440,13 +440,13 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     }
 
     // Contador de localidad
-    size_t* pc = malloc(sizeof(size_t));
-    if (pc == NULL) {
+    union lily_simbolo_numero* pc_obj = (union lily_simbolo_numero*) malloc(sizeof(union lily_simbolo_numero));
+    if (pc_obj == NULL) {
         *estado = COD_MALLOC_FALLO;
         return bytes;
     }
-    struct lily_dict_nodo* nodo_dict = lily_dict_insert(identificadores, "pc", pc, NULL);
-    if (nodo_dict == NULL) {
+    struct lily_simbolo_identificador* pc_identificador = lily_a_semantico_anad_identificador(identificadores, "pc", pc_obj, true, estado, *ctx);
+    if (pc_identificador == NULL) {
         *estado = COD_MALLOC_FALLO;
         return bytes;
     }
@@ -469,7 +469,8 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     do {
         num_indeterminadas = 0;
         num_temporales = 0;
-        *pc = pc_inicial;
+        pc_obj->positivo = pc_inicial;
+        pc_identificador->definido = true;
         nodo = lily_lde_get(ast, 0);
         ++iteraciones;
         msg_buf = d_printf("Iteración %lu", iteraciones);
@@ -538,7 +539,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     // Si ya está reducida, al menos temporalmente...
                     if (instruccion->simbolo->tipo == SIMB_DIRECTIVA) {
                         // ...y es directiva...
-                        lily_a_semantico_directiva(instruccion, identificadores, pc, enviar_mensaje, estado, *ctx);
+                        lily_a_semantico_directiva(instruccion, identificadores, pc_obj, enviar_mensaje, estado, *ctx);
                         if (*estado != COD_OK) {
                             cctx->ultimo = instruccion->simbolo;
                             break;
@@ -553,7 +554,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                         }
                     }
                     // Guardar dirección de memoria
-                    instruccion->direccion = *pc;
+                    instruccion->direccion = pc_obj->positivo;
                     // Imprimir array
                     char* cad = malloc(sizeof(char)*(instruccion->tam_bytes*6) -1);
                     if (cad == NULL) {
@@ -574,6 +575,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
                     free(msg_buf);
                     num_indeterminadas++;
+                    pc_identificador->definido = false;
                 }
             }
             else if (instruccion->simbolo != NULL && instruccion->reducido) {
@@ -591,7 +593,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     // Si ya la conocíamos, trabajamos con ese valor
                     identificador = etiqueta_nodo->valor;
                     pc_numero = identificador->valor;
-                    pc_numero->positivo = *pc;
+                    pc_numero->positivo = pc_obj->positivo;
                 }
                 else {
                     // Si no, lo añadimos
@@ -601,16 +603,16 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                         cctx->ultimo = instruccion->etiqueta;
                         break;
                     }
-                    pc_numero->positivo = *pc;
+                    pc_numero->positivo = pc_obj->positivo;
                     identificador = lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, estado, *ctx);
                     if (*estado != COD_OK) break;
                 }
                 if (!num_indeterminadas) identificador->definido = true;
             }
             // Actualizamos PC
-            *pc += instruccion->tam_bytes;
+            pc_obj->positivo += instruccion->tam_bytes;
 
-            msg_buf = d_printf("PC vale ahora 0x%02zX", *pc);
+            msg_buf = d_printf("PC vale ahora 0x%02zX", pc_obj->positivo);
             enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
             free(msg_buf);
             nodo = nodo->posterior;
@@ -631,7 +633,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     }
 
     // Cuando acabemos, crear el array...
-    *tam = sizeof(uint8_t)*(*pc);
+    *tam = sizeof(uint8_t) * pc_obj->positivo;
     bytes = malloc(*tam);
     if (bytes == NULL) {
         *estado = COD_MALLOC_FALLO;
