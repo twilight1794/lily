@@ -202,13 +202,14 @@ int lily_lua_entorno_base_tostring(lua_State* L) {
     }
     int tipo = lua_type(L, 1);
     if (tipo == LUA_TBOOLEAN) {
-      bool val = lua_toboolean(L, 1);
-      if (val) lua_pushstring(L, "true");
-      else lua_pushliteral(L, "false");
+        bool val = lua_toboolean(L, 1);
+        if (val) lua_pushstring(L, "true");
+        else lua_pushliteral(L, "false");
     }
-    else {
+    else if (tipo == LUA_TSTRING || tipo == LUA_TNUMBER)
         lua_pushstring(L, lua_tolstring(L, 1, NULL));
-    }
+    else
+        lua_pushliteral(L, "nil");
     return 1;
 }
 
