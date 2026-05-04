@@ -244,6 +244,11 @@ class Maquina {
             M.stringToUTF8(arquitectura, this.p_arquitectura, tam_arquitectura);
         }
 
+        // struct lily_dict_dict* opciones
+        this.p_opciones = M._malloc(8);
+        M.setValue(this.p_opciones, 0, "i32");
+        M.setValue(this.p_opciones + 4, 0, "i32");
+
         // struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*)
         this.p_fun_cargar_archivo = M.addFunction((param_nombre, param_tipo, param_codigo) => {
             // Deserializar parámetros
@@ -290,8 +295,8 @@ class Maquina {
         try {
             const p_res = M.ccall("lily_lily_ensamble",
                                        "number",
-                                       ["number", "number", "number", "number", "number", "number", "number", "number"],
-                                       [this.p_datos_entrada, this.p_arquitectura, this.p_fun_cargar_archivo, this.p_fun_cerrar_archivo, this.p_fun_mensaje, this.p_tam_salida, this.p_estado, this.pp_ctx]
+                                       ["number", "number", "number", "number", "number", "number", "number", "number", "number"],
+                                       [this.p_datos_entrada, this.p_arquitectura, this.p_opciones, this.p_fun_cargar_archivo, this.p_fun_cerrar_archivo, this.p_fun_mensaje, this.p_tam_salida, this.p_estado, this.pp_ctx]
                                       );
             estado = M.getValue(this.p_estado, "i32");
             array_salida = new Uint8Array(M.getValue(this.p_tam_salida, "i32"));
