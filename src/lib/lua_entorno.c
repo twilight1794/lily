@@ -190,7 +190,15 @@ int lily_lua_entorno_base_tostring(lua_State* L) {
         lua_pushliteral(L, "tostring necesita 1 parámetro");
         lua_error(L);
     }
-    lua_tolstring(L, 1, NULL);
+    int tipo = lua_type(L, 1);
+    if (tipo == LUA_TBOOLEAN) {
+      bool val = lua_toboolean(L, 1);
+      if (val) lua_pushstring(L, "true");
+      else lua_pushliteral(L, "false");
+    }
+    else {
+        lua_pushstring(L, lua_tolstring(L, 1, NULL));
+    }
     return 1;
 }
 
