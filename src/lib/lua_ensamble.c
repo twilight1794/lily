@@ -276,30 +276,33 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
         return NULL;
     }
     lua_len(L, -1);
-    *tam = lua_tointeger(L, -1);
+    lua_Integer n_objs = *tam = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    if (*tam == 0) {
+    if (n_objs == 0) {
+        // FIX: habrá mnemónicos modificadores
         *estado = COD_LUA_CPU_RES_ENSAMBLE_VACIO;
         return NULL;
     }
-    uint8_t* bytes = calloc(*tam, sizeof(uint8_t));
+    uint8_t* bytes = calloc(*tam, sizeof(uint8_t)); // Tamaño inicial
     if (bytes == NULL) {
         *estado = COD_MALLOC_FALLO;
         return NULL;
     }
-    for (lua_Integer i = 0; i < *tam; i++) {
-        lua_geti(L, -1, i+1);
+    size_t idx = 0;
+    for (lua_Integer i = 0; i < n_objs; i++) {
+      lua_geti(L, -1, i + 1);
         if (lua_isinteger(L, -1)) {
-            bytes[i] = lua_tointeger(L, -1);
+            // NOTE: solo se guarda el primer byte
+            bytes[idx++] = lua_tointeger(L, -1);
         }
         else if (lua_isuserdata(L, -1)) {
             enum lily_lua_tipo tipo = lily_lua_int_obj(L);
-            size_t tamano;
+            size_t tamano_obj;
             // NOTE: Por ahora, asumiremos que todos los userdata son enteros exactos
-            lily_lua_int_tipo_valores(tipo, &tamano, NULL, NULL);
-            if (tamano > 1) {
+            lily_lua_int_tipo_valores(tipo, &tamano_obj, NULL, NULL);
+            if (tamano_obj > 1) {
                 // Agrandar array si el entero es multibyte
-                *tam += tamano - 1;
+                *tam += tamano_obj - 1;
                 uint8_t* tmp = (uint8_t*) realloc(bytes, *tam);
                 if (tmp == NULL) {
                     *estado = COD_MALLOC_FALLO;
@@ -308,10 +311,8 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
                 bytes = tmp;
             }
             uint8_t* bytes_obj = lua_touserdata(L, -1);
-            for (size_t j = 0; j < tamano; j++) {
-                bytes[i] = bytes_obj[j];
-                i++;
-            }
+            memcpy(bytes + idx, bytes_obj, tamano_obj);
+            idx += tamano_obj;
         }
         else {
             *estado = COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO;
