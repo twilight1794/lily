@@ -10,6 +10,7 @@ end
 
 return {
     id = "lc3",
+    max_memoria = 65536,
     registros = {
         -- Registros de propósito general
         R0 = {

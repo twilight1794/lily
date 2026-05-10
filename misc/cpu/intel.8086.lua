@@ -58,6 +58,7 @@ end
 
 return {
     id = "intel.8086",
+    max_memoria = 1048576,
     registros = {
         AL = {
             tamano = 8,

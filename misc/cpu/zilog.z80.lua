@@ -143,6 +143,7 @@ dec_tr = {
 -- Objeto a devolver
 return {
     id = "zilog.z80",
+    max_memoria = 65536,
     registros = {
         -- Registros principales
         A = {
