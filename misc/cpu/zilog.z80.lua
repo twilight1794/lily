@@ -857,9 +857,11 @@ return {
             { 0xed },
             {
                 {
-                    function (byte)
-                        return byte == 0x46 or byte == 0x56 or byte == 0x5e
-                    end,
+                    {
+                        function (byte)
+                            return byte == 0x46 or byte == 0x56 or byte == 0x5e
+                        end
+                    },
                     function (...)
                         local args = {...}
                         lily.escribir_registro('mi', math.floor(args[2]/10))
