@@ -63,6 +63,7 @@ return {
             desplazamiento = 146
         }
     },
+    registro_programa = "PC",
     tipos = {
         r = function(v)
             return type(v) == "string" and v:sub(1,1):lower() == "r" and (tonumber(v:sub(2,2)) >= 0 and tonumber(v:sub(2,3)) < 8)

@@ -259,6 +259,7 @@ return {
             desplazamiento = 196
         }
     },
+    registro_programa = "PC",
     tipos = {
         r = function (v) return r_vals(v) end,
         di = function (v) return type(v) == "table" and (#v == 1 or #v == 2) and i_vals[v[1]] and ((not v[2]) or (type(v[2]) == "number" and v[2] >= -128 and v[2] < 128)) end,

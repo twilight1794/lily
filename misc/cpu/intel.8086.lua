@@ -181,6 +181,7 @@ return {
             desplazamiento = 216
         },
     },
+    registro_programa = "IP",
     tipos = {
         addr8 = function (a) return type(a) == "number" and a >= 0 and a <= 255 end, --uint8
         r8 = function (r) return type(r) == "string" and r8_vals[r:upper()] end,
