@@ -12,29 +12,29 @@ mmm_vals = {
 }
 
 r8_vals = {
-    AL = 0,  CL = 1,
-    DL = 2,  BL = 3,
-    AH = 4,  CH = 5,
-    DH = 6,  BH = 7
+    AL = 0,  al = 0,  CL = 1,  cl = 1,
+    DL = 2,  dl = 2,  BL = 3,  bl = 3,
+    AH = 4,  ah = 4,  CH = 5,  ch = 5,
+    DH = 6,  dh = 6,  BH = 7,  bh = 7
 }
 
 r16_vals = {
-    AX = 0,  CX = 1,
-    DX = 2,  BX = 3,
-    SP = 4,  BP = 5,
-    SI = 6,  DI = 7
+    AX = 0,  ax = 0,  CX = 1,  cx = 1,
+    DX = 2,  dx = 2,  BX = 3,  bx = 3,
+    SP = 4,  sp = 4,  BP = 5,  bp = 5,
+    SI = 6,  si = 6,  DI = 7,  di = 7
 }
 
 s_vals = {
-    ES = 0,
-    CS = 1,
-    SS = 2,
-    DS = 3
+    ES = 0,  es = 0,
+    CS = 1,  cs = 1,
+    SS = 2,  ss = 2,
+    DS = 3,  ds = 3
 }
 
 a_vals = {
-    AL = 0,
-    AX = 1
+    AL = 0,  al = 0,
+    AX = 1,  ax = 1
 }
 
 function add_tr(bytes, a, b)
@@ -184,9 +184,9 @@ return {
     registro_programa = "IP",
     tipos = {
         addr8 = function (a) return type(a) == "number" and a >= 0 and a <= 255 end, --uint8
-        r8 = function (r) return type(r) == "string" and r8_vals[r:upper()] end,
-        r16 = function (r) return type(r) == "string" and r16_vals[r:upper()] end,
-        s = function (s) return type(s) == "string" and s_vals[s:upper()] end,
+        r8 = function (r) return type(r) == "string" and r8_vals[r] end,
+        r16 = function (r) return type(r) == "string" and r16_vals[r] end,
+        s = function (s) return type(s) == "string" and s_vals[s] end,
         m8 = function (m) return type(m) == "table" and #m == 1 and type(m[1]) == "number" and m[1] >= 0 and m[1] <= 65535 end,
         m16 = function (m) return type(m) == "table" and #m == 1 and type(m[1]) == "number" and m[1] >= 0 and m[1] <= 65535 end,
         i8 = function (i) return type(i) == "number" and i >= 0 and i <= 255 end, --uint8
@@ -195,7 +195,7 @@ return {
         ral = function (r) return type(r) == "string" and r:upper() == "AL" end,
         rax = function (r) return type(r) == "string" and r:upper() == "AX" end,
         --in-out
-        ra = function (r) return type(r) == "string" and (r:upper() == "AX" or r:upper() == "AL") end,
+        ra = function (r) return type(r) == "string" and a_vals[r] end,
         ddx = function (v) return type(v) == "table" and #v == 1 and type(v[1]) == "string" and v[1]:upper() == "DX" end,
         --int
         ["3"] = function (v) return v == 3 end,
@@ -232,27 +232,27 @@ return {
         ADD = {
             {
                 { "r8", "r8" },
-                function (r1, r2) return { 0, 0xc0 + (r8_vals[r2:upper()] << 3) + r8_vals[r1:upper()] } end
+                function (r1, r2) return { 0, 0xc0 + (r8_vals[r2] << 3) + r8_vals[r1] } end
             },
             {
                 { "m8", "r8" },
-                function (m, r) return { 0, 6 + (r8_vals[r:upper()] << 3), uint16l(m[1]) } end
+                function (m, r) return { 0, 6 + (r8_vals[r] << 3), uint16l(m[1]) } end
             },
             {
                 { "r16", "r16" },
-                function (r1, r2) return { 1, 0xc0 + (r16_vals[r2:upper()] << 3) + r16_vals[r1:upper()] } end
+                function (r1, r2) return { 1, 0xc0 + (r16_vals[r2] << 3) + r16_vals[r1] } end
             },
             {
                 { "m16", "r16" },
-                function (m, r) return { 1, 6 + (r16_vals[r:upper()] << 3), uint16l(m[1])} end
+                function (m, r) return { 1, 6 + (r16_vals[r] << 3), uint16l(m[1])} end
             },
             {
                 { "r8", "m8" },
-                function (r, m) return { 2, 6 + (r8_vals[r:upper()] << 3), uint16l(m[1]) } end
+                function (r, m) return { 2, 6 + (r8_vals[r] << 3), uint16l(m[1]) } end
             },
             {
                 { "r16", "m16" },
-                function (r, m) return { 3, 6 + (r16_vals[r:upper()] << 3), uint16l(m[1]) } end
+                function (r, m) return { 3, 6 + (r16_vals[r] << 3), uint16l(m[1]) } end
             },
             {
                 { "ral", "i8" },
@@ -264,7 +264,7 @@ return {
             },
             {
                 { "r8", "i8" },
-                function (r, i) return { 0x80, 0xc0 + r8_vals[r:upper()], int8(i) } end
+                function (r, i) return { 0x80, 0xc0 + r8_vals[r], int8(i) } end
             },
             {
                 { "sbyte", "m8", "i8" },
@@ -272,7 +272,7 @@ return {
             },
             { -- NOTE: esto debe ser ejemplo de que sí importa la prioridad
                 { "r16", "i8" },
-                function (r, i) return { 0x83, 0xc0 + r16_vals[r:upper()], int8(i) } end
+                function (r, i) return { 0x83, 0xc0 + r16_vals[r], int8(i) } end
             },
             {
                 { "sword", "m16", "i8" },
@@ -280,7 +280,7 @@ return {
             },
             {
                 { "r16", "i16" },
-                function (r, i) return { 0x81, 0xc0 + r16_vals[r:upper()], int16l(i) } end
+                function (r, i) return { 0x81, 0xc0 + r16_vals[r], int16l(i) } end
             },
             {
                 { "sword", "m16", "i16" },
@@ -395,7 +395,7 @@ return {
             },
             {
                 { "ra", "ddx" },
-                function (i, _) return { 0xec + a_vals[a] } end
+                function (a, _) return { 0xec + a_vals[a] } end
             },
         },
         INC = {
@@ -560,7 +560,7 @@ return {
             },
             {
                 { "r16", "i16" },
-                function (r, i) return { 0xb8 + r16_vals[r], sint16l(l) } end -- FIX: revisar signo
+                function (r, i) return { 0xb8 + r16_vals[r], sint16l(i) } end -- FIX: revisar signo
             },
             {
                 { "sbyte", "m8", "i8" },
