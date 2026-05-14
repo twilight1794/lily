@@ -212,8 +212,8 @@ else
 endif
 
 # Archivos fuente
-DEPS_LIBLILY_COMMON := cadena defs dict lde log nums
-DEPS_LIBLILY_LIB := a_lexico a_semantico a_sintactico lily lua_cpu lua_ensamble lua_entorno lua_int simbolo
+DEPS_LIBLILY_COMMON := bitarray cadena defs dict lde log nums
+DEPS_LIBLILY_LIB := a_lexico a_semantico a_sintactico lily lua_cpu lua_ejecucion lua_ensamble lua_entorno lua_int simbolo
 DEPS_LILY_POSIX := main mmap
 DEPS_LILY_WINDOWS := main mmap_windows
 

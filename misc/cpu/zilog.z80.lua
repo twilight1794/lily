@@ -849,8 +849,8 @@ return {
         -- Grupo de propósito general y control de CPU
         {
             { 0x76 }, -- HALT
-            function ()
-                lily.detener()
+            function(bytes)
+                L.detener()
             end
         },
         {
@@ -862,9 +862,8 @@ return {
                             return byte == 0x46 or byte == 0x56 or byte == 0x5e
                         end
                     },
-                    function (...)
-                        local args = {...}
-                        lily.escribir_registro('mi', math.floor(args[2]/10))
+                    function (bytes)
+                        L.escribir_registro("mi", math.floor(bytes[2]/10) - 7)
                     end
                 }
             }

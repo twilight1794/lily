@@ -428,7 +428,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             lua_pop(L, 1);
             tam_cad_params += strlen(lista_params[j]) + 2;
         }
-        tam_cad_params -= 1 ;
+        tam_cad_params -= 1;
 
         // Generar mensaje de log
         char* msg_cad_params = (char*) malloc(sizeof(char)*tam_cad_params);
@@ -446,7 +446,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             }
         }
         msg_cad_params[k] = '\0';
-        msg_buf = d_printf("comprobando caso (%s)", msg_cad_params);
+        msg_buf = d_printf("Comprobando caso (%s)", msg_cad_params);
         enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
         free(msg_buf);
 
@@ -469,7 +469,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
 
         // Es la opción
         if (coincide) {
-            msg_buf = d_printf("lua_cpu: seleccionado caso (%s)", msg_cad_params);
+            msg_buf = d_printf("Seleccionado caso (%s)", msg_cad_params);
             enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
             free(msg_buf);
             lua_geti(L, -1, 2); // values (idx 10)

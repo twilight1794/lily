@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
         return 0;
     }
     struct lily_log_config* l = &lily_log_conf;
-    enum lily_estado estado;
+    enum lily_estado estado = 0;
     void* ctx;
 
     char* archivo_listado_ruta = NULL;
@@ -307,7 +307,7 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
         else if (etapa_actual == LILY_MAIN_EJECUCION) {
-            exit(EXIT_FAILURE);
+            lily_lily_ejecucion(archivo_entrada_obj->p, archivo_entrada_obj->st.st_size, arquitectura, &obt_archivo, &cerrar_archivo, &enviar_mensaje, &estado, &ctx);
         }
         if (etapa_final == etapa_actual) {
             datos_salida = datos_proceso;
@@ -322,13 +322,15 @@ int main(int argc, char **argv) {
     }
 
     // Abrir archivo de salida
-    struct lily_cli_archivo* archivo_salida_obj = lily_cli_archivo_create(archivo_salida, tam_salida);
-    if (archivo_salida_obj == NULL) {
-        log_fatal_v(l, "main", _("File %s cannot be open: %s."), archivo_salida, strerror(errno));
-        exit(EXIT_FAILURE);
+    if (etapa_final != LILY_MAIN_EJECUCION) { // FIX: luego cambiaremos esto para permitir core dumps
+        struct lily_cli_archivo* archivo_salida_obj = lily_cli_archivo_create(archivo_salida, tam_salida);
+        if (archivo_salida_obj == NULL) {
+            log_fatal_v(l, "main", _("File %s cannot be open: %s."), archivo_salida, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        memcpy(archivo_salida_obj->p, datos_salida, tam_salida);
+        lily_cli_archivo_close(archivo_salida_obj);
     }
-    memcpy(archivo_salida_obj->p, datos_salida, tam_salida);
-    lily_cli_archivo_close(archivo_salida_obj);
     exit(EXIT_SUCCESS);
 }
 

@@ -11,6 +11,7 @@
 #include "a_sintactico.h"
 #include "lua_entorno.h"
 #include "lua_int.h"
+#include "lua_ejecucion.h"
 #include "mensajes.h"
 #include "../common/estado.h"
 
@@ -43,5 +44,7 @@ struct lily_lily_archivo {
 uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struct lily_dict_dict* opciones, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int(fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, size_t* tam_salida, enum lily_estado* estado, void** ctx);
 
 uint8_t* lily_lily_desensamble(uint8_t* bytes, f_mensajes_ptr fun_mensaje);
+
+void lily_lily_ejecucion(char* bytes, size_t tamano, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, enum lily_estado* estado, void** ctx);
 
 #endif

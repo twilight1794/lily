@@ -87,3 +87,26 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     }
     return datos_salida;
 }
+
+void lily_lily_ejecucion(char* bytes, size_t tamano, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, enum lily_estado* estado, void** ctx) {
+    // Cargar y preparar entorno de Lua
+    lua_State* L = lily_lua_entorno_preparar(estado);
+    if (*estado != COD_OK) {
+        return;
+    }
+    lily_lua_int_preparar(L);
+    struct lily_lily_archivo* archivo_arquitectura = fun_abrir_archivo(arquitectura, 0, (int*) estado);
+    if (archivo_arquitectura == NULL) {
+        *estado = COD_LILY_SIN_ESQUEMA;
+        return;
+    }
+    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, estado, ctx);
+    if (*estado != COD_OK) {
+        return;
+    }
+    fun_cerrar_archivo(archivo_arquitectura);
+    // Preparar máquina y ejecutar
+    struct lily_lua_ejecucion_maquina* maquina = lily_lua_ejecucion_ini(L, fun_mensaje, estado, ctx);
+    lily_lua_ejecucion_arrancar(maquina, (uint8_t*) bytes, tamano); // FIX: tratar errores
+    lily_lua_ejecucion_ejecutar(maquina, fun_mensaje, estado, ctx);
+}
