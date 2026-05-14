@@ -228,10 +228,10 @@ int lily_lua_entorno_base_type(lua_State* L) {
 lua_State* lily_lua_entorno_preparar(enum lily_estado* estado) {
     lua_State* L = luaL_newstate();
     // Bibliotecas integradas
-    luaopen_string(L);
-    luaopen_utf8(L);
-    luaopen_table(L);
-    luaopen_math(L);
+    luaL_requiref(L, "string", luaopen_string, true);
+    luaL_requiref(L, "utf8", luaopen_utf8, true);
+    luaL_requiref(L, "table", luaopen_table, true);
+    luaL_requiref(L, "math", luaopen_math, true);
 
     lua_register(L, "assert", lily_lua_entorno_base_assert);
     lua_register(L, "debug", lily_lua_entorno_base_debug);
@@ -248,7 +248,7 @@ lua_State* lily_lua_entorno_preparar(enum lily_estado* estado) {
     lua_register(L, "tonumber", lily_lua_entorno_base_tonumber);
     lua_register(L, "tostring", lily_lua_entorno_base_tostring);
     lua_register(L, "type", lily_lua_entorno_base_type);
-    lua_pushstring(L, "Lua 5.4");
+    lua_pushstring(L, "Lua 5.4.7");
     lua_setglobal(L, "_VERSION");
     char* _lily_version = (char*) malloc(snprintf(NULL, 0, "Lily %s (commit %s%s)", LILY_VERSION, LILY_COMMIT, LILY_MODIFICADO));
     if (_lily_version == NULL) {
