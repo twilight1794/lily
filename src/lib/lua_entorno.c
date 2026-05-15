@@ -225,7 +225,7 @@ int lily_lua_entorno_base_type(lua_State* L) {
     return 1;
 }
 
-lua_State* lily_lua_entorno_preparar(enum lily_estado* estado) {
+lua_State* lily_lua_entorno_preparar(enum lily_estado* estado, f_mensajes_ptr fun_mensaje) {
     lua_State* L = luaL_newstate();
     // Bibliotecas integradas
     luaL_requiref(L, "string", luaopen_string, true);
@@ -260,5 +260,8 @@ lua_State* lily_lua_entorno_preparar(enum lily_estado* estado) {
     lua_pushstring(L, _lily_version);
     lua_setglobal(L, "LILY_VERSION");
     free(_lily_version);
+    // Funciones de la plataforma
+    lua_pushinteger(L, (lua_Integer) fun_mensaje);
+    lua_setglobal(L, "_lily_enviar_mensaje");
     return L;
 }

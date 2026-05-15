@@ -74,6 +74,16 @@ int lily_lua_entorno_ejecucion_leer_memoria(lua_State* L) {
     const size_t direccion = lua_tointeger(L, 1);
     lua_Integer valor = memoria[direccion];
     lua_pushinteger(L, valor);
+    // Mensaje
+    struct lily_lily_mensaje_tmemoria mensaje = {
+        .direccion = direccion,
+        .tamano = 1,
+        .valor = valor
+    };
+    lua_getglobal(L, "_lily_enviar_mensaje");
+    f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    enviar_mensaje(LILY_MENSAJE_TMEMORIA, LILY_MENSAJE_TMEMORIA_LECTURA, "lua_entorno_ejecucion_leer_memoria", &mensaje);
     return 1;
 }
 
@@ -88,6 +98,16 @@ int lily_lua_entorno_ejecucion_escribir_memoria(lua_State* L) {
     const size_t direccion = lua_tointeger(L, 1);
     lua_Integer valor = lua_tointeger(L, 2);
     memoria[direccion] = *((uint8_t*) &valor);
+    // Mensaje
+    struct lily_lily_mensaje_tmemoria mensaje = {
+        .direccion = direccion,
+        .tamano = 1,
+        .valor = valor
+    };
+    lua_getglobal(L, "_lily_enviar_mensaje");
+    f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    enviar_mensaje(LILY_MENSAJE_TMEMORIA, LILY_MENSAJE_TMEMORIA_ESCRITURA, "lua_entorno_ejecucion_escribir_memoria", &mensaje);
     return 0;
 }
 
@@ -110,6 +130,17 @@ int lily_lua_entorno_ejecucion_leer_registro(lua_State* L) {
     lua_Integer valor = 0;
     lily_bitarray_obtener(posicion, tamano, registros, (uint8_t*) &valor);
     lua_pushinteger(L, valor);
+    // Mensaje
+    struct lily_lily_mensaje_tregistro mensaje = {
+        .desplazamiento = posicion,
+        .registro = lua_tostring(L, 1),
+        .tamano = tamano,
+        .valor = valor
+    };
+    lua_getglobal(L, "_lily_enviar_mensaje");
+    f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    enviar_mensaje(LILY_MENSAJE_TREGISTRO, LILY_MENSAJE_TREGISTRO_LECTURA, "lua_entorno_ejecucion_leer_registro", &mensaje);
     return 1;
 }
 
@@ -131,6 +162,17 @@ int lily_lua_entorno_ejecucion_escribir_registro(lua_State* L) {
     // Escritura
     lua_Integer valor = lua_tointeger(L, 2);
     lily_bitarray_guardar(posicion, tamano, registros, (uint8_t*) &valor);
+    // Mensaje
+    struct lily_lily_mensaje_tregistro mensaje = {
+        .desplazamiento = posicion,
+        .registro = lua_tostring(L, 1),
+        .tamano = tamano,
+        .valor = valor
+    };
+    lua_getglobal(L, "_lily_enviar_mensaje");
+    f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    enviar_mensaje(LILY_MENSAJE_TREGISTRO, LILY_MENSAJE_TREGISTRO_ESCRITURA, "lua_entorno_ejecucion_escribir_registro", &mensaje);
     return 0;
 }
 

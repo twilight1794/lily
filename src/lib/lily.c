@@ -30,7 +30,7 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     }
 
     // Cargar y preparar entorno de Lua
-    lua_State* L = lily_lua_entorno_preparar(estado);
+    lua_State* L = lily_lua_entorno_preparar(estado, fun_mensaje);
     if (*estado != COD_OK) {
         lua_msg();
         return NULL;
@@ -90,7 +90,7 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
 
 void lily_lily_ejecucion(char* bytes, size_t tamano, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, enum lily_estado* estado, void** ctx) {
     // Cargar y preparar entorno de Lua
-    lua_State* L = lily_lua_entorno_preparar(estado);
+    lua_State* L = lily_lua_entorno_preparar(estado, fun_mensaje);
     if (*estado != COD_OK) {
         return;
     }

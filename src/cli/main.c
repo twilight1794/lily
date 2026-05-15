@@ -437,27 +437,63 @@ char* obt_etapa_str(enum lily_main_etapa etapa) {
 
 int enviar_mensaje(enum lily_lily_mensaje_tipo tipo, int subtipo, char* modulo, void* obj) {
     struct lily_log_config* l = &lily_log_conf;
-    switch (tipo) {
-    case LILY_MENSAJE_TLOG:
+    if (tipo == LILY_MENSAJE_TLOG) {
         if (subtipo == LILY_LOG_DEBUG) log_debug(l, modulo, (char*) obj);
         else if (subtipo == LILY_LOG_INFO) log_info(l, modulo, (char*) obj);
         else if (subtipo == LILY_LOG_WARN) log_warn(l, modulo, (char*) obj);
         else if (subtipo == LILY_LOG_ERROR) log_error(l, modulo, (char*) obj);
         else if (subtipo == LILY_LOG_FATAL) log_fatal(l, modulo, (char*) obj);
-        break;
-    case LILY_MENSAJE_TADVERTENCIA:
-        log_warn(l, modulo, (char*) obj);
-        break;
-    case LILY_MENSAJE_TETIQUETA:
-    case LILY_MENSAJE_TVARIABLE:
-    case LILY_MENSAJE_TMEMORIA:
-    case LILY_MENSAJE_TREGISTRO:
-    case LILY_MENSAJE_TPILA:
-    case LILY_MENSAJE_TDISPOSITIVO:
-    case LILY_MENSAJE_TINTERRUPCION:
-        // FIX: no implementado aún, ignoramos
-        break;
     }
+    else if (tipo == LILY_MENSAJE_TADVERTENCIA) {
+       log_warn(l, modulo, (char*) obj);
+    }
+    else if (tipo == LILY_MENSAJE_TMEMORIA) {
+        struct lily_lily_mensaje_tmemoria* obj_struct = obj;
+        // FIX: por ahora, solo escribiremos 1 byte a la vez
+        if (subtipo == LILY_MENSAJE_TMEMORIA_ESCRITURA)
+            log_debug_v(l, modulo, _("Writing %u bytes [0x%02x] on address 0x%08x"), obj_struct->tamano, obj_struct->valor, obj_struct->direccion);
+        else
+            log_debug_v(l, modulo, _("Reading %u bytes [0x%02x] on address 0x%08x"), obj_struct->tamano, obj_struct->valor, obj_struct->direccion);
+    }
+    else if (tipo == LILY_MENSAJE_TREGISTRO) {
+        struct lily_lily_mensaje_tregistro* obj_struct = obj;
+        switch (subtipo) {
+        case LILY_MENSAJE_TREGISTRO_LECTURA:
+            log_debug_v(l, modulo, _("Reading value 0x%02x from register %s"), obj_struct->valor, obj_struct->registro);
+            break;
+        case LILY_MENSAJE_TREGISTRO_ESCRITURA:
+            log_debug_v(l, modulo, _("Writing value 0x%02x to register %s"), obj_struct->valor, obj_struct->registro);
+            break;
+        case LILY_MENSAJE_TREGISTRO_CREACION_CTX:
+            log_debug_v(l, modulo, _("Creating new register context 0x%x"), obj_struct->valor);
+            break;
+        case LILY_MENSAJE_TREGISTRO_RESTAURACION_CTX:
+            log_debug_v(l, modulo, _("Restoring register context 0x%x"), obj_struct->valor);
+            break;
+        case LILY_MENSAJE_TREGISTRO_ELIMINACION_CTX:
+            log_debug_v(l, modulo, _("Removing register context 0x%x"), obj_struct->valor);
+        }
+    }
+    else if (tipo == LILY_MENSAJE_TPILA) {
+        struct lily_lily_mensaje_tpila* obj_struct = obj;
+        switch (subtipo) {
+        case LILY_MENSAJE_TPILA_LECTURA:
+            log_debug_v(l, modulo, _("Pushing value 0x%02x to stack"), obj_struct->valor);
+            break;
+        case LILY_MENSAJE_TPILA_ESCRITURA:
+            log_debug(l, modulo, _("Popping value from stack"));
+            break;
+        case LILY_MENSAJE_TPILA_CREACION_CTX:
+            log_debug_v(l, modulo, _("Creating new stack context 0x%x of %z bytes"), obj_struct->valor, obj_struct->tamano);
+            break;
+        case LILY_MENSAJE_TPILA_RESTAURACION_CTX:
+            log_debug_v(l, modulo, _("Restoring stack context 0x%x"), obj_struct->valor);
+            break;
+        case LILY_MENSAJE_TPILA_ELIMINACION_CTX:
+            log_debug_v(l, modulo, _("Removing stack context 0x%x"), obj_struct->valor);
+        }
+    }
+    // FIX: TETIQUETA, TVARIABLE, TDISPOSITIVO E TINTERRUPCION no implementadoS aún
     return 0;
 }
 

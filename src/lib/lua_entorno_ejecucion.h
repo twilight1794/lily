@@ -8,6 +8,7 @@
 
 #include <math.h>
 
+#include "mensajes.h"
 #include "../common/bitarray.h"
 #include "../common/defs.h"
 #include "../common/estado.h"
