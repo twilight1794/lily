@@ -11,6 +11,7 @@
 #include "a_sintactico.h"
 #include "lua_entorno.h"
 #include "lua_int.h"
+#include "lua_entorno_ejecucion.h"
 #include "lua_ejecucion.h"
 #include "mensajes.h"
 #include "../common/estado.h"

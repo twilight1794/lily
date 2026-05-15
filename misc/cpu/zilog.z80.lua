@@ -1,13 +1,5 @@
 -- Especificación del microprocesador Zilog Z80
 
---[[
-  Habrá disponible un objeto global para controlar la plataforma, L
-  L.leer_memoria(pos)
-  L.escribir_memoria(pos, v)
-  L.leer_registro(reg)
-  L.escribir_registro(reg, v)
-]]
-
 -- Correspondencias valor->bits
 function r_vals(v)
     vals = {
@@ -863,7 +855,7 @@ return {
                         end
                     },
                     function (bytes)
-                        L.escribir_registro("mi", math.floor(bytes[2]/10) - 7)
+                        L.escribir_registro("IM", math.floor(bytes[2]/10) - 7)
                     end
                 }
             }

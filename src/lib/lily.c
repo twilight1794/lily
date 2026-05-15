@@ -95,6 +95,7 @@ void lily_lily_ejecucion(char* bytes, size_t tamano, char* arquitectura, struct 
         return;
     }
     lily_lua_int_preparar(L);
+    lily_lua_entorno_ejecucion_preparar(L, estado);
     struct lily_lily_archivo* archivo_arquitectura = fun_abrir_archivo(arquitectura, 0, (int*) estado);
     if (archivo_arquitectura == NULL) {
         *estado = COD_LILY_SIN_ESQUEMA;

@@ -19,6 +19,9 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, f_mensaj
         return NULL;
     }
     lua_pop(L, 1);
+    // Guardar para Lua la dirección del bloque de memoria
+    lua_pushinteger(L, (lua_Integer) obj->memoria);
+    lua_setglobal(L, "_lily_memoria_dir");
     // Obtener datos del registro contador de programa
     lua_pushstring(L, "registro_programa");
     lua_gettable(L, -2);
@@ -65,6 +68,10 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, f_mensaj
         *estado = COD_MALLOC_FALLO;
         return NULL;
     }
+    lua_pushinteger(L, (lua_Integer) obj->registros);
+    lua_setglobal(L, "_lily_registros_dir");
+    lua_pushinteger(L, obj->tamano_registros);
+    lua_setglobal(L, "_lily_registros_max");
     return obj;
 }
 

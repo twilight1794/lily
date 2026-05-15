@@ -10,6 +10,8 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* est
         }
         lua_pushinteger(L, lua_gettop(L));
         lua_setglobal(L, "_lily_tabla_idx");
+        lua_setglobal(L, "_lily_esquema");
+        lua_getglobal(L, "_lily_esquema");
 
         // Analizar id
         lua_pushstring(L, "id");
