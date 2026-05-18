@@ -166,15 +166,15 @@ void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uin
 }
 
 void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, f_ejecutora_ptr f_ejecutora, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
-    bool ejecutado = false;
-
     // Consultar ejecución
     int contador = 0;
-    while (f_ejecutora(maquina, &contador, enviar_mensaje, estado, ctx)) {
-        // Obtener PC
-        union lily_simbolo_numero pc;
-        lily_bitarray_obtener(maquina->posicion_pc, maquina->tamano_pc, maquina->registros, pc.bytes);
 
+    union lily_simbolo_numero pc;
+    pc.positivo = 0; // FIX: temporalmente, iniciamos siempre en 0
+    lily_bitarray_guardar(maquina->posicion_pc, maquina->tamano_pc, maquina->registros, pc.bytes);
+    while (f_ejecutora(maquina, &contador, enviar_mensaje, estado, ctx)) {
+        bool ejecutado = false;
+        // Obtener PC
         int base_pila = lua_gettop(maquina->L); // Para limpiar después
         lua_pushstring(maquina->L, "opcodes");
         lua_gettable(maquina->L, -2);
@@ -184,8 +184,8 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, f_e
         char* msg_buf = d_printf("Se encontraron %lu casos", tam_lista_casos);
         enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
         free(msg_buf);
-        //const size_t ptr_inicio = pc.positivo; // Inicio de la instrucción
-        const size_t ptr_inicio = 0; // FIX: temporalmente, iniciamos siempre en 0
+        lily_bitarray_obtener(maquina->posicion_pc, maquina->tamano_pc, maquina->registros, pc.bytes);
+        const size_t ptr_inicio = pc.positivo; // Inicio de la instrucción
         size_t ptr_inicio_relativo = ptr_inicio;
         size_t i = 1;
         while (!ejecutado && i <= tam_lista_casos) {
@@ -282,6 +282,10 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, f_e
                         lua_pushinteger(maquina->L, maquina->memoria[ptr_inicio + j - 1]);
                         lua_seti(maquina->L, -2, j);
                     }
+                    // Actualizar PC
+                    pc.positivo += num_bytes;
+                    lily_bitarray_guardar(maquina->posicion_pc, maquina->tamano_pc, maquina->registros, pc.bytes);
+                    // Y ejecutar operación
                     ejecutado = true;
                     if (lua_pcall(maquina->L, 1, 0, 0)) {
                         // FIX: procesar error bien
