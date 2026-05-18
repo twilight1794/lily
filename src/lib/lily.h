@@ -46,6 +46,6 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
 
 uint8_t* lily_lily_desensamble(uint8_t* bytes, f_mensajes_ptr fun_mensaje);
 
-void lily_lily_ejecucion(char* bytes, size_t tamano, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_mensajes_ptr fun_mensaje, enum lily_estado* estado, void** ctx);
+void lily_lily_ejecucion(char* bytes, size_t tamano, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_ejecutora_ptr fun_controladora, f_mensajes_ptr fun_mensaje, enum lily_estado* estado, void** ctx);
 
 #endif

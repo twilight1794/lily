@@ -7,6 +7,7 @@
 #include <libintl.h>
 #include <getopt.h>
 
+#include "ejecucion.h"
 #include "../lib/lily.h"
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -62,7 +63,8 @@ struct lily_log_config lily_log_conf = {
     .nivel_minimo = LILY_LOG_INFO
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
+    setbuf(stdin, NULL);
     // Si no hay parámetros, no hay qué seguir
     if (argc == 1) {
         f_help(argv[0]);
@@ -307,7 +309,14 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
         else if (etapa_actual == LILY_MAIN_EJECUCION) {
-            lily_lily_ejecucion(archivo_entrada_obj->p, archivo_entrada_obj->st.st_size, arquitectura, &obt_archivo, &cerrar_archivo, &enviar_mensaje, &estado, &ctx);
+            f_ejecutora_ptr ejecutora;
+            if (interactivo) {
+                puts(_("Interactive session"));
+                puts(_("Type 'h' for a description of available commands"));
+                ejecutora = &f_ejecutora_interactiva;
+            }
+            else ejecutora = &f_ejecutora_desatendida;
+            lily_lily_ejecucion(archivo_entrada_obj->p, archivo_entrada_obj->st.st_size, arquitectura, &obt_archivo, &cerrar_archivo, ejecutora, &enviar_mensaje, &estado, &ctx);
         }
         if (etapa_final == etapa_actual) {
             datos_salida = datos_proceso;
@@ -318,7 +327,7 @@ int main(int argc, char **argv) {
         tam_entrada = tam_proceso;
     }
     if (estado != COD_OK) {
-        exit(EXIT_FAILURE);
+        exit(estado);
     }
 
     // Abrir archivo de salida
@@ -331,7 +340,7 @@ int main(int argc, char **argv) {
         memcpy(archivo_salida_obj->p, datos_salida, tam_salida);
         lily_cli_archivo_close(archivo_salida_obj);
     }
-    exit(EXIT_SUCCESS);
+    exit(COD_OK);
 }
 
 void f_help(char* name) {
@@ -346,7 +355,7 @@ void f_help(char* name) {
     /* Opciones de desensamble */
     /* Opciones de ejecución */
     puts(_("\nExecution options:"));
-    puts(_(" -i  --interactive  Show a simple CLI that shows the state of the hypervisor"));
+    puts(_(" -i  --interactive  Show a simple CLI for controlling the VM state"));
     //puts(_(" -m=<mapping>  --mem-mapping=<mapping>  Map a memory address with a device"));
     //puts(_(" -s=<file>     --state=<file>           "));
     //puts(_(" -S            --step                   Execute a single mnemonic and exit, saving state."));
