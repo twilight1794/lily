@@ -32,6 +32,11 @@ struct lily_lua_ejecucion_maquina {
     lua_State* L; /**< Sesión de Lua asociada */
 };
 
+int lily_lua_ejecucion_leer_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor);
+int lily_lua_ejecucion_escribir_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor, uint8_t* valor_anterior);
+int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, uint8_t* valor);
+int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, const uint8_t* valor, uint8_t* valor_anterior);
+
 /**
  * Inicializa una máquina virtual Lily
  * @param L Sesión de Lua

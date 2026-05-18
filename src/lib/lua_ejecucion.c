@@ -1,5 +1,70 @@
 #include "lua_ejecucion.h"
 
+int lily_lua_ejecucion_leer_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor) {
+    if (direccion >= maquina->tamano_memoria)
+        return -1;
+    *valor = maquina->memoria[direccion];
+    return 0;
+}
+
+int lily_lua_ejecucion_escribir_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor, uint8_t* valor_anterior) {
+    if (direccion >= maquina->tamano_memoria)
+        return -1;
+    *valor_anterior = maquina->memoria[direccion];
+    maquina->memoria[direccion] = *valor;
+    return 0;
+}
+
+int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, uint8_t* valor) {
+    // Obtener ubicación de registro
+    lua_pushliteral(maquina->L, "registros");
+    lua_gettable(maquina->L, -2);
+    lua_pushstring(maquina->L, registro);
+    if (lua_gettable(maquina->L, -2) == LUA_TNIL) {
+        lua_pop(maquina->L, 2);
+        return -1;
+    }
+    lua_pushliteral(maquina->L, "desplazamiento");
+    lua_gettable(maquina->L, -2);
+    uint64_t ubicacion = lua_tointeger(maquina->L, -1);
+    lua_pop(maquina->L, 1);
+    lua_pushliteral(maquina->L, "tamano");
+    lua_gettable(maquina->L, -2);
+    uint64_t tamano = lua_tointeger(maquina->L, -1);
+    lua_pop(maquina->L, 1);
+    // Obtener dato
+    *((uint64_t*) valor) = 0;
+    lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor);
+    lua_pop(maquina->L, 2);
+    return 0;
+}
+
+int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, const uint8_t* valor, uint8_t* valor_anterior) {
+    // Obtener ubicación de registro
+    lua_pushliteral(maquina->L, "registros");
+    lua_gettable(maquina->L, -2);
+    lua_pushstring(maquina->L, registro);
+    if (lua_gettable(maquina->L, -2) == LUA_TNIL) {
+        lua_pop(maquina->L, 2);
+        return -1;
+    }
+    lua_pushliteral(maquina->L, "desplazamiento");
+    lua_gettable(maquina->L, -2);
+    uint64_t ubicacion = lua_tointeger(maquina->L, -1);
+    lua_pop(maquina->L, 1);
+    lua_pushliteral(maquina->L, "tamano");
+    lua_gettable(maquina->L, -2);
+    uint64_t tamano = lua_tointeger(maquina->L, -1);
+    lua_pop(maquina->L, 1);
+    // Obtener dato
+    *((uint64_t*) valor_anterior) = 0;
+    lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor_anterior);
+    // Escribir dato
+    lily_bitarray_guardar(ubicacion, tamano, maquina->registros, valor);
+    lua_pop(maquina->L, 2);
+    return 0;
+}
+
 struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
     struct lily_lua_ejecucion_maquina* obj = (struct lily_lua_ejecucion_maquina*) malloc(sizeof(struct lily_lua_ejecucion_maquina));
     if (obj == NULL) {
