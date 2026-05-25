@@ -327,14 +327,28 @@ int main(int argc, char** argv) {
             exit(EXIT_FAILURE);
         }
         else if (etapa_actual == LILY_MAIN_EJECUCION) {
-            f_ejecutora_ptr ejecutora;
-            if (interactivo) {
-                puts(_("Interactive session"));
-                puts(_("Type 'h' for a description of available commands"));
-                ejecutora = &f_ejecutora_interactiva;
+            ctx = (void*) malloc(sizeof(struct lily_lua_ejecucion_ctx));
+            struct lily_lua_ejecucion_ctx* ctx_e = (struct lily_lua_ejecucion_ctx*) ctx;
+            ctx_e->fun_abrir_archivo = &obt_archivo;
+            ctx_e->fun_cerrar_archivo = &cerrar_archivo;
+            ctx_e->fun_mensaje = &enviar_mensaje;
+            void* maquina = (void*) lily_lily_creacion_maquina(archivo_entrada_obj->p, archivo_entrada_obj->st.st_size, arquitectura, ctx);
+            estado = ctx_e->estado;
+            if (estado == COD_OK) {
+                f_ejecutora_ptr ejecutora;
+                if (interactivo) {
+                    puts(_("Interactive session"));
+                    puts(_("Type 'h' for a description of available commands"));
+                    ejecutora = &f_ejecutora_interactiva;
+                }
+                else ejecutora = &f_ejecutora_desatendida;
+                // Empezar ejecución
+                ejecutora(maquina, ctx_e);
+                while (ctx_e->estado == COD_OK || ctx_e->estado == COD_LUA_EJECUCION_MAQUINA_PAUSADA_UNA_INST) {
+                    lily_lily_ejecutar_instruccion(maquina, ctx_e);
+                    ejecutora(maquina, ctx_e);
+                }
             }
-            else ejecutora = &f_ejecutora_desatendida;
-            lily_lily_ejecucion(archivo_entrada_obj->p, archivo_entrada_obj->st.st_size, arquitectura, &obt_archivo, &cerrar_archivo, ejecutora, &enviar_mensaje, &estado, &ctx);
         }
         if (etapa_final == etapa_actual) {
             datos_salida = datos_proceso;

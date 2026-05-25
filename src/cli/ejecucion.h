@@ -38,6 +38,6 @@
 
 #define _(CAD) gettext(CAD)
 
-int f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, int* contador, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
+void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx);
 
-int f_ejecutora_desatendida(struct lily_lua_ejecucion_maquina* maquina, int* contador, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
+void f_ejecutora_desatendida(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx);

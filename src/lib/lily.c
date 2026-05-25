@@ -106,26 +106,34 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     return datos_salida;
 }
 
-void lily_lily_ejecucion(char* bytes, size_t tamano, char* arquitectura, struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*), int (fun_cerrar_archivo)(struct lily_lily_archivo*), f_ejecutora_ptr fun_ejecutora, f_mensajes_ptr fun_mensaje, enum lily_estado* estado, void** ctx) {
+struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_t tamano, char* arquitectura, struct lily_lua_ejecucion_ctx* ctx) {
+    // Preparar contexto
+    ctx->lua_msg = NULL;
+    ctx->estado = COD_OK;
+
     // Cargar y preparar entorno de Lua
-    lua_State* L = lily_lua_entorno_preparar(estado, fun_mensaje);
-    if (*estado != COD_OK) {
-        return;
+    lua_State* L = lily_lua_entorno_preparar(&ctx->estado, ctx->fun_mensaje);
+    if (ctx->estado != COD_OK) {
+        return NULL;
     }
     lily_lua_int_preparar(L);
-    lily_lua_entorno_ejecucion_preparar(L, estado);
-    struct lily_lily_archivo* archivo_arquitectura = fun_abrir_archivo(arquitectura, 0, (int*) estado);
+    lily_lua_entorno_ejecucion_preparar(L, &ctx->estado);
+    struct lily_lily_archivo* archivo_arquitectura = ctx->fun_abrir_archivo(arquitectura, 0, (int*) &ctx->estado);
     if (archivo_arquitectura == NULL) {
-        *estado = COD_LILY_SIN_ESQUEMA;
-        return;
+        ctx->estado = COD_LILY_SIN_ESQUEMA;
+        return NULL;
     }
-    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, estado, ctx);
-    if (*estado != COD_OK) {
-        return;
+    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, &ctx->estado, (void**) &ctx);
+    if (ctx->estado != COD_OK) {
+        return NULL;
     }
-    fun_cerrar_archivo(archivo_arquitectura);
+    ctx->fun_cerrar_archivo(archivo_arquitectura);
     // Preparar máquina
-    struct lily_lua_ejecucion_maquina* maquina = lily_lua_ejecucion_ini(L, fun_mensaje, estado, ctx);
+    struct lily_lua_ejecucion_maquina* maquina = lily_lua_ejecucion_ini(L, ctx);
     lily_lua_ejecucion_arrancar(maquina, (uint8_t*) bytes, tamano); // FIX: tratar errores
-    lily_lua_ejecucion_ejecutar(maquina, fun_ejecutora, fun_mensaje, estado, ctx);
+    return maquina;
+}
+
+void lily_lily_ejecutar_instruccion(void* maquina, struct lily_lua_ejecucion_ctx* ctx) {
+    lily_lua_ejecucion_ejecutar(maquina, ctx);
 }

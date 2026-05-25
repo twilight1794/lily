@@ -23,15 +23,11 @@ static void f_ejecutora_interactiva_h(void);
 static void f_ejecutora_interactiva_m(struct lily_lua_ejecucion_maquina* maquina, int* c);
 static void f_ejecutora_interactiva_r(struct lily_lua_ejecucion_maquina* maquina, int* c);
 
-int f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, int* contador, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
     int c;
-    //
-    if (*contador == -1) {
-      if (*estado != 0) {
-          *contador = 0;
-          return LUA_EJECUCION_DETENER;
-      }
-      return LUA_EJECUCION_EJECUTAR_SIGUIENTE;
+    // La ejecución de corrido fue seleccionada
+    if (ctx->estado_ejecucion == COD_OK) {
+        return;
     }
     // Buffer
     struct termios tios_nb, tios_b;
@@ -53,7 +49,8 @@ int f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, int* con
             //puts("\nCore dump not implemented yet");
             //break;
         case 'e':
-            *contador = -1;
+            ctx->estado = COD_OK;
+            ctx->estado_ejecucion = COD_OK;
             putchar('\n');
             salir = true;
             break;
@@ -82,6 +79,7 @@ int f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, int* con
             break;
         case 's':
             putchar('\n');
+            ctx->estado = COD_LUA_EJECUCION_MAQUINA_PAUSADA_UNA_INST;
             salir = true;
             break;
         case '\n':
@@ -91,14 +89,11 @@ int f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, int* con
         }
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &tios_b);
-    return !finalizar;
+    if (finalizar) ctx->estado = COD_LUA_EJECUCION_MAQUINA_DETENIDA_USUARIO;
 }
 
-int f_ejecutora_desatendida(struct lily_lua_ejecucion_maquina* maquina, int* contador, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
-    if (*estado == 0) {
-        return LUA_EJECUCION_EJECUTAR_SIGUIENTE;
-    }
-    return LUA_EJECUCION_DETENER;
+void f_ejecutora_desatendida(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
+    return;
 }
 
 static void f_ejecutora_interactiva_h(void) {

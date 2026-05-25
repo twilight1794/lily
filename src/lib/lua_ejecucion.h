@@ -36,10 +36,7 @@
 
 #include <lua.h>
 
-enum lily_lua_ejecucion_ejecutar_estados {
-    LUA_EJECUCION_DETENER,
-    LUA_EJECUCION_EJECUTAR_SIGUIENTE
-};
+struct lily_lua_ejecucion_ctx;
 
 /**
  * @brief Máquina virtual
@@ -63,11 +60,9 @@ int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maqu
 /**
  * Inicializa una máquina virtual Lily
  * @param L Sesión de Lua
- * @param enviar_mensaje Función para enviar un mensaje al host
- * @param [out] estado Estado de la ejecución
  * @param [out] ctx Contexto de la ejecución
  */
-struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
+struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct lily_lua_ejecucion_ctx* ctx);
 
 /**
  * @brief Cargador de arranque primigenio
@@ -78,16 +73,22 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, f_mensaj
  */
 void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uint8_t* programa, size_t tamano);
 
-typedef int (*f_ejecutora_ptr)(struct lily_lua_ejecucion_maquina* maquina, int* contador, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
+typedef void (*f_ejecutora_ptr)(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx);
 
 /**
  * Ejecuta instrucciones en la máquina virtual
  * @param maquina Máquina virtual sobre la que se trabajará
- * @param f_ejecutora Función que controlará la ejecución en la máquina virtual
- * @param enviar_mensaje Función para enviar un mensaje al host
- * @param [out] estado Estado de la ejecución
  * @param [out] ctx Contexto de la ejecución
  */
-void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, f_ejecutora_ptr f_ejecutora, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
+void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx);
+
+struct lily_lua_ejecucion_ctx {
+    struct lily_lily_archivo* (*fun_abrir_archivo)(const char*, int, int*);
+    int (*fun_cerrar_archivo)(struct lily_lily_archivo*);
+    f_mensajes_ptr fun_mensaje;
+    const char* lua_msg;
+    enum lily_estado estado;
+    enum lily_estado estado_ejecucion;
+};
 
 #endif

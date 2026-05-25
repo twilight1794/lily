@@ -74,13 +74,15 @@ struct lily_lily_mensaje_tregistro {
 enum lily_lily_mensaje_tpila_subtipo {
     LILY_MENSAJE_TPILA_LECTURA,
     LILY_MENSAJE_TPILA_ESCRITURA,
+    LILY_MENSAJE_TPILA_ANADIDO,
+    LILY_MENSAJE_TPILA_QUITADO,
     LILY_MENSAJE_TPILA_CREACION_CTX,
     LILY_MENSAJE_TPILA_RESTAURACION_CTX,
     LILY_MENSAJE_TPILA_ELIMINACION_CTX,
 };
 
 struct lily_lily_mensaje_tpila {
-    uint64_t valor; /**< Valor añadido, 0 al quitar, identificador para operaciones de contexto */
+    uint64_t valor; /**< Valor para añadido y escritura, 0 para lectura y quitado, dirección para operaciones de contexto */
     size_t tamano; /**< Tamaño de los valores, al crear un contexto */
 };
 

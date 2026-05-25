@@ -95,7 +95,9 @@ enum lily_estado {
     COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO, /**< Uno de los elementos de la tabla devuelta por la función de ensamble no es un entero */
     // lib/lua_ejecucion.h
     COD_LUA_EJECUCION_INSTRUCCION_ILEGAL, /**< La secuencia de bytes encontrada no es una instrucción válida */
-    COD_LUA_EJECUCION_MAQUINA_DETENIDA /**< La instrucción solicitó la detención de la ejecución */
+    COD_LUA_EJECUCION_MAQUINA_PAUSADA_UNA_INST, /**< Se ha terminado de ejecutar una instrucción en el modo paso-a-paso */
+    COD_LUA_EJECUCION_MAQUINA_DETENIDA, /**< La instrucción solicitó la detención de la ejecución */
+    COD_LUA_EJECUCION_MAQUINA_DETENIDA_USUARIO /**< El usuario solicitó la detención de la ejecución */
 };
 
 #endif
