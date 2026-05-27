@@ -197,11 +197,11 @@ CFLAGS += -DLILY_VERSION=\"$(V_LILY_VERSION)\" -DLILY_COMMIT=\"$(V_LILY_COMMIT)\
 ifeq ($(PLAT_TARGET),web)
   # Por ahora, solo emscripten tiene opciones raras
   ifdef DEBUG
-    web: CFLAGS += -gsource-map
-    web: LDFLAGS += -gsource-map -sASSERTIONS
+    CFLAGS += -g3 -gsource-map
+    LDFLAGS += -g3 -gsource-map -sSAFE_HEAP=1 -sSTACK_OVERFLOW_CHECK=2 -sASSERTIONS=2
   else
-    web: CFLAGS += -Oz
-    web: LDFLAGS += -Oz -sASSERTIONS=0
+    CFLAGS += -Oz
+    LDFLAGS += -Oz -sASSERTIONS=0 -sSAFE_HEAP=0
   endif
 else
   ifdef DEBUG
@@ -237,9 +237,9 @@ cli: dist/$(TO_BIN)
 
 ifeq ($(PLAT_TARGET),web)
   lib: CC := emcc
-  lib: CFLAGS += -I/usr/local/include -sWASM=1 -sSTRICT
-  lib: LDFLAGS += -I/usr/local/include -L/usr/local/lib -sSTRICT -sSAFE_HEAP=1 -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
-  lib: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_malloc', '_free']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction"]' -sSINGLE_FILE=1
+  lib: CFLAGS += -I/usr/local/include -sSTRICT
+  lib: LDFLAGS += -I/usr/local/include -L/usr/local/lib -sWASM=1 -sSTRICT -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
+  lib: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_lily_lily_creacion_maquina', '_lily_lily_ejecutar_instruccion', '_malloc', '_free', '_lily_lua_ejecucion_leer_memoria', '_lily_lua_ejecucion_escribir_memoria', '_lily_lua_ejecucion_leer_registro', '_lily_lua_ejecucion_escribir_registro']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction"]' -sSINGLE_FILE=1
   lib: LDLIBS += -lluawasm
 else
   lib: LDFLAGS += -shared
@@ -307,6 +307,10 @@ echo:
 	@echo "PLAT_TARGET := $(PLAT_TARGET)"
 	@echo "V1 := $(V1)"
 	@echo "V2 := $(V2)"
+	@echo "CC := $(CC)"
+	@echo "CFLAGS  := $(CFLAGS)"
+	@echo "LDFLAGS := $(LDFLAGS)"
+	@echo "LDLIBS  := $(LDLIBS)"
 	@echo "DEBUG := $(DEBUG)"
 	@echo "INSTALL_TOP := $(INSTALL_TOP)"
 	@echo "INSTALL_BIN := $(INSTALL_BIN)"
