@@ -39,7 +39,7 @@ enum lily_log_nivel {
     LILY_LOG_WARN, /**< Nivel de advertencia, para eventos que, aunque no detengan la ejecución, deberían recibir atención. */
     LILY_LOG_ERROR, /**< Nivel de error, para eventos que detienen la ejecución de una función. */
     LILY_LOG_FATAL, /**< Nivel fatal, para eventos que detienen la ejecución de todo el sistema. */
-    LILY_LOG_NONE /*< Nivel para desactivar la escritura de eventos. */
+    LILY_LOG_NONE /**< Nivel para desactivar la escritura de eventos. */
 };
 
 /**

@@ -8,8 +8,8 @@ metahipervisor para muchos microprocesadores.
 !bytes](https://img.shields.io/github/languages/code-size/twilight1794/lily)
 
 ## Características
-- __Portable:__ escrito en C99, corre tanto en Windows, en Linux, o incluso en
-  tu navegador.
+- __Portable:__ escrito en C99, corre tanto en Windows, en GNU/Linux, o incluso
+  en tu navegador.
 - __Extensible:__ añade soporte para un microprocesador describiéndolo con un
   esquema.
 - __Libre:__ es software libre, puedes usarlo como quieras, e incluso
