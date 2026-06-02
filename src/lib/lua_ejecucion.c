@@ -158,11 +158,18 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
     return obj;
 }
 
-void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uint8_t* programa, size_t tamano) {
+void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uint8_t* programa, size_t tamano, struct lily_lua_ejecucion_ctx* ctx) {
     // TODO: Por ahora, solo copiamos los datos de un lado a otro desde el inicio
     // Para otros sistemas, vendrá la carga de una BIOS
-    memcpy((void*) maquina->memoria, (void*) programa, tamano);
-    // FIX: informar sobre ese hecho
+    for (size_t i = 0; i < tamano; i++) {
+        maquina->memoria[i] = programa[i];
+        struct lily_lily_mensaje_tmemoria obj = {
+            .direccion = (uint64_t) (maquina->memoria + i),
+            .valor = programa[i],
+            .tamano = 1,
+        };
+        ctx->fun_mensaje(LILY_MENSAJE_TMEMORIA, LILY_MENSAJE_TMEMORIA_ESCRITURA, "lua_ejecucion_arrancar", &obj);
+    }
 }
 
 void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {

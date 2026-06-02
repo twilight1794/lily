@@ -253,9 +253,9 @@ cli: dist/$(TO_BIN)
 
 ifeq ($(PLAT_TARGET),web)
   lib: CC := emcc
-  lib: CFLAGS += -I/usr/local/include -sSTRICT
-  lib: LDFLAGS += -I/usr/local/include -L/usr/local/lib -sWASM=1 -sSTRICT -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0
-  lib: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_lily_lily_creacion_maquina', '_lily_lily_ejecutar_instruccion', '_malloc', '_free', '_lily_lua_ejecucion_leer_memoria', '_lily_lua_ejecucion_escribir_memoria', '_lily_lua_ejecucion_leer_registro', '_lily_lua_ejecucion_escribir_registro']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction"]' -sSINGLE_FILE=1
+  lib: CFLAGS += -I/usr/local/include -sSTRICT -sWASM_BIGINT=1
+  lib: LDFLAGS += -I/usr/local/include -L/usr/local/lib -sWASM=1 -sSTRICT -sALLOW_TABLE_GROWTH=1 -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sPOLYFILL=0 -sWASM_BIGINT=1
+  lib: LDFLAGS += -s EXPORTED_FUNCTIONS="['_lily_lily_ensamble', '_lily_lily_creacion_maquina', '_lily_lily_ejecutar_instruccion', '_malloc', '_free', '_lily_lua_ejecucion_leer_memoria', '_lily_lua_ejecucion_escribir_memoria', '_lily_lua_ejecucion_leer_registro', '_lily_lua_ejecucion_escribir_registro']" -s 'EXPORTED_RUNTIME_METHODS=["ccall", "setValue", "getValue", "stringToUTF8", "lengthBytesUTF8", "UTF8ToString", "addFunction", "removeFunction", "writeArrayToMemory"]' -sSINGLE_FILE=1
   lib: LDLIBS += -lluawasm
 else
   lib: LDFLAGS += -shared

@@ -70,8 +70,9 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
  * @param maquina Máquina virtual sobre la que se trabajará
  * @param programa Puntero a la secuencia de bytes a cargar
  * @param tamano Tamaño de la secuencia de bytes a cargar
+ * @param ctx Contexto de la ejecución
  */
-void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uint8_t* programa, size_t tamano);
+void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uint8_t* programa, size_t tamano, struct lily_lua_ejecucion_ctx* ctx);
 
 typedef void (*f_ejecutora_ptr)(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx);
 

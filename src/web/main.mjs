@@ -16,15 +16,16 @@
  * Lily. If not, see <https://www.gnu.org/licenses/>.
  */
 
-"use strict";
 /**
  * Interfaz principal para manipular máquinas virtuales Lily.
  * @module liblily
  */
 
-import Module from './liblily.mjs';
+import Module from "../liblily.mjs";
+import { LilyError } from "./Error.mjs";
+import { Mensaje, MensajeLog, MensajeAdvertencia, MensajeEtiqueta, MensajeVariable, MensajeMemoria, MensajeRegistro, MensajePila, MensajeDispositivo, MensajeInterrupcion, TipoMensajeError, SubtipoMensajeError } from "./Mensaje.mjs"
+
 const M = await Module();
-window.modulito = M;
 
 // Funciones auxiliares
 
@@ -36,15 +37,6 @@ window.modulito = M;
  */
 function esEntero(variable) { return typeof(variable) == "number" && Number.isInteger(variable); }
 
-// Errores
-
-class LilyError extends Error {
-    constructor(mensaje) {
-        super(mensaje);
-        this.name = this.constructor.name;
-    }
-}
-
 class CargarArchivoFaltanteError extends LilyError {
     constructor() {
         super("Debe establecerse la función de carga de archivo.");
@@ -54,6 +46,12 @@ class CargarArchivoFaltanteError extends LilyError {
 class CerrarArchivoFaltanteError extends LilyError {
     constructor() {
         super("Debe establecerse la función de cierre de archivo.");
+    }
+}
+
+class EjecutoraFaltanteError extends LilyError {
+    constructor() {
+        super("Debe establecerse la función ejecutora.");
     }
 }
 
@@ -96,18 +94,6 @@ class TipoArchivoNoEnteroError extends LilyError {
 class NoEsPunteroError extends LilyError {
     constructor() {
         super("El valor pasado no es un puntero.");
-    }
-}
-
-class TipoMensajeError extends LilyError {
-    constructor() {
-        super("El tipo de mensaje debe estar entre 0 y 8");
-    }
-}
-
-class SubtipoMensajeError extends LilyError {
-    constructor() {
-        super("El subtipo de mensaje debe ser un valor entero");
     }
 }
 
@@ -158,42 +144,6 @@ class Archivo {
     }
 }
 
-class Mensaje {
-    static T_LOG = 0;
-    static T_ADVERTENCIA = 1;
-    static T_ETIQUETA = 2;
-    static T_VARIABLE = 3;
-    static T_MEMORIA = 4;
-    static T_REGISTRO = 5;
-    static T_PILA = 6;
-    static T_DISPOSITIVO = 7;
-    static T_INTERRUPCION = 8;
-
-    constructor(tipo, subtipo, modulo, obj) {
-        if (!esEntero(tipo) || tipo < 0 || tipo > 8)
-            throw new TipoMensajeError();
-        this.tipo = tipo
-        if (!esEntero(subtipo)) {
-            throw new SubtipoMensajeError();
-        }
-        this.subtipo = subtipo;
-        this.modulo = modulo;
-        this.obj = obj;
-    }
-
-    mostrar_mensaje() {
-        if (this.tipo == this.T_LOG) {
-            return M.UTF8ToString(this.obj);
-        }
-        else if (this.tipo == this.T_ADVERTENCIA) {
-        // FIX: parametrizar esto, por ahora solo hay una opción
-            if (subtipo == 25) //< COD_A_SEMANTICO_INSTRUCCION_SIN_ETI
-                return "La directiva procesada necesita una etiqueta, y no ha sido provista";
-        }
-        return "";
-    }
-}
-
 /**
  * Función para acceder a un archivo en el sistema cliente.
  * @callback Maquina~carga_archivo_f
@@ -211,7 +161,7 @@ class Mensaje {
 
 /**
  * Función para procesar un mensaje de Lily.
- * @callback Maquina~mensaje_f
+ * @callback Maquina~envio_mensaje_f
  * @param {number} tipo Tipo del mensaje a recibir.
  * @param {number} subtipo Tipo más específico del mensaje.
  * @param {string} modulo Módulo del cual proviene el mensaje.
@@ -222,22 +172,43 @@ class Mensaje {
 /**
  * Instancia de una máquina virtual.
  * @class
- * @param {Maquina~carga_archivo_f} cargar_archivo: Función llamada por Lily para pedir al sistema cliente un archivo nuevo.
+ * @param {Maquina~carga_archivo_f} cargar_archivo Función llamada por Lily para pedir al sistema cliente un archivo nuevo.
  * @param {Maquina~cierre_archivo_f} cerrar_archivo Función llamada por Lily para cerrar un archivo.
- * @param {Maquina~mensaje_f} mensaje Función llamada por Lily para procesar mensajes.
+ * @param {Maquina~envio_mensaje_f} mensaje Función llamada por Lily para procesar mensajes.
  */
 class Maquina {
-    constructor(cargar_archivo, cerrar_archivo, mensaje) {
-        // Funciones para cargar archivo
+    constructor(cargar_archivo, cerrar_archivo, enviar_mensaje) {
+        // Cargar archivo
         if (typeof(cargar_archivo) != "function")
             throw new CargarArchivoFaltanteError();
-        this.cargar_archivo = cargar_archivo;
+        //this.cargar_archivo = cargar_archivo;
+        this.p_fun_cargar_archivo = M.addFunction((param_nombre, param_tipo, param_estado) => {
+            const nombre = M.UTF8ToString(param_nombre);
+            const [obj, estado] = cargar_archivo(nombre, param_tipo);
+            M.setValue(param_estado, estado, "i32");
+            return obj.ptr;
+        }, "iiii");
+
+        // Cerrar archivo
         if (typeof(cerrar_archivo) != "function")
             throw new CerrarArchivoFaltanteError();
-        this.cerrar_archivo = cerrar_archivo;
-        if (typeof(mensaje) != "function")
+        this.p_fun_cerrar_archivo = M.addFunction((param_archivo) => {
+            const archivo = Archivo.desde_puntero(param_archivo);
+            const estado = cerrar_archivo(archivo);
+            //archivo.destructor();
+            return estado;
+        }, "ii");
+
+        // Enviar mensaje
+        if (typeof(enviar_mensaje) != "function")
             throw new MensajeFaltanteError();
-        this.mensaje = mensaje;
+        this.p_fun_enviar_mensaje = M.addFunction((param_tipo, param_subtipo, param_modulo, param_obj) => {
+            const modulo = M.UTF8ToString(param_modulo);
+            // Decidir mensaje
+            let mensaje = new (Mensaje.obt_clase(param_tipo))(M, param_modulo, param_subtipo, param_obj);
+            const estado = enviar_mensaje(mensaje);
+            return estado;
+        }, "iiiii");
     }
 
     /**
@@ -267,33 +238,6 @@ class Maquina {
         M.setValue(this.p_opciones, 0, "i32");
         M.setValue(this.p_opciones + 4, 0, "i32");
 
-        // struct lily_lily_archivo* (fun_abrir_archivo)(const char*, int, int*)
-        this.p_fun_cargar_archivo = M.addFunction((param_nombre, param_tipo, param_codigo) => {
-            // Deserializar parámetros
-            const nombre = M.UTF8ToString(param_nombre);
-            // Llamar al cliente por la estructura
-            console.log(this.cargar_archivo);
-            const [obj, codigo] = this.cargar_archivo(nombre, param_tipo);
-            M.setValue(param_codigo, codigo, "i32");
-            return obj.ptr;
-        }, "iiii");
-
-        // int (fun_cerrar_archivo)(struct lily_lily_archivo*)
-        this.p_fun_cerrar_archivo = M.addFunction((param_archivo) => {
-            const archivo = Archivo.desde_puntero(param_archivo);
-            const estado = this.cerrar_archivo();
-            //archivo.destructor();
-            return estado;
-        }, "ii");
-
-        // int (fun_mensaje)(enum lily_lily_mensaje_tipo, int, char*, void*)
-        this.p_fun_mensaje = M.addFunction((param_tipo, param_subtipo, param_modulo, param_obj) => {
-            const modulo = M.UTF8ToString(param_modulo);
-            let mensaje = new Mensaje(param_tipo, param_subtipo, modulo, param_obj);
-            const estado = this.mensaje(mensaje);
-            return estado;
-        }, "iiiii");
-
         // size_t* tam_salida
         this.p_tam_salida = M._malloc(4);
         M.setValue(this.p_tam_salida, 0, "i32");
@@ -314,7 +258,7 @@ class Maquina {
             const p_res = M.ccall("lily_lily_ensamble",
                                        "number",
                                        ["number", "number", "number", "number", "number", "number", "number", "number", "number"],
-                                       [this.p_datos_entrada, this.p_arquitectura, this.p_opciones, this.p_fun_cargar_archivo, this.p_fun_cerrar_archivo, this.p_fun_mensaje, this.p_tam_salida, this.p_estado, this.pp_ctx]
+                                       [this.p_datos_entrada, this.p_arquitectura, this.p_opciones, this.p_fun_cargar_archivo, this.p_fun_cerrar_archivo, this.p_fun_enviar_mensaje, this.p_tam_salida, this.p_estado, this.pp_ctx]
                                       );
             estado = M.getValue(this.p_estado, "i32");
             array_salida = new Uint8Array(M.getValue(this.p_tam_salida, "i32"));
@@ -326,9 +270,6 @@ class Maquina {
         finally {
             M._free(this.p_datos_entrada);
             M._free(this.p_arquitectura);
-            //M.removeFunction(this.ptr_fun_cargar_archivo);
-            //M.removeFunction(this.ptr_fun_cerrar_archivo);
-            //M.removeFunction(this.ptr_fun_mensaje);
             M._free(this.p_estado);
             M._free(this.p_ctx);
         }
@@ -345,9 +286,170 @@ class Maquina {
         if (typeof(arquitectura) != "string")
             throw new ArquitecturaFaltanteError();
     }
+
+    /**
+     * Crea una máquina virtual con un programa precargado
+     * @param {Uint8Array} datos_entrada Código objeto a ejecutar.
+     * @param {string} arquitectura Identificador del esquema del microprocesador a utilizar.
+     */
+    iniciar(datos_entrada, arquitectura) {
+        // size_t tamano
+        let tam_datos_entrada_iniciar = datos_entrada.length * 4; // FIX: ver el tamaño de esto
+
+        // char* bytes
+        this.p_datos_entrada_iniciar = M._malloc(tam_datos_entrada_iniciar * 4);
+        M.writeArrayToMemory(datos_entrada, this.p_datos_entrada_iniciar);
+
+        // char* arquitectura
+        const tam_arquitectura = M.lengthBytesUTF8(arquitectura) + 1;
+        this.p_arquitectura = M._malloc(tam_datos_entrada_iniciar);
+        M.stringToUTF8(arquitectura, this.p_arquitectura, tam_arquitectura);
+
+        // struct lily_lua_ejecucion_ctx* ctx
+        this.p_ejecucion_ctx = M._malloc(24);
+
+        M.setValue(this.p_ejecucion_ctx, this.p_fun_cargar_archivo, "i32");
+        M.setValue(this.p_ejecucion_ctx + 4, this.p_fun_cerrar_archivo, "i32");
+        M.setValue(this.p_ejecucion_ctx + 8, this.p_fun_enviar_mensaje, "i32");
+
+        // const char* lua_msg
+        M.setValue(this.p_ejecucion_ctx + 12, 0, "i32");
+
+        // enum lily_estado estado
+        M.setValue(this.p_ejecucion_ctx + 16, 0, "i32");
+
+        // enum lily_estado estado_ejecucion
+        M.setValue(this.p_ejecucion_ctx + 20, 0, "i32");
+
+        // Llamar a lily_lily_creacion_maquina
+        let estado = 0;
+        try {
+            this.p_maquina = M.ccall("lily_lily_creacion_maquina",
+                                  "number",
+                                  ["number", "number", "number", "number"],
+                                  [this.p_datos_entrada_iniciar, tam_datos_entrada_iniciar, this.p_arquitectura, this.p_ejecucion_ctx]
+                                 );
+            let estado = M.getValue(this.p_ejecucion_ctx + 16, "i32");
+            console.log("iniciar", estado);
+        }
+        finally {}
+    }
+
+    /**
+     * Ejecuta una instrucción y retorna
+     */
+    ejecutar() {
+        // Llamar a lily_lily_ejecucion
+        try {
+            M.ccall("lily_lily_ejecutar_instruccion",
+                    null,
+                    ["number", "number"],
+                    [this.p_maquina, this.p_ejecucion_ctx]
+                   );
+            let estado = M.getValue(this.p_ejecucion_ctx + 16, "i32");
+            console.log("ejecutar", estado);
+        }
+        finally {
+            //-M._free(this.p_datos_entrada);
+            //-M._free(this.p_arquitectura);
+            //-M._free(this.p_estado);
+            //-M._free(this.p_ctx);
+        }
+    }
+
+    leer_memoria(direccion) {
+        try {
+            let p_valor = M._malloc(1);
+            let res = M.ccall("lily_lua_ejecucion_leer_memoria",
+                              "number",
+                              ["number", "number", "number"],
+                              [this.p_maquina, direccion, p_valor]
+                             );
+            if (res != 0) throw new Error();
+        }
+        finally {
+            let valor = M.getValue(p_valor, "i8");
+            M._free(p_valor);
+            return valor;
+        }
+    }
+
+    escribir_memoria(direccion, valor) {
+        try {
+            let p_valor = M._malloc(2);
+            M.setValue(p_valor, valor, "i8");
+            let res = M.ccall("lily_lua_ejecucion_escribir_memoria",
+                              "number",
+                              ["number", "number", "number", "number"],
+                              [this.p_maquina, direccion, p_valor, p_valor + 1]
+                             );
+            if (res != 0) throw new Error();
+        }
+        finally {
+            let valor_anterior = M.getValue(p_valor + 1, "i8");
+            M._free(p_valor);
+            return valor_anterior;
+        }
+    }
+
+    leer_registro(registro) {
+        try {
+            let p_valor = M.malloc(8);
+            let res = M.ccall("lily_lua_ejecucion_leer_registro",
+                              "number",
+                              ["number", "string", "number"],
+                              [this.p_maquina, registro, p_valor]
+                   );
+            if (res != 0) throw new Error();
+        }
+        finally {
+            let valor = M.getValue(p_valor, "i64");
+            M._free(p_valor);
+            return valor;
+        }
+    }
+
+    escribir_registro(registro, valor) {
+        try {
+            let p_valor = M.malloc(16);
+            M.setValue(p_valor, valor, "i64");
+            let res = M.ccall("lily_lua_ejecucion_escribir_registro",
+                              "number",
+                              ["number", "string", "number", "number"],
+                              [this.p_maquina, registro, p_valor, p_valor + 8]
+                             );
+            if (res != 0) throw new Error();
+        }
+        finally {
+            let valor_anterior = M.getValue(p_valor + 8, "i64");
+            M._free(p_valor);
+            return valor_anterior;
+        }
+    }
+
+    destructor() {
+        M.removeFunction(this.p_fun_cargar_archivo);
+        M.removeFunction(this.p_fun_cerrar_archivo);
+        M.removeFunction(this.p_fun_mensaje);
+    }
 }
 
 export {
+    // Base
     Archivo,
-    Maquina
+    Maquina,
+    // Error.mjs
+    LilyError,
+    // Mensaje.mjs
+    MensajeLog,
+    MensajeAdvertencia,
+    MensajeEtiqueta,
+    MensajeVariable,
+    MensajeMemoria,
+    MensajeRegistro,
+    MensajePila,
+    MensajeDispositivo,
+    MensajeInterrupcion,
+    TipoMensajeError,
+    SubtipoMensajeError
 };

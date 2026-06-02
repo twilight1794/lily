@@ -130,7 +130,7 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
     ctx->fun_cerrar_archivo(archivo_arquitectura);
     // Preparar máquina
     struct lily_lua_ejecucion_maquina* maquina = lily_lua_ejecucion_ini(L, ctx);
-    lily_lua_ejecucion_arrancar(maquina, (uint8_t*) bytes, tamano); // FIX: tratar errores
+    lily_lua_ejecucion_arrancar(maquina, (uint8_t*) bytes, tamano, ctx); // FIX: tratar errores
     return maquina;
 }
 
