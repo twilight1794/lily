@@ -164,7 +164,7 @@ void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uin
     for (size_t i = 0; i < tamano; i++) {
         maquina->memoria[i] = programa[i];
         struct lily_lily_mensaje_tmemoria obj = {
-            .direccion = (uint64_t) (maquina->memoria + i),
+            .direccion = (uint64_t) i,
             .valor = programa[i],
             .tamano = 1,
         };
