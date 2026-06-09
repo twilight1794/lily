@@ -69,6 +69,7 @@ enum lily_estado {
     COD_A_SEMANTICO_OPERANDO_OBJETO, /**< Se intentó operar sobre un objeto */
     COD_A_SEMANTICO_MAXIMO_ITERACIONES, /**< Se alcanzó el límite de iteraciones para el análisis semántico */
     // lib/lily.h
+    COD_LILY_CPU_NO_ESPECIFICADO, /**< No se especificó la arquitectura a utilizar */
     COD_LILY_SIN_ESQUEMA, /**< No se pudo encontrar un esquema de procesador para realizar la operación */
     // lib/lua_cpu.h
     COD_LUA_CPU_LUA_ERR, /**< Error generado por la máquina virtual de Lua */
