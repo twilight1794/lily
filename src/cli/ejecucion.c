@@ -102,9 +102,9 @@ static void f_ejecutora_interactiva_h(void) {
     //puts(_("d             Generate a core dump"));
     puts(_("e             Execute or resume after a stop until a halt instruction"));
     puts(_("h             Show this help"));
-    puts(_("m addr [int]  Print or modify the value of memory at address addr"));
+    puts(_("m addr [int]  Print or modify the value of memory at address <addr>"));
     puts(_("q             Abort the execution and exit"));
-    puts(_("r reg [int]   Print or modify the value of register reg"));
+    puts(_("r reg [int]   Print or modify the value of register <reg>"));
     puts(_("s             Execute a single instruction and stops"));
     puts(_("<EOF>         Abort the execution, generate a core dump, and exit"));
     putchar('\n');

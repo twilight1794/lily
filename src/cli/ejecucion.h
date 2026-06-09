@@ -21,10 +21,11 @@
  * Funciones para dirigir la etapa de ejecución
  */
 
-#include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include <libintl.h>
 
 #include <termios.h>
 #include <unistd.h>
@@ -33,8 +34,6 @@
 #include "../common/estado.h"
 #include "../lib/mensajes.h"
 #include "../lib/lua_ejecucion.h"
-
-#include <libintl.h>
 
 #define _(CAD) gettext(CAD)
 
