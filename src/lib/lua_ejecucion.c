@@ -204,7 +204,8 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
         for (size_t j = 1; j <= tam_lista_bytes; j++) {
             const int tipo = lua_geti(maquina->L, -1, j);
             if (tipo == LUA_TNUMBER) tam_cad_params += 6;
-            else if (tipo == LUA_TFUNCTION) tam_cad_params += 10;
+            else if (tipo == LUA_TFUNCTION) tam_cad_params += 3;
+            else if (tipo == LUA_TBOOLEAN) tam_cad_params += 6;
             lua_pop(maquina->L, 1);
         }
         tam_cad_params -= 1;
@@ -222,11 +223,15 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
                 k += 4;
             }
             else if (tipo == LUA_TFUNCTION) {
-                memcpy(msg_cad_params + k, "function", 8);
-                k += 8;
+                memcpy(msg_cad_params + k, "@", 2);
+                k++;
+            }
+            else if (tipo == LUA_TBOOLEAN) {
+                memcpy(msg_cad_params + k, "true", 5);
+                k += 4;
             }
             lua_pop(maquina->L, 1);
-            if (j < tam_lista_bytes - 1) {
+            if (j < tam_lista_bytes) {
                 memcpy(msg_cad_params + k, ", ", 2);
                 k += 2;
             }
@@ -239,7 +244,7 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
         bool coincide = true; // Esto queda así si toda la lista de coincidencias coincide
         for (size_t j = 1; j <= tam_lista_bytes; j++) {
             const uint8_t byte_actual = maquina->memoria[ptr_inicio_relativo + j - 1];
-            msg_buf = d_printf("Comparando byte 0x%02lx en dirección 0x%02lx + %lu  ", byte_actual, ptr_inicio_relativo, j - 1);
+            msg_buf = d_printf("Comparando byte 0x%02lx en dirección 0x%02lx + %lu", byte_actual, ptr_inicio_relativo, j - 1);
             ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
             free(msg_buf);
             const int tipo = lua_geti(maquina->L, -1, j);
@@ -260,13 +265,17 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
                 lua_pcall(maquina->L, 1, 1, 0);
                 const bool val_fun = lua_toboolean(maquina->L, -1);
                 lua_pop(maquina->L, 1);
-                msg_buf = d_printf("Comparando con elemento de coincidencia (%ld) function", j);
+                msg_buf = d_printf("Comparando con elemento de coincidencia (%ld) @", j);
                 ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
                 free(msg_buf);
                 if (!val_fun) {
                     coincide = false;
                     break;
                 }
+            }
+            else {
+                // De todos modos tenemos qué quitar el elemento de coincidencia
+                lua_pop(maquina->L, 1);
             }
         }
         lua_pop(maquina->L, 1); // Quitamos la lista de coincidencias
