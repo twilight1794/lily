@@ -118,8 +118,8 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
     }
     // FIX: comprobar si éste es un buen lugar para comprobar esto
     if (arquitectura == NULL) {
-        *estado = COD_LILY_CPU_NO_ESPECIFICADO;
-        return;
+        ctx->estado = COD_LILY_CPU_NO_ESPECIFICADO;
+        return NULL;
     }
     lily_lua_int_preparar(L);
     lily_lua_entorno_ejecucion_preparar(L, &ctx->estado);
