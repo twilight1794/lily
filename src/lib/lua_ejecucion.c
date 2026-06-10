@@ -164,15 +164,21 @@ void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uin
         };
         ctx->fun_mensaje(LILY_MENSAJE_TMEMORIA, LILY_MENSAJE_TMEMORIA_ESCRITURA, "lua_ejecucion_arrancar", &obj);
     }
+    // Inicializar PC
+    // FIX: temporalmente, iniciamos siempre en 0
+    // FIX: inicializar los demás registros
+    // TODO: ver si hay una forma eficiente de conservar la abstracción
+    const uint64_t valor = 0;
+    lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, (const uint8_t*) &valor, NULL);
 }
 
 void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
-    // Consultar ejecución
-    union lily_simbolo_numero pc;
-    pc.positivo = 0; // FIX: temporalmente, iniciamos siempre en 0
-    lily_bitarray_guardar(maquina->posicion_pc, maquina->tamano_pc, maquina->registros, pc.bytes);
-    bool ejecutado = false;
     // Obtener PC
+    union lily_simbolo_numero pc;
+    bool ejecutado = false;
+    pc.positivo = 0;
+    lily_lua_ejecucion_leer_registro(maquina, maquina->pc, pc.bytes);
+    // Obtener casos de opcodes
     int base_pila = lua_gettop(maquina->L); // Para limpiar después
     lua_pushstring(maquina->L, "opcodes");
     lua_gettable(maquina->L, -2);
@@ -182,7 +188,6 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
     char* msg_buf = d_printf("Se encontraron %lu casos", tam_lista_casos);
     ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
     free(msg_buf);
-    lily_bitarray_obtener(maquina->posicion_pc, maquina->tamano_pc, maquina->registros, pc.bytes);
     const size_t ptr_inicio = pc.positivo; // Inicio de la instrucción
     size_t ptr_inicio_relativo = ptr_inicio;
     size_t i = 1;
