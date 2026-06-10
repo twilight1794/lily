@@ -1296,7 +1296,7 @@ return {
         {
             { 0xc3, true, true }, -- JP nn
             function (bytes)
-                L.escribir_registro("PC", byte[2] + (byte[3] << 8))
+                L.escribir_registro("PC", bytes[2] + (bytes[3] << 8))
             end
         },
         {
@@ -3588,7 +3588,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0x80 end }, -- ADD %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local v = r + a
                 if (v < 0) then
@@ -3611,7 +3611,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0x88 end }, -- ADC %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local cf = 0
                 if (L.leer_registro("CF") == 1) then
@@ -3638,7 +3638,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0x90 end }, -- SUB %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local v = a - r
                 if (v < 0) then
@@ -3661,7 +3661,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0x98 end }, -- SBC %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local cf = 0
                 if (L.leer_registro("CF") == 1) then
@@ -3688,7 +3688,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0xa0 end }, -- AND %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local v = a & r
                 if (v < 0) then
@@ -3711,7 +3711,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0xb0 end }, -- OR %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local v = a | r
                 if (v < 0) then
@@ -3734,7 +3734,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0xa8 end }, -- XOR %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local v = a ~ r
                 if (v < 0) then
@@ -3761,7 +3761,7 @@ return {
         {
             { function (byte) return byte & 0xf8 == 0xb8 end }, -- CP %A, r
             function (bytes)
-                local r = L.leer_registro(r_vals_r[byte[1] & 7])
+                local r = L.leer_registro(r_vals_r[bytes[1] & 7])
                 local a = L.leer_registro("A")
                 local v = a - r
                 if (v < 0) then
@@ -3783,7 +3783,7 @@ return {
         {
             { function (byte) return byte & 0xc7 == 4 end }, -- INC r
             function (bytes)
-                local r = r_vals_r[(byte[1] & 0x38) >> 3]
+                local r = r_vals_r[(bytes[1] & 0x38) >> 3]
                 local v = L.leer_registro(r) + 1
                 if (v < 0) then
                     L.escribir_registro("SF", 1)
@@ -3808,7 +3808,7 @@ return {
         {
             { function (byte) return byte & 0xc7 == 5 end }, -- DEC r
             function (bytes)
-                local r = r_vals_r[(byte[1] & 0x38) >> 3]
+                local r = r_vals_r[(bytes[1] & 0x38) >> 3]
                 local v = L.leer_registro(r) - 1
                 if (v < 0) then
                     L.escribir_registro("SF", 1)
@@ -3832,9 +3832,9 @@ return {
         },
         {
             { function (byte) return byte & 0xcf == 9 end }, -- ADD %HL, ss
-            function (byte)
+            function (bytes)
                 local hl = L.leer_registro("HL")
-                local ss = L.leer_registro(ss_vals_ss[(byte[1] & 0x30) >> 4])
+                local ss = L.leer_registro(ss_vals_ss[(bytes[1] & 0x30) >> 4])
                 local v = hl + ss
                 -- FIX: H
                 L.escribir_registro("NF", 0)
