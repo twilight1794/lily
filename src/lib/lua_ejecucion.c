@@ -28,12 +28,14 @@ int lily_lua_ejecucion_leer_memoria(struct lily_lua_ejecucion_maquina* maquina, 
 int lily_lua_ejecucion_escribir_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor, uint8_t* valor_anterior) {
     if (direccion >= maquina->tamano_memoria)
         return -1;
-    *valor_anterior = maquina->memoria[direccion];
+    if (valor_anterior != NULL)
+        *valor_anterior = maquina->memoria[direccion];
     maquina->memoria[direccion] = *valor;
     return 0;
 }
 
 int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, uint8_t* valor) {
+    lua_getglobal(maquina->L, "_lily_esquema");
     // Obtener ubicación de registro
     lua_pushliteral(maquina->L, "registros");
     lua_gettable(maquina->L, -2);
@@ -53,11 +55,12 @@ int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina,
     // Obtener dato
     *((uint64_t*) valor) = 0;
     lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor);
-    lua_pop(maquina->L, 2);
+    lua_pop(maquina->L, 3);
     return 0;
 }
 
 int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, const uint8_t* valor, uint8_t* valor_anterior) {
+    lua_getglobal(maquina->L, "_lily_esquema");
     // Obtener ubicación de registro
     lua_pushliteral(maquina->L, "registros");
     lua_gettable(maquina->L, -2);
@@ -75,11 +78,13 @@ int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maqu
     uint64_t tamano = lua_tointeger(maquina->L, -1);
     lua_pop(maquina->L, 1);
     // Obtener dato
-    *((uint64_t*) valor_anterior) = 0;
-    lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor_anterior);
+    if (valor_anterior != NULL) {
+        *((uint64_t*) valor_anterior) = 0;
+        lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor_anterior);
+    }
     // Escribir dato
     lily_bitarray_guardar(ubicacion, tamano, maquina->registros, valor);
-    lua_pop(maquina->L, 2);
+    lua_pop(maquina->L, 3);
     return 0;
 }
 
@@ -105,26 +110,15 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
     // Guardar para Lua la dirección del bloque de memoria
     lua_pushinteger(L, (lua_Integer) obj->memoria);
     lua_setglobal(L, "_lily_memoria_dir");
-    // Obtener datos del registro contador de programa
+    // Obtener registro contador de programa
     lua_pushstring(L, "registro_programa");
     lua_gettable(L, -2);
-    const char* registro_programa = lua_tostring(L, -1);
+    obj->pc = lua_tostring(L, -1);
     lua_pop(L, 1);
-    lua_pushstring(L, "registros");
-    lua_gettable(L, -2);
-    lua_getfield(L, -1, registro_programa);
-    /// Obtener tamaño de registro
-    lua_pushstring(L, "tamano");
-    lua_gettable(L, -2);
-    obj->tamano_pc = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    /// Obtener desplazamiento de registro
-    lua_pushstring(L, "desplazamiento");
-    lua_gettable(L, -2);
-    obj->posicion_pc = lua_tointeger(L, -1);
-    lua_pop(L, 2);
     // Obtener espacio para registros
     obj->tamano_registros = 0;
+    lua_pushstring(L, "registros");
+    lua_gettable(L, -2);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         // Obtener tamaño de registro
@@ -297,7 +291,7 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
                 }
                 // Actualizar PC
                 pc.positivo += num_bytes;
-                lily_bitarray_guardar(maquina->posicion_pc, maquina->tamano_pc, maquina->registros, pc.bytes);
+                lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, pc.bytes, NULL);
                 // Y ejecutar operación
                 ejecutado = true;
                 if (lua_pcall(maquina->L, 1, 0, 0)) {

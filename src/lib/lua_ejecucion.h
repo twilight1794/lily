@@ -45,10 +45,9 @@ struct lily_lua_ejecucion_ctx;
 struct lily_lua_ejecucion_maquina {
     uint64_t tamano_registros; /**< Tamaño del bloque de memoria física para almacenar los registros de la máquina */
     uint64_t tamano_memoria; /**< Tamaño del bloque de memoria física para almacenar la memoria de la máquina */
-    uint64_t tamano_pc; /**< Tamaño del registro contador de programa en bits */
-    uint64_t posicion_pc; /**< Posición del registro contador de programa en el bloque, en bits */
     uint8_t* registros; /**< Bloque de memoria física para almacenar los registros de la máquina */
     uint8_t* memoria; /**< Bloque de memoria física para almacenar la memoria de la máquina */
+    char* pc; /**< Registro contador de programa */
     lua_State* L; /**< Sesión de Lua asociada */
 };
 
