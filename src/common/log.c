@@ -18,22 +18,31 @@
 
 #include "log.h"
 
-void lily_log(const struct lily_log_config* config, enum lily_log_nivel tipo, const char* archivo, unsigned int linea, const char* categoria, const char* msg, const char* formato, ...) {
+void lily_log(const struct lily_log_config* config, enum lily_log_nivel tipo, const char* categoria, const char* msg, const char* formato, ...) {
     // Relevancia mínima
     if (tipo < config->nivel_minimo) return;
 
     // Fecha-hora
     time_t rawtime;
+    //#if _POSIX_VERSION >= 200112L
+    #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+    struct timespec rawts;
+    clock_gettime(CLOCK_REALTIME, &rawts);
+    rawtime = rawts.tv_sec;
+    #else
     time(&rawtime);
+    #endif
     const struct tm *timeinfo = localtime(&rawtime);
-    char dbuff[11];
+    char dbuff[26] = {0};
     if (config->incluir_fecha) {
-        strftime(dbuff, 11, "%F", timeinfo);
-        printf("%s ", dbuff);
-    }
-    if (config->incluir_hora) {
-        strftime(dbuff, 11, "%T", timeinfo);
-        printf("%s ", dbuff);
+        if (config->colores) strftime(dbuff, 25, "\x1b[90m%F %T", timeinfo);
+        else strftime(dbuff, 20, "%F %T", timeinfo);
+        printf(dbuff);
+        #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+        printf(".%03d ", (int) (rawts.tv_nsec/1000000));
+        #else
+        printf(" ");
+        #endif
     }
 
     // Tipo
@@ -59,19 +68,14 @@ void lily_log(const struct lily_log_config* config, enum lily_log_nivel tipo, co
         else printf("FATAL ");
         break;
     }
-    if (config->colores) {
-        if (config->incluir_archivo) printf("\x1b[90m%s:%-4d \x1b[1m%s:\x1b[0m ", archivo, linea, categoria);
-        else printf("\x1b[1m%s:\x1b[0m ", categoria);
-    } else {
-        if (config->incluir_archivo) printf("%s:%-4d %s: ", archivo, linea, categoria);
-        else printf("%s: ", categoria);
-    }
+    printf(config->colores?"\x1b[1m%s:\x1b[0m ":"%s: ", categoria);
 
-    // Archivo-línea
+    // Mensaje
     if (msg != NULL) {
         // Mensaje normal
         printf("%s\n", msg);
-    } else {
+    }
+    else {
         // Mensaje compuesto
         va_list args;
         va_start(args, formato);

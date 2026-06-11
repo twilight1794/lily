@@ -76,8 +76,6 @@ int cerrar_archivo(struct lily_lily_archivo* st);
 struct lily_log_config lily_log_conf = {
     .colores = true,
     .incluir_fecha = true,
-    .incluir_hora = true,
-    .incluir_archivo = true,
     .nivel_minimo = LILY_LOG_INFO
 };
 
