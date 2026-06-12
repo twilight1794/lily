@@ -16,7 +16,6 @@
  * Lily. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "ejecucion.h"
 
 static void f_ejecutora_interactiva_h(void);
@@ -26,9 +25,11 @@ static void f_ejecutora_interactiva_r(struct lily_lua_ejecucion_maquina* maquina
 void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
     int c;
     // La ejecución de corrido fue seleccionada
-    if (ctx->estado_ejecucion == COD_OK) {
+    if (!(ctx->paso_a_paso) && ctx->estado == COD_OK) {
         return;
     }
+    else ctx->paso_a_paso = true;
+
     // Buffer
     struct termios tios_nb, tios_b;
     tcgetattr(STDIN_FILENO, &tios_nb);
@@ -36,10 +37,12 @@ void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct 
     tios_nb.c_lflag &= ~ICANON;
     tcsetattr(STDIN_FILENO, TCSANOW, &tios_nb);
 
-    bool salir = false;
+    bool seguir = false;
     bool finalizar = false;
-    while (!salir) {
-        printf("> ");
+    uint64_t valor_pc = 0;
+    while (!seguir) {
+        lily_lua_ejecucion_leer_registro(maquina, maquina->pc, (uint8_t*) &valor_pc);
+        printf("$:0x%lx %u> ", valor_pc, ctx->estado);
         c = getchar();
         switch (c) {
             //case 'c':
@@ -50,9 +53,9 @@ void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct 
             //break;
         case 'e':
             ctx->estado = COD_OK;
-            ctx->estado_ejecucion = COD_OK;
+            ctx->paso_a_paso = false;
             putchar('\n');
-            salir = true;
+            seguir = true;
             break;
         case 'h':
             f_ejecutora_interactiva_h();
@@ -64,12 +67,12 @@ void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct 
             break;
         case 4:
             puts(_("\nGoodbye, core dump!"));
-            salir = true;
+            seguir = true;
             finalizar = true;
             break;
         case 'q':
             puts(_("\nGoodbye"));
-            salir = true;
+            seguir = true;
             finalizar = true;
             break;
         case 'r':
@@ -79,8 +82,9 @@ void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct 
             break;
         case 's':
             putchar('\n');
-            ctx->estado = COD_LUA_EJECUCION_MAQUINA_PAUSADA_UNA_INST;
-            salir = true;
+            ctx->estado = COD_OK;
+            ctx->paso_a_paso = true;
+            seguir = true;
             break;
         case '\n':
             break;
@@ -93,6 +97,8 @@ void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct 
 }
 
 void f_ejecutora_desatendida(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
+    (void) maquina;
+    (void) ctx;
     return;
 }
 

@@ -330,11 +330,13 @@ int main(int argc, char** argv) {
             ctx_e->fun_abrir_archivo = &obt_archivo;
             ctx_e->fun_cerrar_archivo = &cerrar_archivo;
             ctx_e->fun_mensaje = &enviar_mensaje;
-            void* maquina = (void*) lily_lily_creacion_maquina(archivo_entrada_obj->p, archivo_entrada_obj->st.st_size, arquitectura, ctx);
+            ctx_e->paso_a_paso = false;
+            struct lily_lua_ejecucion_maquina* maquina = lily_lily_creacion_maquina(archivo_entrada_obj->p, archivo_entrada_obj->st.st_size, arquitectura, ctx);
             estado = ctx_e->estado;
             if (estado == COD_OK) {
                 f_ejecutora_ptr ejecutora;
                 if (interactivo) {
+                    ctx_e->paso_a_paso = true;
                     puts(_("Interactive session"));
                     puts(_("Type 'h' for a description of available commands"));
                     ejecutora = &f_ejecutora_interactiva;
@@ -342,7 +344,7 @@ int main(int argc, char** argv) {
                 else ejecutora = &f_ejecutora_desatendida;
                 // Empezar ejecución
                 ejecutora(maquina, ctx_e);
-                while (ctx_e->estado == COD_OK || ctx_e->estado == COD_LUA_EJECUCION_MAQUINA_PAUSADA_UNA_INST) {
+                while (ctx_e->estado == COD_OK) {
                     lily_lily_ejecutar_instruccion(maquina, ctx_e);
                     ejecutora(maquina, ctx_e);
                 }

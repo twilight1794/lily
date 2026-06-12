@@ -88,7 +88,7 @@ struct lily_lua_ejecucion_ctx {
     f_mensajes_ptr fun_mensaje;
     const char* lua_msg;
     enum lily_estado estado;
-    enum lily_estado estado_ejecucion;
+    bool paso_a_paso;
 };
 
 #endif

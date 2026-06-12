@@ -301,6 +301,7 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
                 ejecutado = true;
                 if (lua_pcall(maquina->L, 1, 0, 0)) {
                     // FIX: procesar error bien
+                    ctx->estado = COD_LUA_EXC;
                     ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lua_ejecucion_ejecutar", lua_tostring(maquina->L, -1));
                 }
             }
