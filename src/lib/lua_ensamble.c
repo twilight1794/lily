@@ -353,7 +353,7 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_ins
         instruccion->tam_bytes = (size_t) tam;
     }
     else {
-        *estado = COD_LUA_CPU_LUA_ERR;
+        *estado = COD_LUA_EXC;
         cctx->lua_msg = (char*) lua_tostring(L, -1);
         lua_pop(L, 1);
     }
@@ -406,7 +406,7 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
         instruccion->tam_bytes = (size_t) tam;
     }
     else {
-        *estado = COD_LUA_CPU_LUA_ERR;
+        *estado = COD_LUA_EXC;
         cctx->lua_msg = (char*) lua_tostring(L, -1);
         lua_pop(L, 1);
     }

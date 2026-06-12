@@ -33,6 +33,7 @@ enum lily_estado {
     COD_CARACTER_INVALIDO, /**< Caracter inválido en el archivo */
     COD_CTX_NULO, /**< El contexto pasado a una función es nulo */
     COD_NO_IMPLEMENTADO, /**< Se encontró una situación que aún no ha sido implementada */
+    COD_LUA_EXC, /**< Error generado por la máquina virtual de Lua */
     // common/nums.h
     COD_NUMS_MAS_8, /**< El número que se intenta guardar no cabe en 8 bits */
     COD_NUMS_MAS_16, /**< El número que se intenta guardar no cabe en 16 bits */
@@ -72,7 +73,6 @@ enum lily_estado {
     COD_LILY_CPU_NO_ESPECIFICADO, /**< No se especificó la arquitectura a utilizar */
     COD_LILY_SIN_ESQUEMA, /**< No se pudo encontrar un esquema de procesador para realizar la operación */
     // lib/lua_cpu.h
-    COD_LUA_CPU_LUA_ERR, /**< Error generado por la máquina virtual de Lua */
     COD_LUA_CPU_DESC_NO_TABLA, /**< El objeto de descripción devuelto por el script no es una tabla */
     COD_LUA_CPU_DESC_NO_ID, /**< El miembro "id" no existe en el objeto de descripción */
     COD_LUA_CPU_DESC_ID_NO_CADENA, /**< El miembro "cadena" del objeto de descripción no es una cadena */

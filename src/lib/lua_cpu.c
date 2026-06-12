@@ -123,7 +123,7 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* est
         lua_pop(L, 1);
     }
     else {
-        *estado = COD_LUA_CPU_LUA_ERR;
+        *estado = COD_LUA_EXC;
         ((struct lily_a_semantico_ctx*) (*ctx))->lua_msg = (char*) lua_tostring(L, -1);
         lua_close(L);
         return;
