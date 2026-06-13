@@ -21,7 +21,7 @@
  * @module liblily
  */
 
-import Module from "../liblily.mjs";
+import Module from "./liblily.mjs";
 import { LilyError } from "./Error.mjs";
 import { Mensaje, MensajeLog, MensajeAdvertencia, MensajeEtiqueta, MensajeVariable, MensajeMemoria, MensajeRegistro, MensajePila, MensajeDispositivo, MensajeInterrupcion, TipoMensajeError, SubtipoMensajeError } from "./Mensaje.mjs"
 
@@ -218,7 +218,7 @@ class Maquina {
      * @return {Uint8Array} Código objeto resultante.
      */
     ensamblar(datos_entrada, arquitectura) {
-        let array_salida = undefined;
+        let array_salida;
 
         // const char* datos_entrada
         const tam_datos_entrada = M.lengthBytesUTF8(datos_entrada) + 1;
@@ -253,7 +253,7 @@ class Maquina {
         M.setValue(this.pp_ctx, this.p_ctx, "i32");
 
         // Llamar a lily_lily_ensamble
-        let estado = 0;
+        let estado;
         try {
             const p_res = M.ccall("lily_lily_ensamble",
                                        "number",
@@ -294,45 +294,36 @@ class Maquina {
      */
     iniciar(datos_entrada, arquitectura) {
         // size_t tamano
-        let tam_datos_entrada_iniciar = datos_entrada.length * 4; // FIX: ver el tamaño de esto
+        let tam_datos_entrada_iniciar = datos_entrada.length; // FIX: ver el tamaño de esto
 
         // char* bytes
-        this.p_datos_entrada_iniciar = M._malloc(tam_datos_entrada_iniciar * 4);
+        this.p_datos_entrada_iniciar = M._malloc(tam_datos_entrada_iniciar);
         M.writeArrayToMemory(datos_entrada, this.p_datos_entrada_iniciar);
-
-        // char* arquitectura
-        const tam_arquitectura = M.lengthBytesUTF8(arquitectura) + 1;
-        this.p_arquitectura = M._malloc(tam_datos_entrada_iniciar);
-        M.stringToUTF8(arquitectura, this.p_arquitectura, tam_arquitectura);
 
         // struct lily_lua_ejecucion_ctx* ctx
         this.p_ejecucion_ctx = M._malloc(24);
-
         M.setValue(this.p_ejecucion_ctx, this.p_fun_cargar_archivo, "i32");
         M.setValue(this.p_ejecucion_ctx + 4, this.p_fun_cerrar_archivo, "i32");
         M.setValue(this.p_ejecucion_ctx + 8, this.p_fun_enviar_mensaje, "i32");
-
-        // const char* lua_msg
+        /// const char* lua_msg
         M.setValue(this.p_ejecucion_ctx + 12, 0, "i32");
-
-        // enum lily_estado estado
+        /// enum lily_estado estado
         M.setValue(this.p_ejecucion_ctx + 16, 0, "i32");
-
-        // enum lily_estado estado_ejecucion
+        /// bool paso_a_paso
         M.setValue(this.p_ejecucion_ctx + 20, 0, "i32");
 
         // Llamar a lily_lily_creacion_maquina
-        let estado = 0;
+        let estado;
         try {
             this.p_maquina = M.ccall("lily_lily_creacion_maquina",
                                   "number",
-                                  ["number", "number", "number", "number"],
-                                  [this.p_datos_entrada_iniciar, tam_datos_entrada_iniciar, this.p_arquitectura, this.p_ejecucion_ctx]
+                                  ["number", "number", "string", "number"],
+                                  [this.p_datos_entrada_iniciar, tam_datos_entrada_iniciar, arquitectura, this.p_ejecucion_ctx]
                                  );
-            let estado = M.getValue(this.p_ejecucion_ctx + 16, "i32");
-            console.log("iniciar", estado);
+            estado = M.getValue(this.p_ejecucion_ctx + 16, "i32");
         }
         finally {}
+        return estado;
     }
 
     /**
@@ -340,26 +331,27 @@ class Maquina {
      */
     ejecutar() {
         // Llamar a lily_lily_ejecucion
+        let estado;
         try {
             M.ccall("lily_lily_ejecutar_instruccion",
                     null,
                     ["number", "number"],
                     [this.p_maquina, this.p_ejecucion_ctx]
                    );
-            let estado = M.getValue(this.p_ejecucion_ctx + 16, "i32");
-            console.log("ejecutar", estado);
+            estado = M.getValue(this.p_ejecucion_ctx + 16, "i32");
         }
         finally {
             //-M._free(this.p_datos_entrada);
-            //-M._free(this.p_arquitectura);
             //-M._free(this.p_estado);
             //-M._free(this.p_ctx);
         }
+        return estado;
     }
 
     leer_memoria(direccion) {
+        let p_valor;
         try {
-            let p_valor = M._malloc(1);
+            p_valor = M._malloc(1);
             let res = M.ccall("lily_lua_ejecucion_leer_memoria",
                               "number",
                               ["number", "number", "number"],
@@ -375,8 +367,9 @@ class Maquina {
     }
 
     escribir_memoria(direccion, valor) {
+        let p_valor;
         try {
-            let p_valor = M._malloc(2);
+            p_valor = M._malloc(2);
             M.setValue(p_valor, valor, "i8");
             let res = M.ccall("lily_lua_ejecucion_escribir_memoria",
                               "number",
@@ -393,8 +386,9 @@ class Maquina {
     }
 
     leer_registro(registro) {
+        let p_valor;
         try {
-            let p_valor = M.malloc(8);
+            p_valor = M.malloc(8);
             let res = M.ccall("lily_lua_ejecucion_leer_registro",
                               "number",
                               ["number", "string", "number"],
@@ -410,8 +404,9 @@ class Maquina {
     }
 
     escribir_registro(registro, valor) {
+        let p_valor;
         try {
-            let p_valor = M.malloc(16);
+            p_valor = M.malloc(16);
             M.setValue(p_valor, valor, "i64");
             let res = M.ccall("lily_lua_ejecucion_escribir_registro",
                               "number",
