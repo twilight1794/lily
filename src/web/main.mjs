@@ -37,6 +37,12 @@ const M = await Module();
  */
 function esEntero(variable) { return typeof(variable) == "number" && Number.isInteger(variable); }
 
+class MaquinaApagadaError extends LilyError {
+    constructor() {
+        super("No hay una máquina virtual encendida.");
+    }
+}
+
 class CargarArchivoFaltanteError extends LilyError {
     constructor() {
         super("Debe establecerse la función de carga de archivo.");
@@ -355,9 +361,13 @@ class Maquina {
             let res = M.ccall("lily_lua_ejecucion_leer_memoria",
                               "number",
                               ["number", "number", "number"],
-                              [this.p_maquina, direccion, p_valor]
-                             );
+                              [this.p_maquina, BigInt(direccion), p_valor]
+            );
             if (res != 0) throw new Error();
+        }
+        catch (e) {
+            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            throw e;
         }
         finally {
             let valor = M.getValue(p_valor, "i8");
@@ -374,9 +384,13 @@ class Maquina {
             let res = M.ccall("lily_lua_ejecucion_escribir_memoria",
                               "number",
                               ["number", "number", "number", "number"],
-                              [this.p_maquina, direccion, p_valor, p_valor + 1]
-                             );
+                              [this.p_maquina, BigInt(direccion), p_valor, p_valor + 1]
+            );
             if (res != 0) throw new Error();
+        }
+        catch (e) {
+            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            throw e;
         }
         finally {
             let valor_anterior = M.getValue(p_valor + 1, "i8");
@@ -388,13 +402,17 @@ class Maquina {
     leer_registro(registro) {
         let p_valor;
         try {
-            p_valor = M.malloc(8);
+            p_valor = M._malloc(8);
             let res = M.ccall("lily_lua_ejecucion_leer_registro",
                               "number",
                               ["number", "string", "number"],
                               [this.p_maquina, registro, p_valor]
-                   );
+            );
             if (res != 0) throw new Error();
+        }
+        catch (e) {
+            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            throw e;
         }
         finally {
             let valor = M.getValue(p_valor, "i64");
@@ -406,14 +424,19 @@ class Maquina {
     escribir_registro(registro, valor) {
         let p_valor;
         try {
-            p_valor = M.malloc(16);
+            p_valor = M._malloc(16);
             M.setValue(p_valor, valor, "i64");
-            let res = M.ccall("lily_lua_ejecucion_escribir_registro",
-                              "number",
-                              ["number", "string", "number", "number"],
-                              [this.p_maquina, registro, p_valor, p_valor + 8]
-                             );
+            let name = initial;
+            res = M.ccall("lily_lua_ejecucion_escribir_registro",
+                          "number",
+                          ["number", "string", "number", "number"],
+                          [this.p_maquina, registro, p_valor, p_valor + 8]
+            );
             if (res != 0) throw new Error();
+        }
+        catch (e) {
+            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            throw e;
         }
         finally {
             let valor_anterior = M.getValue(p_valor + 8, "i64");
