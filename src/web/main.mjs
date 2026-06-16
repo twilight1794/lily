@@ -354,15 +354,15 @@ class Maquina {
         return estado;
     }
 
-    leer_memoria(direccion) {
+    leer_memoria(direccion, anunciar=false) {
         let p_valor;
         let valor;
         try {
             p_valor = M._malloc(1);
             let res = M.ccall("lily_lua_ejecucion_leer_memoria",
                               "number",
-                              ["number", "number", "number"],
-                              [this.p_maquina, BigInt(direccion), p_valor]
+                              ["number", "number", "number", "boolean"],
+                              [this.p_maquina, BigInt(direccion), p_valor, anunciar]
             );
             if (res != 0) throw new Error();
             valor = M.getValue(p_valor, "i8");
@@ -377,7 +377,7 @@ class Maquina {
         return valor;
     }
 
-    escribir_memoria(direccion, valor) {
+    escribir_memoria(direccion, valor, anunciar=false) {
         let p_valor;
         let valor_anterior;
         try {
@@ -385,8 +385,8 @@ class Maquina {
             M.setValue(p_valor, valor, "i8");
             let res = M.ccall("lily_lua_ejecucion_escribir_memoria",
                               "number",
-                              ["number", "number", "number", "number"],
-                              [this.p_maquina, BigInt(direccion), p_valor, p_valor + 1]
+                              ["number", "number", "number", "number", "boolean"],
+                              [this.p_maquina, BigInt(direccion), p_valor, p_valor + 1, anunciar]
             );
             if (res != 0) throw new Error();
             valor_anterior = M.getValue(p_valor + 1, "i8");
@@ -401,15 +401,15 @@ class Maquina {
         return valor_anterior;
     }
 
-    leer_registro(registro) {
+    leer_registro(registro, anunciar=false) {
         let p_valor;
         let valor;
         try {
             p_valor = M._malloc(8);
             let res = M.ccall("lily_lua_ejecucion_leer_registro",
                               "number",
-                              ["number", "string", "number"],
-                              [this.p_maquina, registro, p_valor]
+                              ["number", "string", "number", "boolean"],
+                              [this.p_maquina, registro, p_valor, anunciar]
             );
             if (res != 0) throw new Error();
             valor = M.getValue(p_valor, "i64");
@@ -424,7 +424,7 @@ class Maquina {
         return valor;
     }
 
-    escribir_registro(registro, valor) {
+    escribir_registro(registro, valor, anunciar=false) {
         let p_valor;
         let valor_anterior;
         try {
@@ -432,8 +432,8 @@ class Maquina {
             M.setValue(p_valor, valor, "i64");
             res = M.ccall("lily_lua_ejecucion_escribir_registro",
                           "number",
-                          ["number", "string", "number", "number"],
-                          [this.p_maquina, registro, p_valor, p_valor + 8]
+                          ["number", "string", "number", "number", "boolean"],
+                          [this.p_maquina, registro, p_valor, p_valor + 8, anunciar]
             );
             if (res != 0) throw new Error();
             valor_anterior = M.getValue(p_valor + 8, "i64");

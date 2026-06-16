@@ -18,23 +18,47 @@
 
 #include "lua_ejecucion.h"
 
-int lily_lua_ejecucion_leer_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor) {
+int lily_lua_ejecucion_leer_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor, bool anunciar) {
     if (direccion >= maquina->tamano_memoria)
         return -1;
     *valor = maquina->memoria[direccion];
+    // Anunciar
+    if (anunciar) {
+        struct lily_lily_mensaje_tmemoria mensaje = {
+            .direccion = direccion,
+            .tamano = 1,
+            .valor = *valor
+        };
+        lua_getglobal(maquina->L, "_lily_enviar_mensaje");
+        f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(maquina->L, -1);
+        lua_pop(maquina->L, 1);
+        enviar_mensaje(LILY_MENSAJE_TMEMORIA, LILY_MENSAJE_TMEMORIA_LECTURA, "lua_ejecucion_leer_memoria", &mensaje);
+    }
     return 0;
 }
 
-int lily_lua_ejecucion_escribir_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor, uint8_t* valor_anterior) {
+int lily_lua_ejecucion_escribir_memoria(struct lily_lua_ejecucion_maquina* maquina, uint64_t direccion, uint8_t* valor, uint8_t* valor_anterior, bool anunciar) {
     if (direccion >= maquina->tamano_memoria)
         return -1;
     if (valor_anterior != NULL)
         *valor_anterior = maquina->memoria[direccion];
     maquina->memoria[direccion] = *valor;
+    // Anunciar
+    if (anunciar) {
+        struct lily_lily_mensaje_tmemoria mensaje = {
+            .direccion = direccion,
+            .tamano = 1,
+            .valor = *valor
+        };
+        lua_getglobal(maquina->L, "_lily_enviar_mensaje");
+        f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(maquina->L, -1);
+        lua_pop(maquina->L, 1);
+        enviar_mensaje(LILY_MENSAJE_TMEMORIA, LILY_MENSAJE_TMEMORIA_ESCRITURA, "lua_ejecucion_escribir_memoria", &mensaje);
+    }
     return 0;
 }
 
-int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, uint8_t* valor) {
+int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, uint8_t* valor, bool anunciar) {
     lua_getglobal(maquina->L, "_lily_esquema");
     // Obtener ubicación de registro
     lua_pushliteral(maquina->L, "registros");
@@ -56,10 +80,23 @@ int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina,
     *((uint64_t*) valor) = 0;
     lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor);
     lua_pop(maquina->L, 3);
+    // Anunciar
+    if (anunciar) {
+        struct lily_lily_mensaje_tregistro mensaje = {
+            .valor = *valor,
+            .desplazamiento = ubicacion,
+            .registro = registro,
+            .tamano = tamano
+        };
+        lua_getglobal(maquina->L, "_lily_enviar_mensaje");
+        f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(maquina->L, -1);
+        lua_pop(maquina->L, 1);
+        enviar_mensaje(LILY_MENSAJE_TREGISTRO, LILY_MENSAJE_TREGISTRO_LECTURA, "lua_ejecucion_leer_registro", &mensaje);
+    }
     return 0;
 }
 
-int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, const uint8_t* valor, uint8_t* valor_anterior) {
+int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maquina, const char* registro, const uint8_t* valor, uint8_t* valor_anterior, bool anunciar) {
     lua_getglobal(maquina->L, "_lily_esquema");
     // Obtener ubicación de registro
     lua_pushliteral(maquina->L, "registros");
@@ -85,6 +122,19 @@ int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maqu
     // Escribir dato
     lily_bitarray_guardar(ubicacion, tamano, maquina->registros, valor);
     lua_pop(maquina->L, 3);
+    // Anunciar
+    if (anunciar) {
+        struct lily_lily_mensaje_tregistro mensaje = {
+            .valor = *valor,
+            .desplazamiento = ubicacion,
+            .registro = registro,
+            .tamano = tamano
+        };
+        lua_getglobal(maquina->L, "_lily_enviar_mensaje");
+        f_mensajes_ptr enviar_mensaje = (f_mensajes_ptr) lua_tointeger(maquina->L, -1);
+        lua_pop(maquina->L, 1);
+        enviar_mensaje(LILY_MENSAJE_TREGISTRO, LILY_MENSAJE_TREGISTRO_ESCRITURA, "lua_ejecucion_escribir_registro", &mensaje);
+    }
     return 0;
 }
 
@@ -169,7 +219,7 @@ void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uin
     // FIX: inicializar los demás registros
     // TODO: ver si hay una forma eficiente de conservar la abstracción
     const uint64_t valor = 0;
-    lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, (const uint8_t*) &valor, NULL);
+    lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, (const uint8_t*) &valor, NULL, true);
 }
 
 void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
@@ -177,7 +227,7 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
     union lily_simbolo_numero pc;
     bool ejecutado = false;
     pc.positivo = 0;
-    lily_lua_ejecucion_leer_registro(maquina, maquina->pc, pc.bytes);
+    lily_lua_ejecucion_leer_registro(maquina, maquina->pc, pc.bytes, false);
     // Obtener casos de opcodes
     int base_pila = lua_gettop(maquina->L); // Para limpiar después
     lua_pushstring(maquina->L, "opcodes");
@@ -296,7 +346,7 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
                 }
                 // Actualizar PC
                 pc.positivo += num_bytes;
-                lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, pc.bytes, NULL);
+                lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, pc.bytes, NULL, true);
                 // Y ejecutar operación
                 ejecutado = true;
                 if (lua_pcall(maquina->L, 1, 0, 0)) {
