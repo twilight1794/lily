@@ -41,7 +41,7 @@ void f_ejecutora_interactiva(struct lily_lua_ejecucion_maquina* maquina, struct 
     bool finalizar = false;
     uint64_t valor_pc = 0;
     while (!seguir) {
-        lily_lua_ejecucion_leer_registro(maquina, maquina->pc, (uint8_t*) &valor_pc);
+        lily_lua_ejecucion_leer_registro(maquina, maquina->pc, (uint8_t*) &valor_pc, false);
         printf("$:0x%lx %u> ", valor_pc, ctx->estado);
         c = getchar();
         switch (c) {
@@ -145,7 +145,7 @@ static void f_ejecutora_interactiva_m(struct lily_lua_ejecucion_maquina* maquina
                 }
                 else {
                     // No hay basura, hemos leído dos parámetros bien
-                    if (lily_lua_ejecucion_escribir_memoria(maquina, direccion, (uint8_t*) &valor, (uint8_t*) &valor_anterior) == -1)
+                    if (lily_lua_ejecucion_escribir_memoria(maquina, direccion, (uint8_t*) &valor, (uint8_t*) &valor_anterior, false) == -1)
                         printf(_("Memory address 0x%08lx out of range\n"), direccion);
                     else
                         printf("\x1b[33;1m[0x%08lx]\x1b[0m = \x1b[2m0x%02x\x1b[0m -> 0x%02x\n", direccion, (uint8_t) valor_anterior, (uint8_t) valor);
@@ -153,7 +153,7 @@ static void f_ejecutora_interactiva_m(struct lily_lua_ejecucion_maquina* maquina
             }
             else {
                 // Hemos leído un parámetro bien
-                if (lily_lua_ejecucion_leer_memoria(maquina, direccion, (uint8_t*) &valor) == -1)
+                if (lily_lua_ejecucion_leer_memoria(maquina, direccion, (uint8_t*) &valor, false) == -1)
                     printf(_("Memory address 0x%08lx out of range\n"), direccion);
                 else
                     printf("\x1b[33;1m[0x%08lx]\x1b[0m = 0x%02x\n", direccion, (uint8_t) valor);
@@ -197,7 +197,7 @@ static void f_ejecutora_interactiva_r(struct lily_lua_ejecucion_maquina *maquina
                 }
                 else {
                     // No hay basura, hemos leído dos parámetros bien
-                    if (lily_lua_ejecucion_escribir_registro(maquina, registro, (uint8_t*) &valor, (uint8_t*) &valor_anterior) == -1) {
+                    if (lily_lua_ejecucion_escribir_registro(maquina, registro, (uint8_t*) &valor, (uint8_t*) &valor_anterior, false) == -1) {
                         printf(_("Register '%s' is not defined\n"), registro);
                     }
                     else {
@@ -207,7 +207,7 @@ static void f_ejecutora_interactiva_r(struct lily_lua_ejecucion_maquina *maquina
             }
             else {
                 // Hemos leído un parámetro bien
-                if (lily_lua_ejecucion_leer_registro(maquina, registro, (uint8_t*) &valor) == -1) {
+                if (lily_lua_ejecucion_leer_registro(maquina, registro, (uint8_t*) &valor, false) == -1) {
                     printf(_("Register '%s' is not defined\n"), registro);
                 }
                 else {
