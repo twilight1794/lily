@@ -694,7 +694,7 @@ return {
         CPL = { 0x2f },
         NEG = { 0xed, 0x44 },
         CCF = { 0x3f },
-        SCF = { 0x37},
+        SCF = { 0x37 },
         NOP = { 0x00 },
         HALT = { 0x76 },
         DI = { 0xf3 },
@@ -992,7 +992,12 @@ return {
         {
             { 0x3f }, -- CCF
             function (bytes)
-                L.escribir_registro("CF", ~(L.leer_registro("CF")))
+                local cf = L.leer_registro("CF")
+                if cf == 1 then
+                    L.escribir_registro("CF", 0)
+                else
+                    L.escribir_registro("CF", 1)
+                end
                 -- FIX: H
                 L.escribir_registro("NF", 0)
             end
