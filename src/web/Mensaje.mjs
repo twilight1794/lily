@@ -133,7 +133,7 @@ class MensajeRegistro extends Mensaje {
             this.desplazamiento = M.getValue(obj + 8, "i64");
             let p_registro = M.getValue(obj + 16, "i32");
             this.registro = M.UTF8ToString(p_registro);
-            this.tamano = M.getValue(obj + 24, "i32");
+            this.tamano = M.getValue(obj + 20, "i32");
         }
     }
 }
