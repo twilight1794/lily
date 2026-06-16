@@ -368,7 +368,7 @@ class Maquina {
             valor = M.getValue(p_valor, "i8");
         }
         catch (e) {
-            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            if (e instanceof ReferenceError) throw new MaquinaApagadaError();
             throw e;
         }
         finally {
@@ -392,7 +392,7 @@ class Maquina {
             valor_anterior = M.getValue(p_valor + 1, "i8");
         }
         catch (e) {
-            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            if (e instanceof ReferenceError) throw new MaquinaApagadaError();
             throw e;
         }
         finally {
@@ -415,7 +415,7 @@ class Maquina {
             valor = M.getValue(p_valor, "i64");
         }
         catch (e) {
-            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            if (e instanceof ReferenceError) throw new MaquinaApagadaError();
             throw e;
         }
         finally {
@@ -430,7 +430,7 @@ class Maquina {
         try {
             p_valor = M._malloc(16);
             M.setValue(p_valor, valor, "i64");
-            res = M.ccall("lily_lua_ejecucion_escribir_registro",
+            let res = M.ccall("lily_lua_ejecucion_escribir_registro",
                           "number",
                           ["number", "string", "number", "number", "boolean"],
                           [this.p_maquina, registro, p_valor, p_valor + 8, anunciar]
@@ -439,7 +439,7 @@ class Maquina {
             valor_anterior = M.getValue(p_valor + 8, "i64");
         }
         catch (e) {
-            if (e instanceof ReferenceError) throw MaquinaApagadaError();
+            if (e instanceof ReferenceError) throw new MaquinaApagadaError();
             throw e;
         }
         finally {
