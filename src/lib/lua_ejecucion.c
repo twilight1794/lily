@@ -78,7 +78,7 @@ int lily_lua_ejecucion_leer_registro(struct lily_lua_ejecucion_maquina* maquina,
     lua_pop(maquina->L, 1);
     // Obtener dato
     *((uint64_t*) valor) = 0;
-    lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor);
+    lily_bitarray_obtener(maquina->registros, ubicacion, tamano, valor);
     lua_pop(maquina->L, 3);
     // Anunciar
     if (anunciar) {
@@ -117,10 +117,10 @@ int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maqu
     // Obtener dato
     if (valor_anterior != NULL) {
         *((uint64_t*) valor_anterior) = 0;
-        lily_bitarray_obtener(ubicacion, tamano, maquina->registros, valor_anterior);
+        lily_bitarray_obtener(maquina->registros, ubicacion, tamano, valor_anterior);
     }
     // Escribir dato
-    lily_bitarray_guardar(ubicacion, tamano, maquina->registros, valor);
+    lily_bitarray_guardar(maquina->registros, ubicacion, tamano, valor);
     lua_pop(maquina->L, 3);
     // Anunciar
     if (anunciar) {

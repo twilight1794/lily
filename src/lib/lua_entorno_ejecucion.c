@@ -146,7 +146,7 @@ int lily_lua_entorno_ejecucion_leer_registro(lua_State* L) {
     lua_pop(L, 4); // -global, reg, registros, esquema
     // Lectura
     lua_Integer valor = 0;
-    lily_bitarray_obtener(posicion, tamano, registros, (uint8_t*) &valor);
+    lily_bitarray_obtener(registros, posicion, tamano, &valor);
     lua_pushinteger(L, valor);
     // Mensaje
     struct lily_lily_mensaje_tregistro mensaje = {
@@ -179,7 +179,7 @@ int lily_lua_entorno_ejecucion_escribir_registro(lua_State* L) {
     lua_pop(L, 4); // -global, reg, registros, esquema
     // Escritura
     lua_Integer valor = lua_tointeger(L, 2);
-    lily_bitarray_guardar(posicion, tamano, registros, (uint8_t*) &valor);
+    lily_bitarray_guardar(registros, posicion, tamano, (uint8_t*) &valor);
     // Mensaje
     struct lily_lily_mensaje_tregistro mensaje = {
         .desplazamiento = posicion,

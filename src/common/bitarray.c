@@ -18,64 +18,104 @@
 
 #include "bitarray.h"
 
-void lily_bitarray_obtener(size_t desplazamiento, size_t tamano, const uint8_t* array, uint8_t* bytes) {
-    size_t bit_fin = desplazamiento + tamano;
-    size_t tam_restante = tamano;
-    size_t i = 0;
-    size_t ptr = desplazamiento;
-    while (tam_restante) {
-        size_t ventana = (tam_restante < 8)?tam_restante:8;
-        tam_restante -= ventana;
-        size_t v1_byte_inicio = ptr >> 3;
-        size_t v1_limite_tentativo = 8 * (v1_byte_inicio + 1) - 1;
-        size_t v1_limite = (bit_fin < v1_limite_tentativo)?bit_fin:v1_limite_tentativo;
-        size_t v1_tamano = v1_limite - ptr + 1;
-        uint8_t v1_mascara = 0xff << (8 - v1_tamano);
-        uint8_t v1_val = array[v1_byte_inicio] & v1_mascara;
-        bytes[i] = v1_val >> (8 - v1_tamano);
-        ptr += v1_tamano;
-        ventana -= v1_tamano;
-        if (ventana) {
-            size_t v2_byte_inicio = v1_byte_inicio + 1;
-            size_t v2_tamano = ventana;
-            uint8_t v2_mascara = 0xff >> (8 - v2_tamano);
-            uint8_t v2_val = array[v2_byte_inicio] & v2_mascara;
-            bytes[i] |= v2_val << v2_tamano;
-            ptr += v2_tamano;
+void lily_bitarray_obtener(const void* array, size_t desplazamiento, size_t tamano, void* valor) {
+    const size_t tam_ventana = desplazamiento % 8; // Tiene el offset real desde el comienzo de un byte -> 0 para alineados
+    const size_t tam_ventana_comp = 8 - tam_ventana; // Es el restante -> 8 para alineados
+    size_t restantes = tamano; // Bits que faltan por leer globalmente
+    size_t i = 0; // Índice en el array destino
+    bool inicio_ventana = true; // Si abrimos un nuevo byte en destino
+
+    while (restantes) {
+        uint8_t* byte_origen = ((uint8_t*) array) + i;
+        uint8_t* byte_destino = ((uint8_t*) valor) + i;
+        size_t restantes_reales; // Tomar en cuenta si tenemos menos de una ventana para copiar
+        uint8_t mascara;
+        uint8_t valor_bruto; // Copia del byte origen, pero solo con el dato a extraer
+        uint8_t valor_neto; // Copia del valor bruto, ya normalizado para ser insertado en destino
+        if (inicio_ventana) {
+            // 1ra ventana destino
+            restantes_reales = (tam_ventana_comp > restantes) ? restantes : tam_ventana_comp;
+            /// Obtener máscara
+            mascara = 0xff << (8 - restantes_reales);
+            mascara = mascara >> (8 - restantes_reales - tam_ventana);
+            /// Aplicar máscara contra array
+            valor_bruto = (*byte_origen & mascara);
+            /// Aplicar a destino (con el desplazamiento correcto)
+            valor_neto = valor_bruto >> tam_ventana;
+            *byte_destino |= valor_neto;
+
+            restantes -= restantes_reales;
+            inicio_ventana = false;
         }
-        i++;
+        else {
+            // 2da ventana destino
+            restantes_reales = (tam_ventana > restantes) ? restantes : tam_ventana;
+            /// Obtener máscara
+            mascara = 0xff >> (8 - restantes_reales);
+            // Aplicar máscara contra array
+            valor_bruto = (*(byte_origen + 1) & mascara);
+            // Aplicar a destino (con el desplazamiento correcto)
+            valor_neto = valor_bruto << tam_ventana_comp;
+            *byte_destino |= valor_neto;
+
+            i++;
+            restantes -= restantes_reales;
+            inicio_ventana = true;
+        }
     }
 }
 
-void lily_bitarray_guardar(size_t desplazamiento, size_t tamano, uint8_t* array, const uint8_t* bytes) {
-    size_t bit_fin = desplazamiento + tamano;
-    size_t tam_restante = tamano;
-    size_t i = 0;
-    size_t ptr = desplazamiento;
-    while (tam_restante) {
-        size_t ventana = (tam_restante < 8)?tam_restante:8;
-        tam_restante -= ventana;
-        size_t v1_byte_inicio = ptr >> 3;
-        size_t v1_limite_tentativo = 8 * (v1_byte_inicio + 1) - 1;
-        size_t v1_limite = (bit_fin < v1_limite_tentativo)?bit_fin:v1_limite_tentativo;
-        size_t v1_tamano = v1_limite - ptr + 1;
-        uint8_t v1_mascara = 0xff >> (8 - v1_tamano);
-        uint8_t v1_mascara_limpiar = ~(0xff << (8 - v1_tamano));
-        uint8_t v1_val = bytes[i] & v1_mascara;
-        array[v1_byte_inicio] &= v1_mascara_limpiar;
-        array[v1_byte_inicio] |= v1_val << (8 - v1_tamano);
-        ptr += v1_tamano;
-        ventana -= v1_tamano;
-        if (ventana) {
-            size_t v2_byte_inicio = v1_byte_inicio + 1;
-            size_t v2_tamano = ventana;
-            uint8_t v2_mascara = 0xff << (8 - v2_tamano);
-            uint8_t v2_mascara_limpiar = ~(0xff >> (8 - v2_tamano));
-            uint8_t v2_val = bytes[i] & v2_mascara;
-            array[v2_byte_inicio] &= v2_mascara_limpiar;
-            array[v2_byte_inicio] |= v2_val >> v2_tamano;
-            ptr += v2_tamano;
+void lily_bitarray_guardar(void* array, size_t desplazamiento, size_t tamano, const void* valor) {
+    const size_t tam_ventana = desplazamiento % 8; // Tiene el offset real desde el comienzo de un byte -> 0 para alineados
+    const size_t tam_ventana_comp = 8 - tam_ventana; // Es el restante -> 8 para alineados
+    size_t restantes = tamano; // Bits que faltan por leer globalmente
+    size_t i = 0; // Índice en el array destino
+    bool inicio_ventana = true; // Si abrimos un nuevo byte en destino
+
+    while (restantes) {
+        uint8_t* byte_destino = ((uint8_t*) array) + i;
+        uint8_t* byte_origen = ((uint8_t*) valor) + i;
+        size_t restantes_reales; // Tomar en cuenta si tenemos menos de una ventana para copiar
+        uint8_t mascara;
+        uint8_t valor_bruto; // Copia del byte origen, solo con la ventana del dato a extraer
+                             // y ya normalizado para ser insertado en destino
+        if (inicio_ventana) {
+            // 1ra ventana destino
+            /// Preparar origen
+            restantes_reales = (tam_ventana_comp > restantes) ? restantes : tam_ventana_comp;
+            if (!restantes_reales) goto fin;
+            //// Obtener máscara para origen
+            mascara = 0xff >> (8 - restantes_reales);
+            //// Separar primera ventana de dato y desplazar
+            valor_bruto = (*byte_origen & mascara) << tam_ventana;
+            /// Preparar destino
+            //// Obtener máscara para destino
+            mascara = ~(mascara << tam_ventana);
+            //// Limpiar espacio de inserción
+            *byte_destino &= mascara;
+            /// Aplicar
+            *byte_destino |= valor_bruto;
         }
-        i++;
+        else {
+            // 2da ventana destino
+            /// Preparar origen
+            restantes_reales = (tam_ventana > restantes) ? restantes : tam_ventana;
+            //// Obtener máscara para origen
+            mascara = 0xff >> (8 - restantes_reales);
+            mascara <<= tam_ventana_comp;
+            ////  Separar segunda ventana de dato y desplazar
+            valor_bruto = (*byte_origen & mascara) >> tam_ventana_comp;
+            /// Preparar destino
+            //// Obtener máscara para destino
+            mascara = 0xff >> (8 - restantes_reales);
+            //// Limpiar espacio de inserción
+            *(byte_destino + (tam_ventana?1:0)) &= mascara;
+            //// Aplicar
+            *(byte_destino + (tam_ventana?1:0)) |= valor_bruto;
+        }
+    fin:
+        restantes -= restantes_reales;
+        if (!inicio_ventana) i++;
+        inicio_ventana = !inicio_ventana;
     }
 }

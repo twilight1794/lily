@@ -16,9 +16,10 @@
  * Lily. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-void lily_bitarray_obtener(size_t desplazamiento, size_t tamano, const uint8_t* array, uint8_t* bytes);
+void lily_bitarray_obtener(const void* array, size_t desplazamiento, size_t tamano, void* valor);
 
-void lily_bitarray_guardar(size_t desplazamiento, size_t tamano, uint8_t* array, const uint8_t* bytes);
+void lily_bitarray_guardar(void* array, size_t desplazamiento, size_t tamano, const void* valor);

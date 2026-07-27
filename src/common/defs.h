@@ -33,7 +33,7 @@
  * @brief Instrucción para levantar una excepción que pueda ser capturada por gdb
  * From http://web.archive.org/web/20230605101122/http://hg.mozilla.org/mozilla-central/file/98fa9c0cff7a/js/src/jsutil.cpp#l66
  * @note Para continuar desde OS X, "return" y después "continue".
- * @note Para continuar desde Linux, "signal 0".
+ * @note Para continuar desde GNU/Linux, "signal 0".
  */
 
 #if defined(WIN32)
