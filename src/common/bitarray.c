@@ -19,19 +19,18 @@
 #include "bitarray.h"
 
 void lily_bitarray_obtener(const void* array, size_t desplazamiento, size_t tamano, void* valor) {
-    const size_t tam_ventana = desplazamiento % 8; // Tiene el offset real desde el comienzo de un byte -> 0 para alineados
-    const size_t tam_ventana_comp = 8 - tam_ventana; // Es el restante -> 8 para alineados
+    const size_t tam_ventana = desplazamiento % 8; // El offset real desde el comienzo de un byte -> 0 para alineados
+    const size_t tam_ventana_comp = 8 - tam_ventana; // Restante -> 8 para alineados
     size_t restantes = tamano; // Bits que faltan por leer globalmente
-    size_t i = 0; // Índice en el array destino
-    bool inicio_ventana = true; // Si abrimos un nuevo byte en destino
+    bool inicio_ventana = true; // Si empezamos a escribir en un nuevo byte de destino
+    uint8_t* byte_origen = ((uint8_t*) array) + (desplazamiento >> 3); // Puntero al byte actual del array origen
+    uint8_t* byte_destino = ((uint8_t*) valor); // Puntero al byte actual del valor destino
+    size_t restantes_reales; // Tomar en cuenta si tenemos menos de una ventana para copiar
+    uint8_t mascara; // Máscara para bits a copiar
+    uint8_t valor_bruto; // Copia del byte origen, con el dato a extraer
+    uint8_t valor_neto; // Copia del valor bruto, ya normalizado para ser insertado en destino
 
     while (restantes) {
-        uint8_t* byte_origen = ((uint8_t*) array) + i;
-        uint8_t* byte_destino = ((uint8_t*) valor) + i;
-        size_t restantes_reales; // Tomar en cuenta si tenemos menos de una ventana para copiar
-        uint8_t mascara;
-        uint8_t valor_bruto; // Copia del byte origen, pero solo con el dato a extraer
-        uint8_t valor_neto; // Copia del valor bruto, ya normalizado para ser insertado en destino
         if (inicio_ventana) {
             // 1ra ventana destino
             restantes_reales = (tam_ventana_comp > restantes) ? restantes : tam_ventana_comp;
@@ -45,9 +44,10 @@ void lily_bitarray_obtener(const void* array, size_t desplazamiento, size_t tama
             *byte_destino |= valor_neto;
 
             restantes -= restantes_reales;
-            inicio_ventana = false;
         }
         else {
+            // Evitar cálculos inecesarios cuando la 1ra ventana sea 8
+            if (!tam_ventana) goto fin;
             // 2da ventana destino
             restantes_reales = (tam_ventana > restantes) ? restantes : tam_ventana;
             /// Obtener máscara
@@ -58,32 +58,31 @@ void lily_bitarray_obtener(const void* array, size_t desplazamiento, size_t tama
             valor_neto = valor_bruto << tam_ventana_comp;
             *byte_destino |= valor_neto;
 
-            i++;
             restantes -= restantes_reales;
-            inicio_ventana = true;
+            fin:
+            byte_origen++;
+            byte_destino++;
         }
+        inicio_ventana = !inicio_ventana;
     }
 }
 
 void lily_bitarray_guardar(void* array, size_t desplazamiento, size_t tamano, const void* valor) {
-    const size_t tam_ventana = desplazamiento % 8; // Tiene el offset real desde el comienzo de un byte -> 0 para alineados
-    const size_t tam_ventana_comp = 8 - tam_ventana; // Es el restante -> 8 para alineados
+    const size_t tam_ventana = desplazamiento % 8; // Offset real desde el comienzo de un byte -> 0 para alineados
+    const size_t tam_ventana_comp = 8 - tam_ventana; // Restante -> 8 para alineados
     size_t restantes = tamano; // Bits que faltan por leer globalmente
-    size_t i = 0; // Índice en el array destino
-    bool inicio_ventana = true; // Si abrimos un nuevo byte en destino
+    bool inicio_ventana = true; // Si empezamos a escribir en un nuevo byte de destino
+    uint8_t* byte_origen = ((uint8_t*) valor); // Puntero al byte actual del valor origen
+    uint8_t* byte_destino = ((uint8_t*) array) + (desplazamiento >> 3); // Puntero al byte actual del array destino
+    size_t restantes_reales; // Tomar en cuenta si tenemos menos de una ventana para copiar
+    uint8_t mascara; // Máscara para bits a copiar
+    uint8_t valor_bruto; // Copia del byte origen, solo con el dato a extraer, y ya normalizado para ser insertado en destino
 
     while (restantes) {
-        uint8_t* byte_destino = ((uint8_t*) array) + i;
-        uint8_t* byte_origen = ((uint8_t*) valor) + i;
-        size_t restantes_reales; // Tomar en cuenta si tenemos menos de una ventana para copiar
-        uint8_t mascara;
-        uint8_t valor_bruto; // Copia del byte origen, solo con la ventana del dato a extraer
-                             // y ya normalizado para ser insertado en destino
         if (inicio_ventana) {
             // 1ra ventana destino
             /// Preparar origen
             restantes_reales = (tam_ventana_comp > restantes) ? restantes : tam_ventana_comp;
-            if (!restantes_reales) goto fin;
             //// Obtener máscara para origen
             mascara = 0xff >> (8 - restantes_reales);
             //// Separar primera ventana de dato y desplazar
@@ -95,10 +94,13 @@ void lily_bitarray_guardar(void* array, size_t desplazamiento, size_t tamano, co
             *byte_destino &= mascara;
             /// Aplicar
             *byte_destino |= valor_bruto;
+
+            restantes -= restantes_reales;
         }
         else {
             // 2da ventana destino
             /// Preparar origen
+            if (!tam_ventana) goto fin;
             restantes_reales = (tam_ventana > restantes) ? restantes : tam_ventana;
             //// Obtener máscara para origen
             mascara = 0xff >> (8 - restantes_reales);
@@ -112,10 +114,12 @@ void lily_bitarray_guardar(void* array, size_t desplazamiento, size_t tamano, co
             *(byte_destino + (tam_ventana?1:0)) &= mascara;
             //// Aplicar
             *(byte_destino + (tam_ventana?1:0)) |= valor_bruto;
+
+            restantes -= restantes_reales;
+            fin:
+            byte_origen++;
+            byte_destino++;
         }
-    fin:
-        restantes -= restantes_reales;
-        if (!inicio_ventana) i++;
         inicio_ventana = !inicio_ventana;
     }
 }
