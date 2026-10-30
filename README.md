@@ -1,6 +1,6 @@
 # lily
 Biblioteca en C99 que implementa un metaensamblador, un metadesensamblador, y un
-metahipervisor para muchos microprocesadores.
+metaemulador para muchos microprocesadores.
 
 ![GitHub commit
 !activity](https://img.shields.io/github/commit-activity/t/twilight1794/lily)
@@ -11,7 +11,7 @@ metahipervisor para muchos microprocesadores.
 - __Portable:__ escrito en C99, corre tanto en Windows, en GNU/Linux, o incluso
   en tu navegador.
 - __Extensible:__ añade soporte para un microprocesador describiéndolo con un
-  esquema.
+  esquema en lenguaje Lua.
 - __Libre:__ es software libre, puedes usarlo como quieras, e incluso
 distribuirlo y modificarlo sin otra condición que conservar la misma licencia.
 - __Fácil de integrar:__ se provee una API sencilla, en C y en JavaScript, para
@@ -21,7 +21,7 @@ distribuirlo y modificarlo sin otra condición que conservar la misma licencia.
 
 ### Requerimientos
 La biblioteca compartida solo depende de liblua5.4.8. Si usas un sistema de
-tipoUnix, el script [misc/scripts/install-lua](./misc/scripts/install-lua)
+tipo Unix, el script [misc/scripts/install-lua](./misc/scripts/install-lua)
 instalará los archivos de biblioteca necesarios en tu sistema. Si vas a generar
 una compilación para web, se recomienda que uses este script en vez de instalar
 la versión provista por el administrador de paquetes de tu distribución. El
