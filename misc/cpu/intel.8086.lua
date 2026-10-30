@@ -163,41 +163,45 @@ return {
             tamano = 16,
             desplazamiento = 192
         },
+        FLAGS = {
+            tamano = 16,
+            desplazamiento = 208
+        },
         CF = {
             tamano = 1,
             desplazamiento = 208
         },
         PF = {
             tamano = 1,
-            desplazamiento = 209
+            desplazamiento = 210
         },
         AF = {
             tamano = 1,
-            desplazamiento = 210
+            desplazamiento = 212
         },
         ZF = {
             tamano = 1,
-            desplazamiento = 211
+            desplazamiento = 214
         },
         SF = {
             tamano = 1,
-            desplazamiento = 212
+            desplazamiento = 215
         },
         TF = {
             tamano = 1,
-            desplazamiento = 213
+            desplazamiento = 216
         },
         IF = {
             tamano = 1,
-            desplazamiento = 214
+            desplazamiento = 217
         },
         DF = {
             tamano = 1,
-            desplazamiento = 215
+            desplazamiento = 218
         },
         OF = {
             tamano = 1,
-            desplazamiento = 216
+            desplazamiento = 219
         },
     },
     registro_programa = "IP",
