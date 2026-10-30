@@ -111,7 +111,7 @@ void lily_bitarray_guardar(void* array, size_t desplazamiento, size_t tamano, co
             //// Obtener máscara para destino
             mascara = 0xff >> (8 - restantes_reales);
             //// Limpiar espacio de inserción
-            *(byte_destino + (tam_ventana?1:0)) &= mascara;
+            *(byte_destino + (tam_ventana?1:0)) &= ~mascara;
             //// Aplicar
             *(byte_destino + (tam_ventana?1:0)) |= valor_bruto;
 
