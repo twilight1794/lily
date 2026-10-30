@@ -268,7 +268,7 @@ lua_State* lily_lua_entorno_preparar(enum lily_estado* estado, f_mensajes_ptr fu
     lua_register(L, "type", lily_lua_entorno_base_type);
     lua_pushstring(L, "Lua 5.4.7");
     lua_setglobal(L, "_VERSION");
-    char* _lily_version = (char*) malloc(snprintf(NULL, 0, "Lily %s (commit %s%s)", LILY_VERSION, LILY_COMMIT, LILY_MODIFICADO));
+    char* _lily_version = (char*) malloc(snprintf(NULL, 0, "Lily %s (commit %s%s)", LILY_VERSION, LILY_COMMIT, LILY_MODIFICADO) + 1);
     if (_lily_version == NULL) {
         *estado = COD_MALLOC_FALLO;
         lua_close(L);

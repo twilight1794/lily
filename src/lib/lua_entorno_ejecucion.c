@@ -74,7 +74,7 @@ void lily_lua_entorno_ejecucion_validar_registro(lua_State *L, bool escritura) {
     // Si es escritura, validar que el valor quepa en el registro
     // FIX: por ahora, solo enteros
     if (escritura) {
-        if (ceil(log2(lua_tointeger(L, 1))) > tamano) {
+        if (ceil(log2(lua_tointeger(L, 2))) > tamano) {
             lua_pushliteral(L, "El tamaño del valor a guardar es más grande que el registro");
             lua_error(L);
         }

@@ -188,7 +188,7 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
         lua_pop(L, 1);
     }
     lua_pop(L, 1);
-    obj->registros = (uint8_t*) malloc(ceil(obj->tamano_registros/8));
+    obj->registros = (uint8_t*) malloc(ceil(obj->tamano_registros/8) + (obj->tamano_registros%8));
     if (obj->registros == NULL) {
         free(obj->memoria);
         free(obj);
