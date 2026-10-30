@@ -28,20 +28,8 @@
 
 #include "../lib/munit/munit.h"
 
+#include "common/bitarray.h"
 #include "common/dict.h"
-
-/*MunitSuite lily_test_suites[] = {
-    lily_dict_test_suite,
-    NULL
-};
-
-MunitSuite lily_test_suite = {
-    "",
-    NULL,
-    lily_test_suites,
-    1,
-    MUNIT_SUITE_OPTION_NONE
-};*/
 
 // lily_dict
 static MunitTest lily_dict_test_tests[] = {
@@ -112,6 +100,128 @@ static MunitSuite lily_dict_test_suite = {
     MUNIT_SUITE_OPTION_NONE
   };
 
+
+// lily_bitarray
+static MunitTest lily_bitarray_test_tests[] = {
+    {
+        "/lily_bitarray_obtener_alineado",
+        lily_bitarray_test_obtener_alineado,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_obtener_dentro_byte",
+        lily_bitarray_test_obtener_dentro_byte,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_obtener_cruzando_bytes",
+        lily_bitarray_test_obtener_cruzando_bytes,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_obtener_16_desalineado",
+        lily_bitarray_test_obtener_16_desalineado,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_obtener_no_excede",
+        lily_bitarray_test_obtener_no_excede,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_obtener_exhaustivo",
+        lily_bitarray_test_obtener_exhaustivo,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_guardar_alineado",
+        lily_bitarray_test_guardar_alineado,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_guardar_dentro_byte",
+        lily_bitarray_test_guardar_dentro_byte,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_guardar_cruzando_bytes",
+        lily_bitarray_test_guardar_cruzando_bytes,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_guardar_un_bit",
+        lily_bitarray_test_guardar_un_bit,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_guardar_exhaustivo",
+        lily_bitarray_test_guardar_exhaustivo,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_bitarray_ida_vuelta",
+        lily_bitarray_test_ida_vuelta,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
+};
+
+static MunitSuite lily_bitarray_test_suite = {
+    "/lily_bitarray",
+    lily_bitarray_test_tests,
+    NULL,
+    1,
+    MUNIT_SUITE_OPTION_NONE
+};
+
 int main(int argc, char* const argv[MUNIT_ARRAY_PARAM(argc + 1)]) {
-    return munit_suite_main(&lily_dict_test_suite, NULL, argc, argv);
+    MunitSuite lily_test_suites[] = {
+        lily_bitarray_test_suite,
+        lily_dict_test_suite,
+        { NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE }
+    };
+    MunitSuite lily_test_suite = {
+        "",
+        NULL,
+        lily_test_suites,
+        1,
+        MUNIT_SUITE_OPTION_NONE
+    };
+    return munit_suite_main(&lily_test_suite, NULL, argc, argv);
 }

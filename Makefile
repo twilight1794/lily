@@ -382,11 +382,12 @@ dist/%.html: doc/%.adoc
 
 lib/munit/munit.o: lib/munit/munit.c
 
+test/common/bitarray.o: test/common/bitarray.c test/common/bitarray.h
 test/common/dict.o: test/common/dict.c test/common/dict.h
 test/main.o: test/main.c
 
-dist/test dist/test.exe: lib/munit/munit.o test/main.o test/common/dict.o $(TO_LIB)
-
-#$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+TEST_DEPS := lib/munit/munit.o test/main.o test/common/bitarray.o test/common/dict.o
+dist/test dist/test.exe: lib $(TEST_DEPS)
+	$(CC) $(LDFLAGS) $(TEST_DEPS) $(LDLIBS) -o $@
 
 .PHONY: all cli lib test clean install uninstall dist echo doxy
