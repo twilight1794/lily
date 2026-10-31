@@ -407,7 +407,7 @@ void f_help(char* name) {
     /* Miscelánea */
     puts(_("\nMiscellaneous options:"));
     puts(_(" -s<stage>   --stage=<stage>    Operation to perform: A, L, D, or E"));
-    puts(_(" -l=<level>  --logging=<level>  Restrict output to <level>"));
+    puts(_(" -l<level>   --logging=<level>  Restrict output to <level>"));
     puts(_("                                <level> can be \"debug\", \"info\", \"warn\", \"error\", \"fatal\" or \"none\""));
     puts(_(" -h          --help             Show this help")); /* TODO: NOTE=class[,…]*/
     puts(_(" -v          --version          Show Lily version"));
@@ -421,7 +421,7 @@ void f_version(void) {
     puts(_("This is free software: you are free to change and redistribute it"));
     puts(_("There is NO WARRANTY, to the extent permitted by law."));
 
-    puts(_("Report bugs to: <hola@campanita.xyz>"));
+    puts(_("Report bugs to: <hola@campanita.org>"));
     puts(_("home page: <https://github.com/twilight1794/lily/>"));
 }
 
