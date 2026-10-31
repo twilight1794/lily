@@ -252,14 +252,14 @@ enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const 
     //OP_MODULO,
     else if (blob[*i] == '.') subtipo = OP_MIEMBRO;
     else if (blob[*i] == '&') {
-        if (blob[*(i+1)] == '&') {
+        if (blob[*i + 1] == '&') {
             subtipo = OP_LOG_AND;
             (*i)++;
         }
         else subtipo = OP_BIT_AND;
     }
     else if (blob[*i] == '|') {
-        if (blob[*(i+1)] == '|') {
+        if (blob[*i + 1] == '|') {
             subtipo = OP_LOG_OR;
             (*i)++;
         }
@@ -268,29 +268,29 @@ enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const 
     else if (blob[*i] == '^') subtipo = OP_BIT_XOR;
     else if (blob[*i] == '~') subtipo = OP_BIT_NOT;
     else if (blob[*i] == '!') {
-        if (blob[*(i+1)] == '=') {
+        if (blob[*i + 1] == '=') {
             subtipo = OP_DIF;
             (*i)++;
         }
         else subtipo = OP_LOG_NEG;
     }
     else if (blob[*i] == '<') {
-        if (blob[*(i+1) == '<']) {
+        if (blob[*i + 1] == '<') {
             subtipo = OP_DESP_IZQ;
             (*i)++;
         }
-        else if (blob[*(i+1) == '=']) {
+        else if (blob[*i + 1] == '=') {
             subtipo = OP_MENOR_IGUAL;
             (*i)++;
         }
         else subtipo = OP_MENOR_QUE;
     }
     else if (blob[*i] == '>') {
-        if (blob[*(i+1) == '>']) {
+        if (blob[*i + 1] == '>') {
             subtipo = OP_DESP_DER;
             (*i)++;
         }
-        else if (blob[*(i+1) == '=']) {
+        else if (blob[*i + 1] == '=') {
             subtipo = OP_MAYOR_IGUAL;
             (*i)++;
         }
