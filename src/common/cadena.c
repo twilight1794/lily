@@ -43,7 +43,7 @@ char* lily_cadena_add_byte(char* cad, const char c) {
     char* ncad;
     if (cad == NULL) return cad;
     tcad = strlen(cad);
-    ncad = realloc(cad, tcad + 1);
+    ncad = realloc(cad, tcad + 2);
     if (ncad == NULL) return cad;
     ncad[tcad] = c;
     ncad[tcad+1] = 0;
