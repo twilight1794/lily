@@ -388,14 +388,8 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             }
             instruccion->direccion = pc->positivo;
             free(instruccion->bytes);
-            instruccion->tam_bytes = 8; // Estamos guardando un long int
-            instruccion->bytes = (uint8_t*) calloc(8, sizeof(uint8_t));
-            if (instruccion->bytes == NULL) {
-                instruccion->tam_bytes = 0;
-                *estado = COD_MALLOC_FALLO;
-                ctx->ultimo = instruccion->simbolo;
-                break;
-            }
+            instruccion->bytes = NULL;
+            instruccion->tam_bytes = 0;
             const union lily_simbolo_numero* valor_param = simbolo_param->valor;
             struct lily_dict_nodo* nodo_id = lily_dict_get(identificadores, instruccion->etiqueta->valor);
             if (nodo_id != NULL && ((struct lily_simbolo_identificador*) nodo_id->valor)->origen == instruccion) {
@@ -706,7 +700,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
 
     // Cuando acabemos, crear el array...
     *tam = sizeof(uint8_t) * pc_obj->positivo;
-    bytes = malloc(*tam);
+    bytes = malloc(*tam ? *tam : 1); // malloc(0) puede devolver NULL sin que sea un fallo
     if (bytes == NULL) {
         *estado = COD_MALLOC_FALLO;
         return bytes;
@@ -716,8 +710,10 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     nodo = lily_lde_get(ast, 0);
     while (nodo != NULL) {
         instruccion = (struct lily_simbolo_instruccion *) nodo->valor;
-        memcpy(bytes+desp, instruccion->bytes, instruccion->tam_bytes);
-        desp += instruccion->tam_bytes;
+        if (instruccion->tam_bytes) {
+            memcpy(bytes+desp, instruccion->bytes, instruccion->tam_bytes);
+            desp += instruccion->tam_bytes;
+        }
         nodo = nodo->posterior;
     }
     free(*ctx);
