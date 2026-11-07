@@ -300,6 +300,22 @@ static MunitTest lily_directivas_test_tests[] = {
         MUNIT_TEST_OPTION_NONE,
         NULL,
     },
+    {
+        "/lily_directivas_const_var",
+        lily_directivas_test_const_var,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_directivas_redefinicion",
+        lily_directivas_test_redefinicion,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 

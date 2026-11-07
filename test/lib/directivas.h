@@ -42,5 +42,7 @@ MunitResult lily_directivas_test_db(const MunitParameter params[], void *user_da
 MunitResult lily_directivas_test_dw_dd_dq(const MunitParameter params[], void *user_data);
 MunitResult lily_directivas_test_referencia_adelantada(const MunitParameter params[], void *user_data);
 MunitResult lily_directivas_test_errores(const MunitParameter params[], void *user_data);
+MunitResult lily_directivas_test_const_var(const MunitParameter params[], void *user_data);
+MunitResult lily_directivas_test_redefinicion(const MunitParameter params[], void *user_data);
 
 #endif

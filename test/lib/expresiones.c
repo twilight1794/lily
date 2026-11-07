@@ -173,9 +173,9 @@ MunitResult lily_expresiones_test_constante_negativa(const MunitParameter params
     size_t tam = 0;
     uint8_t* bytes = ensamblar("x: .CONST -5\nv: .DDL $x * 2\nw: .DDL $x < 0\n", &tam, &estado);
     munit_assert_int(estado, ==, COD_OK);
-    // CONST reserva 8 bytes, seguidos de los dos DDL
-    munit_assert_size(tam, ==, 16);
-    munit_assert_memory_equal(8, bytes + 8, ((uint8_t[]) { 0xf6, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00 }));
+    // CONST no genera bytes: solo quedan los dos DDL
+    munit_assert_size(tam, ==, 8);
+    munit_assert_memory_equal(8, bytes, ((uint8_t[]) { 0xf6, 0xff, 0xff, 0xff, 0x01, 0x00, 0x00, 0x00 }));
     free(bytes);
     return MUNIT_OK;
 }
