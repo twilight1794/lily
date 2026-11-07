@@ -345,24 +345,65 @@ doxy:
 	$(MKDIR) dist
 	doxygen Doxyfile
 
+src/common/bitarray.o: src/common/bitarray.c src/common/bitarray.h
 src/common/cadena.o: src/common/cadena.c src/common/cadena.h
 src/common/defs.o: src/common/defs.c src/common/defs.h
 src/common/dict.o: src/common/dict.c src/common/dict.h
 src/common/lde.o: src/common/lde.c src/common/lde.h
 src/common/log.o: src/common/log.c src/common/log.h
-src/common/nums.o: src/common/nums.c src/common/nums.h
-src/cli/main.o: src/cli/main.c
+src/common/nums.o: src/common/nums.c src/common/nums.h \
+    src/common/cadena.h src/common/estado.h src/common/lde.h src/lib/mensajes.h \
+    src/lib/simbolo.h
+src/cli/ejecucion.o: src/cli/ejecucion.c src/cli/ejecucion.h \
+    src/common/bitarray.h src/common/cadena.h src/common/defs.h src/common/estado.h \
+    src/common/lde.h src/common/log.h src/lib/lua_ejecucion.h src/lib/mensajes.h \
+    src/lib/simbolo.h
+src/cli/main.o: src/cli/main.c src/cli/ejecucion.h \
+    src/cli/mmap.h src/common/bitarray.h src/common/cadena.h src/common/defs.h src/common/dict.h \
+    src/common/estado.h src/common/lde.h src/common/log.h src/common/nums.h src/lib/a_lexico.h \
+    src/lib/a_semantico.h src/lib/a_sintactico.h src/lib/lily.h src/lib/lua_cpu.h \
+    src/lib/lua_ejecucion.h src/lib/lua_ensamble.h src/lib/lua_entorno.h \
+    src/lib/lua_entorno_ejecucion.h src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h
 src/cli/mmap.o: src/cli/mmap.c src/cli/mmap.h
 src/cli/mmap_windows.o: src/cli/mmap_windows.c src/cli/mmap_windows.h
-src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h src/lib/a_lexico_ctipos.h src/lib/a_lexico_pow.h
-src/lib/a_semantico.o: src/lib/a_semantico.c src/lib/a_semantico.h
-src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h
-src/lib/lily.o: src/lib/lily.c src/lib/lily.h
-src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h
-src/lib/lua_ensamble.o: src/lib/lua_ensamble.c src/lib/lua_ensamble.h
-src/lib/lua_entorno.o: src/lib/lua_entorno.c src/lib/lua_entorno.h
-src/lib/lua_int.o: src/lib/lua_int.c src/lib/lua_entorno.h
-src/lib/simbolo.o: src/lib/simbolo.c src/lib/simbolo.h
+src/lib/a_lexico.o: src/lib/a_lexico.c src/lib/a_lexico.h \
+    src/common/cadena.h src/common/defs.h src/common/estado.h src/common/lde.h \
+    src/lib/a_lexico_ctipos.h src/lib/a_lexico_pow.h src/lib/mensajes.h src/lib/simbolo.h
+src/lib/a_semantico.o: src/lib/a_semantico.c src/lib/a_semantico.h \
+    src/common/cadena.h src/common/defs.h src/common/dict.h src/common/estado.h src/common/lde.h \
+    src/common/log.h src/common/nums.h src/lib/lua_cpu.h src/lib/lua_ensamble.h \
+    src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h
+src/lib/a_sintactico.o: src/lib/a_sintactico.c src/lib/a_sintactico.h \
+    src/common/cadena.h src/common/defs.h src/common/estado.h src/common/lde.h src/common/log.h \
+    src/lib/mensajes.h src/lib/simbolo.h
+src/lib/lily.o: src/lib/lily.c src/lib/lily.h \
+    src/common/bitarray.h src/common/cadena.h src/common/defs.h src/common/dict.h \
+    src/common/estado.h src/common/lde.h src/common/log.h src/common/nums.h src/lib/a_lexico.h \
+    src/lib/a_semantico.h src/lib/a_sintactico.h src/lib/lua_cpu.h src/lib/lua_ejecucion.h \
+    src/lib/lua_ensamble.h src/lib/lua_entorno.h src/lib/lua_entorno_ejecucion.h \
+    src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h
+src/lib/lua_cpu.o: src/lib/lua_cpu.c src/lib/lua_cpu.h \
+    src/common/cadena.h src/common/defs.h src/common/dict.h src/common/estado.h src/common/lde.h \
+    src/common/log.h src/common/nums.h src/lib/a_semantico.h src/lib/lua_ensamble.h \
+    src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h
+src/lib/lua_ejecucion.o: src/lib/lua_ejecucion.c src/lib/lua_ejecucion.h \
+    src/common/bitarray.h src/common/cadena.h src/common/defs.h src/common/estado.h \
+    src/common/lde.h src/common/log.h src/lib/mensajes.h src/lib/simbolo.h
+src/lib/lua_ensamble.o: src/lib/lua_ensamble.c src/lib/lua_ensamble.h \
+    src/common/cadena.h src/common/defs.h src/common/dict.h src/common/estado.h src/common/lde.h \
+    src/common/log.h src/common/nums.h src/lib/a_semantico.h src/lib/lua_cpu.h src/lib/lua_int.h \
+    src/lib/mensajes.h src/lib/simbolo.h
+src/lib/lua_entorno.o: src/lib/lua_entorno.c src/lib/lua_entorno.h \
+    src/common/cadena.h src/common/defs.h src/common/estado.h src/common/lde.h src/common/nums.h \
+    src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h
+src/lib/lua_entorno_ejecucion.o: src/lib/lua_entorno_ejecucion.c src/lib/lua_entorno_ejecucion.h \
+    src/common/bitarray.h src/common/cadena.h src/common/defs.h src/common/estado.h \
+    src/common/lde.h src/lib/mensajes.h src/lib/simbolo.h
+src/lib/lua_int.o: src/lib/lua_int.c src/lib/lua_int.h \
+    src/common/cadena.h src/common/defs.h src/common/estado.h src/common/lde.h src/common/nums.h \
+    src/lib/mensajes.h src/lib/simbolo.h
+src/lib/simbolo.o: src/lib/simbolo.c src/lib/simbolo.h \
+    src/common/cadena.h src/common/lde.h src/lib/mensajes.h
 
 dist/lily dist/lily.mjs dist/lily.exe: lib $(CLI_DEPS)
 	$(MKDIR) dist
@@ -380,13 +421,25 @@ dist/%.html: doc/%.adoc
 	$(MKDIR) dist
 	asciidoctor $^ -o $@
 
-lib/munit/munit.o: lib/munit/munit.c
+lib/munit/munit.o: lib/munit/munit.c lib/munit/munit.h
 
-test/common/bitarray.o: test/common/bitarray.c test/common/bitarray.h
-test/common/dict.o: test/common/dict.c test/common/dict.h
-test/common/nums.o: test/common/nums.c test/common/nums.h
-test/lib/expresiones.o: test/lib/expresiones.c test/lib/expresiones.h
-test/main.o: test/main.c
+test/common/bitarray.o: test/common/bitarray.c test/common/bitarray.h \
+    lib/munit/munit.h src/common/bitarray.h
+test/common/dict.o: test/common/dict.c test/common/dict.h lib/munit/munit.h src/common/dict.h
+test/common/nums.o: test/common/nums.c test/common/nums.h \
+    lib/munit/munit.h src/common/cadena.h src/common/estado.h src/common/lde.h src/common/nums.h \
+    src/lib/mensajes.h src/lib/simbolo.h
+test/lib/expresiones.o: test/lib/expresiones.c test/lib/expresiones.h \
+    lib/munit/munit.h src/common/cadena.h src/common/defs.h src/common/dict.h \
+    src/common/estado.h src/common/lde.h src/common/log.h src/common/nums.h src/lib/a_lexico.h \
+    src/lib/a_semantico.h src/lib/a_sintactico.h src/lib/lua_cpu.h src/lib/lua_ensamble.h \
+    src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h
+test/main.o: test/main.c lib/munit/munit.h \
+    src/common/bitarray.h src/common/cadena.h src/common/defs.h src/common/dict.h \
+    src/common/estado.h src/common/lde.h src/common/log.h src/common/nums.h src/lib/a_lexico.h \
+    src/lib/a_semantico.h src/lib/a_sintactico.h src/lib/lua_cpu.h src/lib/lua_ensamble.h \
+    src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h test/common/bitarray.h \
+    test/common/dict.h test/common/nums.h test/lib/expresiones.h
 
 TEST_DEPS := lib/munit/munit.o test/main.o test/common/bitarray.o test/common/dict.o test/common/nums.o test/lib/expresiones.o
 dist/test dist/test.exe: lib $(TEST_DEPS)
