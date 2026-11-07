@@ -24,36 +24,41 @@
 #ifndef LILY_L_A_LEXICO_POW
 #define LILY_L_A_LEXICO_POW
 
-static long long pow10_vals[] = {
+#include <stdint.h>
+
+static const uint64_t pow10_vals[] = {
     1, 10, 100, 1000, 10000,
     100000, 1000000, 10000000, 100000000, 1000000000,
-    10000000000LL, 100000000000LL, 1000000000000LL,
-    10000000000000LL, 100000000000000LL, 1000000000000000LL,
-    10000000000000000LL, 100000000000000000LL
+    10000000000ULL, 100000000000ULL, 1000000000000ULL,
+    10000000000000ULL, 100000000000000ULL, 1000000000000000ULL,
+    10000000000000000ULL, 100000000000000000ULL, 1000000000000000000ULL,
+    10000000000000000000ULL
 };
 
-/**
- * Eleva \c n a la potencia 2
- * @param n Valor a elevar
- */
-#define pow2(n) (1<<((int) n))
+// Las potencias se calculan en 64 bits; las que no caben en 64 bits valen 0
 
 /**
- * Eleva \c n a la potencia 8
- * @param n Valor a elevar
+ * Eleva 2 a la potencia \c n
+ * @param n Exponente
  */
-#define pow8(n) (1<<(((int) n)*3))
+#define pow2(n) ((n) < 64 ? UINT64_C(1) << (n) : 0)
 
 /**
- * Eleva \c n a la potencia 10
- * @param n Valor a elevar
+ * Eleva 8 a la potencia \c n
+ * @param n Exponente
  */
-#define pow10(n) pow10_vals[(int) n]
+#define pow8(n) ((n) < 22 ? UINT64_C(1) << ((n)*3) : 0)
 
 /**
- * Eleva \c n a la potencia 16
- * @param n Valor a elevar
+ * Eleva 10 a la potencia \c n
+ * @param n Exponente
  */
-#define pow16(n) (1<<(((int) n)*4))
+#define pow10(n) ((n) < 20 ? pow10_vals[(n)] : 0)
+
+/**
+ * Eleva 16 a la potencia \c n
+ * @param n Exponente
+ */
+#define pow16(n) ((n) < 16 ? UINT64_C(1) << ((n)*4) : 0)
 
 #endif
