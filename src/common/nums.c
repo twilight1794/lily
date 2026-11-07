@@ -36,11 +36,17 @@ enum lily_estado lily_nums_codificar_num(uint8_t* buf, uint64_t* val, const size
         if (tam == 2 && (num.negativo < INT16_MIN || num.negativo > INT16_MAX)) return COD_NUMS_MAS_16;
         if (tam == 4 && (num.negativo  < INT32_MIN || num.negativo > INT32_MAX)) return COD_NUMS_MAS_32;
     }
+    else if (num.negativo < 0) {
+        // Todo, negativo
+        if (tam == 1 && num.negativo < INT8_MIN) return COD_NUMS_MAS_8;
+        if (tam == 2 && num.negativo < INT16_MIN) return COD_NUMS_MAS_16;
+        if (tam == 4 && num.negativo < INT32_MIN) return COD_NUMS_MAS_32;
+    }
     else {
-        // Todo
-        if (tam == 1 && (num.negativo < INT8_MIN || num.positivo > UINT8_MAX)) return COD_NUMS_MAS_8;
-        if (tam == 2 && (num.negativo < INT16_MIN || num.positivo > UINT16_MAX)) return COD_NUMS_MAS_16;
-        if (tam == 4 && (num.negativo  < INT32_MIN || num.positivo > UINT32_MAX)) return COD_NUMS_MAS_32;
+        // Todo, positivo
+        if (tam == 1 && num.positivo > UINT8_MAX) return COD_NUMS_MAS_8;
+        if (tam == 2 && num.positivo > UINT16_MAX) return COD_NUMS_MAS_16;
+        if (tam == 4 && num.positivo > UINT32_MAX) return COD_NUMS_MAS_32;
     }
 
     // Escribir número
