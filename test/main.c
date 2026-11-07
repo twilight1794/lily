@@ -30,6 +30,7 @@
 
 #include "common/bitarray.h"
 #include "common/dict.h"
+#include "common/nums.h"
 
 // lily_dict
 static MunitTest lily_dict_test_tests[] = {
@@ -210,10 +211,63 @@ static MunitSuite lily_bitarray_test_suite = {
     MUNIT_SUITE_OPTION_NONE
 };
 
+// lily_nums
+static MunitTest lily_nums_test_tests[] = {
+    {
+        "/lily_nums_sin_signo",
+        lily_nums_test_sin_signo,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_nums_con_signo",
+        lily_nums_test_con_signo,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_nums_todo",
+        lily_nums_test_todo,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_nums_endianness",
+        lily_nums_test_endianness,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_nums_error_no_escribe",
+        lily_nums_test_error_no_escribe,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
+};
+
+static MunitSuite lily_nums_test_suite = {
+    "/lily_nums",
+    lily_nums_test_tests,
+    NULL,
+    1,
+    MUNIT_SUITE_OPTION_NONE
+};
 int main(int argc, char* const argv[MUNIT_ARRAY_PARAM(argc + 1)]) {
     MunitSuite lily_test_suites[] = {
         lily_bitarray_test_suite,
         lily_dict_test_suite,
+        lily_nums_test_suite,
         { NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE }
     };
     MunitSuite lily_test_suite = {
