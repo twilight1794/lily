@@ -28,7 +28,7 @@ char* lily_a_lexico_directivas[] = { "DB", "DWL", "DWM", "DDL", "DDM", "DQL", "D
 /**
  * Listado de operadores, para comparar
  */
-char* lily_a_lexico_operadores[] = { "(", ")", "[", "]", ",", "+", "-", "*", "/", "%", ".", "&", "|", "^", "~", "&&", "||", "!", "<<", ">>", "<", ">", "<=", ">=", "=", "!=" };
+char* lily_a_lexico_operadores[] = { "(", ")", "[", "]", ",", "+", "-", "*", "/", "%", "-", ".", "&", "|", "^", "~", "&&", "||", "!", "<<", ">>", "<", ">", "<=", ">=", "=", "!=" };
 
 void lily_a_lexico_modo_comentario(const char* blob, size_t* i, size_t* linea, size_t* linea_pos) {
     do (*i)++;

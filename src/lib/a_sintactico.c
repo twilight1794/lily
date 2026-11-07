@@ -37,6 +37,7 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
     struct lily_simbolo_simbolo* o2 = NULL;
     struct lily_lde_lde* lista_desplazamiento = NULL;
     struct lily_lde_lde* pila_desplazamiento = NULL;
+    bool esperando_unario = true; // Para distinguir el menos unario de la resta
     // Guardar todos los símbolos de esa línea
     // Algoritmo shunting-yard
     while (*nodo != NULL && simbolo->linea == instruccion->simbolo->linea) {
@@ -46,6 +47,7 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
             case SIMB_VARIABLE:
             case SIMB_CADENA_NUL:
             case SIMB_CADENA_SIMPLE:
+                esperando_unario = false;
                 lily_lde_insert(lista_actual, lily_lde_size(lista_actual), simbolo);
                 // FIX: validar NULL
                 nodo_viejo = *nodo;
@@ -60,6 +62,7 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                 break;
             case SIMB_OPERADOR:
                 if (simbolo->subtipo == SIMB_PARENTESIS_AP) {
+                    esperando_unario = true;
                     lily_lde_insert(pila_actual, lily_lde_size(pila_actual), *nodo);
                     // FIX: validar NULL
                     *nodo = (*nodo)->posterior;
@@ -82,6 +85,7 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                     }
                     free(o2);
                     o2 = NULL;
+                    esperando_unario = false;
                     lily_lde_remove_node(simbolos, pila_actual->final->valor);
                     lily_lde_remove_node(pila_actual, pila_actual->final);
                     *nodo = (*nodo)->posterior;
@@ -107,6 +111,7 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                         break;
                     }
                     lily_lde_insert(instruccion->params, lily_lde_size(instruccion->params), simbolo);
+                    esperando_unario = true;
                     nodo_viejo = *nodo;
                     *nodo = (*nodo)->posterior;
                     if (*nodo != NULL) simbolo = (*nodo)->valor;
@@ -134,6 +139,7 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                     lista_desplazamiento = NULL;
                     free(pila_desplazamiento);
                     pila_desplazamiento = NULL;
+                    esperando_unario = false;
                     nodo_viejo = *nodo;
                     *nodo = (*nodo)->posterior;
                     if (*nodo != NULL) simbolo = (*nodo)->valor;
@@ -149,13 +155,20 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                         lily_lde_remove_node(simbolos, pila_actual->final->valor);
                         lily_lde_remove_node(pila_actual, pila_actual->final);
                     }
+                    esperando_unario = true;
                     nodo_viejo = *nodo;
                     *nodo = (*nodo)->posterior;
                     if (*nodo != NULL) simbolo = (*nodo)->valor;
                     lily_lde_remove_node(simbolos, nodo_viejo);
                 }
                 else {
-                    while (pila_actual->final != NULL) {
+                    // Un "-" donde se espera un operando es el menos unario
+                    // TODO: Comprobar que esta comprobación efectivamente sea necesaria
+                    if (esperando_unario && simbolo->subtipo == OP_RESTA)
+                        simbolo->subtipo = OP_NEGATIVO;
+                    esperando_unario = true;
+                    // Los operadores unarios son prefijos: aún no hay operandos qué sacar de la pila
+                    while (lily_simbolo_aridad(simbolo->subtipo) != 1 && pila_actual->final != NULL) {
                         struct lily_simbolo_simbolo* simbolo_final = (struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor;
                         if (simbolo_final->subtipo == SIMB_PARENTESIS_AP || simbolo_final->subtipo == SIMB_DESPLAZAMIENTO_AP) break;
                         if (!(lily_simbolo_precedencia(simbolo_final) < lily_simbolo_precedencia(simbolo) || (

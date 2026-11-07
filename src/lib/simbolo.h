@@ -65,6 +65,7 @@ enum lily_simbolo_operador {
     OP_MULTI,
     OP_DIV,
     OP_MODULO,
+    OP_NEGATIVO, // Menos unario; el analizador léxico solo genera OP_RESTA
     OP_MIEMBRO,
     OP_BIT_AND,
     OP_BIT_OR,
