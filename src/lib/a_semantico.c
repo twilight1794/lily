@@ -271,14 +271,14 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
 
 static void lily_a_semantico_datos(struct lily_simbolo_instruccion* instruccion, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
     size_t tam_dato;
-    bool endianness = true; //< true si little-endian
+    bool endianness = true; // true si little-endian
     switch (instruccion->simbolo->subtipo) {
         case DIR_DB: tam_dato = sizeof(uint8_t); break;
-        case DIR_DWM: endianness = false;
+        case DIR_DWM: endianness = false; // fallthrough
         case DIR_DWL: tam_dato = sizeof(uint16_t); break;
-        case DIR_DDM: endianness = false;
+        case DIR_DDM: endianness = false; // fallthrough
         case DIR_DDL: tam_dato = sizeof(uint32_t); break;
-        case DIR_DQM: endianness = false;
+        case DIR_DQM: endianness = false; // fallthrough
         default: tam_dato = sizeof(uint64_t); break;
     }
     // Una instrucción reducida temporalmente vuelve a procesarse en la siguiente iteración
