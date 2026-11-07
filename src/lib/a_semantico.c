@@ -606,11 +606,13 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     // Guardar dirección de memoria
                     instruccion->direccion = pc_obj->positivo;
                     // Imprimir array
-                    char* cad = malloc(sizeof(char)*(instruccion->tam_bytes*6) -1);
+                    // "0xnn, " por byte, sin la última ", ", más el terminador
+                    char* cad = malloc(instruccion->tam_bytes ? instruccion->tam_bytes*6 - 1 : 1);
                     if (cad == NULL) {
                         *estado = COD_MALLOC_FALLO;
                         break;
                     }
+                    cad[0] = '\0';
                     for (size_t i = 0; i < instruccion->tam_bytes; i++) {
                         sprintf(cad+(i*6), "0x%02X", instruccion->bytes[i]);
                         if (i+1 < instruccion->tam_bytes) sprintf(cad+(i*6)+4, ", ");
