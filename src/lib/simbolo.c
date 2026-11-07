@@ -412,6 +412,7 @@ struct lily_simbolo_identificador* lily_simbolo_identificador_create(void) {
         obj->valor = 0;
         obj->es_const = false;
         obj->definido = false;
+        obj->origen = NULL;
     }
     return obj;
 }

@@ -369,14 +369,15 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             // La etiqueta, si la hay, la registra el analizador con el valor de PC
             break;
         case DIR_CONST:
-        case DIR_VAR:
-            simbolo_param = (lily_lde_get(instruccion->params_tmp, 0)->valor);
+        case DIR_VAR: {
             if (lily_lde_size(instruccion->params_tmp) != 1) {
                 *estado = COD_A_SEMANTICO_CONST_VAR_MULTIPLES_PARAMS;
                 ctx->ultimo = instruccion->simbolo;
+                break;
             }
+            simbolo_param = (lily_lde_get(instruccion->params_tmp, 0)->valor);
             if (simbolo_param->tipo != SIMB_NUMERO) {
-                *estado = COD_A_SEMANTICO_DFS_PARAM_NO_ENTERO;
+                *estado = COD_A_SEMANTICO_CONST_VAR_PARAM_NO_ENTERO;
                 ctx->ultimo = simbolo_param;
                 break;
             }
@@ -386,10 +387,39 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 break;
             }
             instruccion->direccion = pc->positivo;
+            free(instruccion->bytes);
             instruccion->tam_bytes = 8; // Estamos guardando un long int
             instruccion->bytes = (uint8_t*) calloc(8, sizeof(uint8_t));
-            lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, ((union lily_simbolo_numero*) simbolo_param->valor), (instruccion->simbolo->subtipo == DIR_CONST), estado, ctx);
+            if (instruccion->bytes == NULL) {
+                instruccion->tam_bytes = 0;
+                *estado = COD_MALLOC_FALLO;
+                ctx->ultimo = instruccion->simbolo;
+                break;
+            }
+            const union lily_simbolo_numero* valor_param = simbolo_param->valor;
+            struct lily_dict_nodo* nodo_id = lily_dict_get(identificadores, instruccion->etiqueta->valor);
+            if (nodo_id != NULL && ((struct lily_simbolo_identificador*) nodo_id->valor)->origen == instruccion) {
+                // Una reducción temporal de esta misma directiva ya registró el identificador: solo se actualiza su valor
+                ((struct lily_simbolo_identificador*) nodo_id->valor)->valor->positivo = valor_param->positivo;
+                break;
+            }
+            // El identificador guarda su propia copia del valor, pues params_tmp se limpia en cada iteración
+            union lily_simbolo_numero* valor = (union lily_simbolo_numero*) malloc(sizeof(union lily_simbolo_numero));
+            if (valor == NULL) {
+                *estado = COD_MALLOC_FALLO;
+                ctx->ultimo = instruccion->simbolo;
+                break;
+            }
+            valor->positivo = valor_param->positivo;
+            struct lily_simbolo_identificador* identificador = lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, valor, (instruccion->simbolo->subtipo == DIR_CONST), estado, ctx);
+            if (*estado != COD_OK) {
+                if (identificador == NULL) free(valor);
+                ctx->ultimo = instruccion->etiqueta;
+                break;
+            }
+            identificador->origen = instruccion;
             break;
+        }
         case DIR_IF:
         case DIR_IFDEF:
         case DIR_IFNDEF:
@@ -610,14 +640,14 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                 free(msg_buf);
             }
             // Si hay etiqueta, establecemos su valor
-            // FIX: esto redefinirá etiquetas definidas por otros medios
             // En CONST y VAR, la etiqueta nombra al valor definido por la directiva, no a una localidad
             const bool es_const_var = instruccion->simbolo != NULL && instruccion->simbolo->tipo == SIMB_DIRECTIVA &&
                 (instruccion->simbolo->subtipo == DIR_CONST || instruccion->simbolo->subtipo == DIR_VAR);
             if (instruccion->etiqueta != NULL && es_const_var) {
+                // Su valor es definitivo cuando la directiva se redujo definitivamente
                 struct lily_dict_nodo* etiqueta_nodo = lily_dict_get(identificadores, instruccion->etiqueta->valor);
-                if (etiqueta_nodo != NULL && !num_indeterminadas)
-                    ((struct lily_simbolo_identificador*) etiqueta_nodo->valor)->definido = true;
+                if (etiqueta_nodo != NULL && ((struct lily_simbolo_identificador*) etiqueta_nodo->valor)->origen == instruccion)
+                    ((struct lily_simbolo_identificador*) etiqueta_nodo->valor)->definido = instruccion->reducido;
             }
             else if (instruccion->etiqueta != NULL) {
                 // El valor de esta etiqueta es (potencialmente) PC
@@ -625,8 +655,14 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                 struct lily_simbolo_identificador* identificador;
                 union lily_simbolo_numero* pc_numero;
                 if (etiqueta_nodo != NULL) {
-                    // Si ya la conocíamos, trabajamos con ese valor
                     identificador = etiqueta_nodo->valor;
+                    // Solo esta misma instrucción puede actualizar el valor de su etiqueta
+                    if (identificador->origen != instruccion) {
+                        *estado = identificador->es_const ? COD_A_SEMANTICO_REDEF_CONSTANTE : COD_A_SEMANTICO_REDEF_VARIABLE;
+                        cctx->ultimo = instruccion->etiqueta;
+                        break;
+                    }
+                    // Si ya la conocíamos, trabajamos con ese valor
                     pc_numero = identificador->valor;
                     pc_numero->positivo = pc_obj->positivo;
                 }
@@ -641,6 +677,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     pc_numero->positivo = pc_obj->positivo;
                     identificador = lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, estado, *ctx);
                     if (*estado != COD_OK) break;
+                    identificador->origen = instruccion;
                 }
                 if (!num_indeterminadas) identificador->definido = true;
             }

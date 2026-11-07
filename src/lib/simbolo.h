@@ -216,6 +216,7 @@ struct lily_simbolo_identificador {
     union lily_simbolo_numero* valor; /**< Número asociado al identificador */
     bool es_const; /**< Si se podrá modificar el valor asociado al identificador una vez asignado */
     bool definido; /**< Si el valor asociado a este identificador es temporal o definitivo */
+    const struct lily_simbolo_instruccion* origen; /**< Instrucción que definió al identificador */
 };
 
 /**
