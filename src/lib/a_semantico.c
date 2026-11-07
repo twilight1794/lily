@@ -613,7 +613,16 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
             }
             // Si hay etiqueta, establecemos su valor
             // FIX: esto redefinirá etiquetas definidas por otros medios
-            if (instruccion->etiqueta != NULL) {
+            // En CONST y VAR, la etiqueta nombra al valor definido por la directiva, no a una localidad
+            const bool es_const_var = instruccion->simbolo != NULL && instruccion->simbolo->tipo == SIMB_DIRECTIVA &&
+                (instruccion->simbolo->subtipo == DIR_CONST || instruccion->simbolo->subtipo == DIR_VAR);
+            if (instruccion->etiqueta != NULL && es_const_var) {
+                struct lily_dict_nodo* etiqueta_nodo = lily_dict_get(identificadores, instruccion->etiqueta->valor);
+                if (etiqueta_nodo != NULL && !num_indeterminadas)
+                    ((struct lily_simbolo_identificador*) etiqueta_nodo->valor)->definido = true;
+            }
+            else if (instruccion->etiqueta != NULL) {
+                // El valor de esta etiqueta es (potencialmente) PC
                 struct lily_dict_nodo* etiqueta_nodo = lily_dict_get(identificadores, instruccion->etiqueta->valor);
                 struct lily_simbolo_identificador* identificador;
                 union lily_simbolo_numero* pc_numero;
