@@ -171,8 +171,10 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                     while (lily_simbolo_aridad(simbolo->subtipo) != 1 && pila_actual->final != NULL) {
                         struct lily_simbolo_simbolo* simbolo_final = (struct lily_simbolo_simbolo*) ((struct lily_lde_nodo*) pila_actual->final->valor)->valor;
                         if (simbolo_final->subtipo == SIMB_PARENTESIS_AP || simbolo_final->subtipo == SIMB_DESPLAZAMIENTO_AP) break;
+                        // Sacar operadores de mayor precedencia, o de igual precedencia si son asociativos siniestros
+                        // (todos excepto los de nivel 2, ver lily_simbolo_precedencia)
                         if (!(lily_simbolo_precedencia(simbolo_final) < lily_simbolo_precedencia(simbolo) || (
-                            (lily_simbolo_precedencia(simbolo_final) == lily_simbolo_precedencia(simbolo)) && simbolo->subtipo != OP_BIT_NOT && simbolo->subtipo == OP_LOG_NEG))) break;
+                            lily_simbolo_precedencia(simbolo_final) == lily_simbolo_precedencia(simbolo) && lily_simbolo_precedencia(simbolo) != 2))) break;
                         lily_lde_insert(lista_actual, lily_lde_size(lista_actual), simbolo_final);
                         // FIX: validar NULL
                         lily_lde_remove_node(simbolos, pila_actual->final->valor);
