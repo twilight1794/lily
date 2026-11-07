@@ -50,7 +50,7 @@ enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const
     char* cad_tentativa = lily_cadena_create();
     if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
     while (isalpha(blob[*i])) {
-        lily_cadena_add(cad_tentativa, blob+(*i));
+        cad_tentativa = lily_cadena_add(cad_tentativa, blob+(*i));
         (*i)++;
     }
     // Ver razón de fin: solo debe detenerse en blanco o fin de archivo
@@ -92,11 +92,11 @@ enum lily_estado lily_a_lexico_modo_r_etiqueta(const char* blob, size_t* i, cons
         free(cad_tentativa);
         return COD_A_LEXICO_CARACTER_INVALIDO;
     }
-    lily_cadena_add(cad_tentativa, blob+(*i));
+    cad_tentativa = lily_cadena_add(cad_tentativa, blob+(*i));
     (*i)++;
     /// Ya después, puede ser cualquier letra, dígito o _
     while (isalpha(blob[*i]) || isdigit(blob[*i]) || blob[*i] == '_') {
-        lily_cadena_add(cad_tentativa, blob+(*i));
+        cad_tentativa = lily_cadena_add(cad_tentativa, blob+(*i));
         (*i)++;
     }
     // Dado a que esto solo debe usarse dentro de una expresión, pueden sucederle muchos tipos de símbolos, así que no hay comprobación de fin
@@ -120,7 +120,7 @@ enum lily_estado lily_a_lexico_modo_objeto(const char* blob, size_t* i, const si
     char* cad_tentativa = lily_cadena_create();
     if (cad_tentativa == NULL) return COD_MALLOC_FALLO;
     while (isalnum(blob[*i])) {
-        lily_cadena_add(cad_tentativa, blob+(*i));
+        cad_tentativa = lily_cadena_add(cad_tentativa, blob+(*i));
         (*i)++;
     }
     // Dado a que esto solo debe usarse dentro de una expresión, pueden sucederle muchos tipos de símbolos, así que no hay comprobación de fin
@@ -146,7 +146,7 @@ enum lily_estado lily_a_lexico_modo_cadena(const char* blob, size_t* i, const si
     char* contenido = lily_cadena_create();
     if (contenido == NULL) return COD_MALLOC_FALLO;
     while (blob[*i] != 0x0a && blob[*i] != 0 && blob[*i] != comilla_inicial) {
-        lily_cadena_add(contenido, blob+(*i));
+        contenido = lily_cadena_add(contenido, blob+(*i));
         (*i)++;
     }
     // Ver razón de fin
@@ -175,23 +175,23 @@ enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const si
     char* valor_texto = lily_cadena_create();
     if (tipo == 'x') {
         while (isxdigit(blob[*i])) {
-            lily_cadena_add(valor_texto, blob+(*i));
+            valor_texto = lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
         }
     } else if (tipo == 'o') {
         while (blob[*i] >= '0' && blob[*i] <= '7') {
-            lily_cadena_add(valor_texto, blob+(*i));
+            valor_texto = lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
         }
     } else if (tipo == 'b') {
         while (blob[*i] == '0' || blob[*i] == '1') {
-            lily_cadena_add(valor_texto, blob+(*i));
+            valor_texto = lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
         }
     } else {
         while (isdigit(blob[*i]) || (blob[*i] == '.' && !punto)) {
             if (blob[*i] == '.') punto = true;
-            lily_cadena_add(valor_texto, blob+(*i));
+            valor_texto = lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
         }
     }
@@ -319,7 +319,7 @@ enum lily_estado lily_a_lexico_modo_ambiguo(const char* blob, size_t* i, const s
     bool tiene_colon = false;
     while (isalpha(blob[*i]) || isdigit(blob[*i]) || blob[*i] == '_') {
         if (blob[*i] == '_') tiene_guion = true;
-        lily_cadena_add(cad_tentativa, blob+(*i));
+        cad_tentativa = lily_cadena_add(cad_tentativa, blob+(*i));
         (*i)++;
     }
     if (blob[*i] == ':') {
