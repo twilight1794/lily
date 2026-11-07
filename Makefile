@@ -384,9 +384,11 @@ lib/munit/munit.o: lib/munit/munit.c
 
 test/common/bitarray.o: test/common/bitarray.c test/common/bitarray.h
 test/common/dict.o: test/common/dict.c test/common/dict.h
+test/common/nums.o: test/common/nums.c test/common/nums.h
+test/lib/expresiones.o: test/lib/expresiones.c test/lib/expresiones.h
 test/main.o: test/main.c
 
-TEST_DEPS := lib/munit/munit.o test/main.o test/common/bitarray.o test/common/dict.o
+TEST_DEPS := lib/munit/munit.o test/main.o test/common/bitarray.o test/common/dict.o test/common/nums.o test/lib/expresiones.o
 dist/test dist/test.exe: lib $(TEST_DEPS)
 	$(CC) $(LDFLAGS) $(TEST_DEPS) $(LDLIBS) -o $@
 

@@ -31,6 +31,7 @@
 #include "common/bitarray.h"
 #include "common/dict.h"
 #include "common/nums.h"
+#include "lib/expresiones.h"
 
 // lily_dict
 static MunitTest lily_dict_test_tests[] = {
@@ -263,10 +264,81 @@ static MunitSuite lily_nums_test_suite = {
     1,
     MUNIT_SUITE_OPTION_NONE
 };
+
+// lily_expresiones
+static MunitTest lily_expresiones_test_tests[] = {
+    {
+        "/lily_expresiones_postfija_negativo",
+        lily_expresiones_test_postfija_negativo,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_expresiones_precedencia_asociatividad",
+        lily_expresiones_test_precedencia_asociatividad,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_expresiones_negativos",
+        lily_expresiones_test_negativos,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_expresiones_comparaciones",
+        lily_expresiones_test_comparaciones,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_expresiones_bits_logicos",
+        lily_expresiones_test_bits_logicos,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_expresiones_constante_negativa",
+        lily_expresiones_test_constante_negativa,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_expresiones_resta_objeto",
+        lily_expresiones_test_resta_objeto,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
+};
+
+static MunitSuite lily_expresiones_test_suite = {
+    "/lily_expresiones",
+    lily_expresiones_test_tests,
+    NULL,
+    1,
+    MUNIT_SUITE_OPTION_NONE
+};
+
 int main(int argc, char* const argv[MUNIT_ARRAY_PARAM(argc + 1)]) {
     MunitSuite lily_test_suites[] = {
         lily_bitarray_test_suite,
         lily_dict_test_suite,
+        lily_expresiones_test_suite,
         lily_nums_test_suite,
         { NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE }
     };
