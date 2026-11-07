@@ -373,7 +373,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
         case DIR_CONST:
         case DIR_VAR:
             simbolo_param = (lily_lde_get(instruccion->params_tmp, 0)->valor);
-            if (lily_lde_size(instruccion->params) != 1) {
+            if (lily_lde_size(instruccion->params_tmp) != 1) {
                 *estado = COD_A_SEMANTICO_CONST_VAR_MULTIPLES_PARAMS;
                 ctx->ultimo = instruccion->simbolo;
             }
