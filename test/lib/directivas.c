@@ -1,0 +1,134 @@
+/**
+ * This file is free and unencumbered software released into the public
+ * domain.
+ *
+ * Anyone is free to copy, modify, publish, use, compile, sell, or
+ * distribute this software, either in source code form or as a compiled
+ * binary, for any purpose, commercial or non-commercial, and by any
+ * means.
+ *
+ * In jurisdictions that recognize copyright laws, the author or authors
+ * of this software dedicate any and all copyright interest in the
+ * software to the public domain. We make this dedication for the benefit
+ * of the public at large and to the detriment of our heirs and
+ * successors. We intend this dedication to be an overt act of
+ * relinquishment in perpetuity of all present and future rights to this
+ * software under copyright law.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * For more information, please refer to <https://unlicense.org/>
+ */
+
+#include "directivas.h"
+
+// Las directivas de datos no necesitan un esquema de procesador
+
+struct caso {
+    const char* fuente;
+    size_t tam;
+    uint8_t bytes[16];
+};
+
+static int mensaje_nulo(enum lily_lily_mensaje_tipo tipo, int subtipo, char* modulo, void* obj) {
+    (void) tipo; (void) subtipo; (void) modulo; (void) obj;
+    return 0;
+}
+
+// Ensambla \a fuente solo con directivas, y devuelve los bytes generados
+static uint8_t* ensamblar(const char* fuente, size_t* tam, enum lily_estado* estado) {
+    void* ctx = NULL;
+    *estado = COD_OK;
+    *tam = 0;
+    struct lily_lde_lde* simbolos = lily_a_lexico(fuente, mensaje_nulo, estado, &ctx);
+    if (*estado != COD_OK) return NULL;
+    struct lily_lde_lde* ast = lily_a_sintactico(simbolos, mensaje_nulo, estado, &ctx);
+    if (*estado != COD_OK) return NULL;
+    struct lily_dict_dict* opciones = lily_dict_create();
+    munit_assert_not_null(opciones);
+    return lily_a_semantico(ast, NULL, 0, tam, opciones, mensaje_nulo, estado, &ctx);
+}
+
+static MunitResult probar_casos(const struct caso* casos, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        enum lily_estado estado;
+        size_t tam;
+        uint8_t* bytes = ensamblar(casos[i].fuente, &tam, &estado);
+        if (estado != COD_OK)
+            munit_errorf("\"%s\": estado %d", casos[i].fuente, estado);
+        if (tam != casos[i].tam)
+            munit_errorf("\"%s\": %zu bytes, se esperaban %zu", casos[i].fuente, tam, casos[i].tam);
+        if (memcmp(bytes, casos[i].bytes, tam))
+            munit_errorf("\"%s\": bytes distintos a los esperados", casos[i].fuente);
+        free(bytes);
+    }
+    return MUNIT_OK;
+}
+
+#define probar(casos) probar_casos((casos), sizeof(casos) / sizeof(casos[0]))
+
+// Comprueba que \a fuente sea rechazada con el código \a codigo
+static void assert_rechaza(const char* fuente, enum lily_estado codigo) {
+    enum lily_estado estado;
+    size_t tam;
+    free(ensamblar(fuente, &tam, &estado));
+    if (estado != codigo)
+        munit_errorf("\"%s\": estado %d, se esperaba %d", fuente, estado, codigo);
+}
+
+MunitResult lily_directivas_test_db(const MunitParameter params[], void *user_data) {
+    (void) params; (void) user_data;
+    static const struct caso casos[] = {
+        { "v: .DB 1, 2, 3\n", 3, { 0x01, 0x02, 0x03 } },
+        // El número de símbolos en postfijo no es el número de datos
+        { "v: .DB 1 + 1, 2 * 3, -1\n", 3, { 0x02, 0x06, 0xff } },
+        { "v: .DB 255, -128\n", 2, { 0xff, 0x80 } },
+        { "v: .DB \"ab\"\n", 3, { 'a', 'b', 0x00 } },
+    };
+    return probar(casos);
+}
+
+MunitResult lily_directivas_test_dw_dd_dq(const MunitParameter params[], void *user_data) {
+    (void) params; (void) user_data;
+    static const struct caso casos[] = {
+        { "v: .DWL 0x1234, 0x5678\n", 4, { 0x34, 0x12, 0x78, 0x56 } },
+        { "v: .DWM 0x1234, 0x5678\n", 4, { 0x12, 0x34, 0x56, 0x78 } },
+        { "v: .DDL 1, -2\n", 8, { 0x01, 0x00, 0x00, 0x00, 0xfe, 0xff, 0xff, 0xff } },
+        { "v: .DDM 0x11223344\n", 4, { 0x11, 0x22, 0x33, 0x44 } },
+        { "v: .DQL 1, 2\n", 16, { 0x01, 0, 0, 0, 0, 0, 0, 0, 0x02, 0, 0, 0, 0, 0, 0, 0 } },
+        { "v: .DQM 1 + 1\n", 8, { 0, 0, 0, 0, 0, 0, 0, 0x02 } },
+        // Literales de más de 32 bits
+        { "v: .DQL 0x100000000\n", 8, { 0, 0, 0, 0, 0x01, 0, 0, 0 } },
+        { "v: .DQM 0x0123456789abcdef\n", 8, { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef } },
+        { "v: .DQL 18446744073709551615\n", 8, { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } },
+        { "v: .DQL 0b100000000000000000000000000000000\n", 8, { 0, 0, 0, 0, 0x01, 0, 0, 0 } },
+        { "v: .DQL 0o40000000000\n", 8, { 0, 0, 0, 0, 0x01, 0, 0, 0 } },
+    };
+    return probar(casos);
+}
+
+MunitResult lily_directivas_test_referencia_adelantada(const MunitParameter params[], void *user_data) {
+    (void) params; (void) user_data;
+    static const struct caso casos[] = {
+        { "v: .DB $x\nx: .DB 7\n", 2, { 0x01, 0x07 } },
+        { "v: .DWL $x, $x\nw: .DB 9\nx: .DB 7\n", 6, { 0x05, 0x00, 0x05, 0x00, 0x09, 0x07 } },
+        { "v: .DFS 3\nw: .DB $w\n", 4, { 0x00, 0x00, 0x00, 0x03 } },
+    };
+    return probar(casos);
+}
+
+MunitResult lily_directivas_test_errores(const MunitParameter params[], void *user_data) {
+    (void) params; (void) user_data;
+    assert_rechaza("v: .DB 256\n", COD_NUMS_MAS_8);
+    assert_rechaza("v: .DB -129\n", COD_NUMS_MAS_8);
+    assert_rechaza("v: .DWL 1, 0x10000\n", COD_NUMS_MAS_16);
+    assert_rechaza("v: .DDM 0x100000000\n", COD_NUMS_MAS_32);
+    assert_rechaza("v: .DB %A\n", COD_A_SEMANTICO_OPERANDO_OBJETO);
+    return MUNIT_OK;
+}

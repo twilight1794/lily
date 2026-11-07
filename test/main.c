@@ -31,6 +31,7 @@
 #include "common/bitarray.h"
 #include "common/dict.h"
 #include "common/nums.h"
+#include "lib/directivas.h"
 #include "lib/expresiones.h"
 
 // lily_dict
@@ -265,6 +266,51 @@ static MunitSuite lily_nums_test_suite = {
     MUNIT_SUITE_OPTION_NONE
 };
 
+// lily_directivas
+static MunitTest lily_directivas_test_tests[] = {
+    {
+        "/lily_directivas_db",
+        lily_directivas_test_db,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_directivas_dw_dd_dq",
+        lily_directivas_test_dw_dd_dq,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_directivas_referencia_adelantada",
+        lily_directivas_test_referencia_adelantada,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    {
+        "/lily_directivas_errores",
+        lily_directivas_test_errores,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
+    { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
+};
+
+static MunitSuite lily_directivas_test_suite = {
+    "/lily_directivas",
+    lily_directivas_test_tests,
+    NULL,
+    1,
+    MUNIT_SUITE_OPTION_NONE
+};
+
 // lily_expresiones
 static MunitTest lily_expresiones_test_tests[] = {
     {
@@ -338,6 +384,7 @@ int main(int argc, char* const argv[MUNIT_ARRAY_PARAM(argc + 1)]) {
     MunitSuite lily_test_suites[] = {
         lily_bitarray_test_suite,
         lily_dict_test_suite,
+        lily_directivas_test_suite,
         lily_expresiones_test_suite,
         lily_nums_test_suite,
         { NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE }

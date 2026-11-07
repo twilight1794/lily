@@ -429,6 +429,11 @@ test/common/dict.o: test/common/dict.c test/common/dict.h lib/munit/munit.h src/
 test/common/nums.o: test/common/nums.c test/common/nums.h \
     lib/munit/munit.h src/common/cadena.h src/common/estado.h src/common/lde.h src/common/nums.h \
     src/lib/mensajes.h src/lib/simbolo.h
+test/lib/directivas.o: test/lib/directivas.c test/lib/directivas.h \
+    lib/munit/munit.h src/common/cadena.h src/common/defs.h src/common/dict.h \
+    src/common/estado.h src/common/lde.h src/common/log.h src/common/nums.h src/lib/a_lexico.h \
+    src/lib/a_semantico.h src/lib/a_sintactico.h src/lib/lua_cpu.h src/lib/lua_ensamble.h \
+    src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h
 test/lib/expresiones.o: test/lib/expresiones.c test/lib/expresiones.h \
     lib/munit/munit.h src/common/cadena.h src/common/defs.h src/common/dict.h \
     src/common/estado.h src/common/lde.h src/common/log.h src/common/nums.h src/lib/a_lexico.h \
@@ -439,9 +444,9 @@ test/main.o: test/main.c lib/munit/munit.h \
     src/common/estado.h src/common/lde.h src/common/log.h src/common/nums.h src/lib/a_lexico.h \
     src/lib/a_semantico.h src/lib/a_sintactico.h src/lib/lua_cpu.h src/lib/lua_ensamble.h \
     src/lib/lua_int.h src/lib/mensajes.h src/lib/simbolo.h test/common/bitarray.h \
-    test/common/dict.h test/common/nums.h test/lib/expresiones.h
+    test/common/dict.h test/common/nums.h test/lib/directivas.h test/lib/expresiones.h
 
-TEST_DEPS := lib/munit/munit.o test/main.o test/common/bitarray.o test/common/dict.o test/common/nums.o test/lib/expresiones.o
+TEST_DEPS := lib/munit/munit.o test/main.o test/common/bitarray.o test/common/dict.o test/common/nums.o test/lib/directivas.o test/lib/expresiones.o
 dist/test dist/test.exe: lib $(TEST_DEPS)
 	$(CC) $(LDFLAGS) $(TEST_DEPS) $(LDLIBS) -o $@
 
