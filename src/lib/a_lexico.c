@@ -179,7 +179,7 @@ enum lily_estado lily_a_lexico_modo_numero(const char* blob, size_t* i, const si
             (*i)++;
         }
     } else if (tipo == 'o') {
-        while (blob[*i] > '0' && blob[*i] <= '7') {
+        while (blob[*i] >= '0' && blob[*i] <= '7') {
             lily_cadena_add(valor_texto, blob+(*i));
             (*i)++;
         }
