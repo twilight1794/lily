@@ -109,6 +109,7 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                     return false;
                 }
                 ((union lily_simbolo_numero*) simbolo->valor)->positivo = ((union lily_simbolo_numero*) identificador_obj->valor)->positivo;
+                simbolo->signo = ((union lily_simbolo_numero*) simbolo->valor)->negativo < 0;
                 i++;
                 break;
             case SIMB_CADENA_SIMPLE:
@@ -181,7 +182,9 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ~(((union lily_simbolo_numero*) op1->valor)->positivo);
                     else if (es(OP_LOG_NEG))
                        ((union lily_simbolo_numero*) op1->valor)->positivo = !(((union lily_simbolo_numero*) op1->valor)->positivo);
-
+                    else if (es(OP_NEGATIVO))
+                        ((union lily_simbolo_numero*) op1->valor)->negativo = -(((union lily_simbolo_numero*) op1->valor)->negativo);
+                    op1->signo = ((union lily_simbolo_numero*) op1->valor)->negativo < 0;
                 }
                 else if (lily_simbolo_aridad(simbolo->subtipo) == 2) {
                     op2 = (struct lily_simbolo_simbolo*) nodo_viejo->anterior->valor;
@@ -191,6 +194,8 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                         ctx->ultimo = (op2->tipo != SIMB_NUMERO)?op2:op1;
                         break;
                     }
+                    // Si algún operando es negativo, las operaciones que dependen del signo se hacen con signo
+                    const bool con_signo = op1->signo || op2->signo;
                     // Operar!
                     if (es(OP_SUMA))
                         ((union lily_simbolo_numero*) op1->valor)->positivo += ((union lily_simbolo_numero*) op2->valor)->positivo;
@@ -198,10 +203,14 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                         ((union lily_simbolo_numero*) op1->valor)->positivo -= ((union lily_simbolo_numero*) op2->valor)->positivo;
                     if (es(OP_MULTI))
                         ((union lily_simbolo_numero*) op1->valor)->positivo *= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                    if (es(OP_DIV))
-                        ((union lily_simbolo_numero*) op1->valor)->positivo /= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                    if (es(OP_MODULO))
-                        ((union lily_simbolo_numero*) op1->valor)->positivo %= ((union lily_simbolo_numero*) op2->valor)->positivo;
+                    if (es(OP_DIV)) {
+                        if (con_signo) ((union lily_simbolo_numero*) op1->valor)->negativo /= ((union lily_simbolo_numero*) op2->valor)->negativo;
+                        else ((union lily_simbolo_numero*) op1->valor)->positivo /= ((union lily_simbolo_numero*) op2->valor)->positivo;
+                    }
+                    if (es(OP_MODULO)) {
+                        if (con_signo) ((union lily_simbolo_numero*) op1->valor)->negativo %= ((union lily_simbolo_numero*) op2->valor)->negativo;
+                        else ((union lily_simbolo_numero*) op1->valor)->positivo %= ((union lily_simbolo_numero*) op2->valor)->positivo;
+                    }
                     if (es(OP_BIT_AND))
                         ((union lily_simbolo_numero*) op1->valor)->positivo &= ((union lily_simbolo_numero*) op2->valor)->positivo;
                     if (es(OP_BIT_OR))
@@ -217,17 +226,18 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                     if (es(OP_DESP_DER))
                         ((union lily_simbolo_numero*) op1->valor)->positivo >>= ((union lily_simbolo_numero*) op2->valor)->positivo;
                     if (es(OP_MENOR_QUE))
-                        ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo < ((union lily_simbolo_numero*) op2->valor)->positivo;
+                        ((union lily_simbolo_numero*) op1->valor)->positivo = con_signo ? (((union lily_simbolo_numero*) op1->valor)->negativo < ((union lily_simbolo_numero*) op2->valor)->negativo) : (((union lily_simbolo_numero*) op1->valor)->positivo < ((union lily_simbolo_numero*) op2->valor)->positivo);
                     if (es(OP_MAYOR_QUE))
-                        ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo > ((union lily_simbolo_numero*) op2->valor)->positivo;
+                        ((union lily_simbolo_numero*) op1->valor)->positivo = con_signo ? (((union lily_simbolo_numero*) op1->valor)->negativo > ((union lily_simbolo_numero*) op2->valor)->negativo) : (((union lily_simbolo_numero*) op1->valor)->positivo > ((union lily_simbolo_numero*) op2->valor)->positivo);
                     if (es(OP_MENOR_IGUAL))
-                        ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo <= ((union lily_simbolo_numero*) op2->valor)->positivo;
+                        ((union lily_simbolo_numero*) op1->valor)->positivo = con_signo ? (((union lily_simbolo_numero*) op1->valor)->negativo <= ((union lily_simbolo_numero*) op2->valor)->negativo) : (((union lily_simbolo_numero*) op1->valor)->positivo <= ((union lily_simbolo_numero*) op2->valor)->positivo);
                     if (es(OP_MAYOR_IGUAL))
-                        ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo >= ((union lily_simbolo_numero*) op2->valor)->positivo;
+                        ((union lily_simbolo_numero*) op1->valor)->positivo = con_signo ? (((union lily_simbolo_numero*) op1->valor)->negativo >= ((union lily_simbolo_numero*) op2->valor)->negativo) : (((union lily_simbolo_numero*) op1->valor)->positivo >= ((union lily_simbolo_numero*) op2->valor)->positivo);
                     if (es(OP_IGUAL))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo == ((union lily_simbolo_numero*) op2->valor)->positivo;
                     if (es(OP_DIF))
                         ((union lily_simbolo_numero*) op1->valor)->positivo = ((union lily_simbolo_numero*) op1->valor)->positivo != ((union lily_simbolo_numero*) op2->valor)->positivo;
+                    op1->signo = ((union lily_simbolo_numero*) op1->valor)->negativo < 0;
                     // Borrar op2
                     free(op2->valor);
                     free(op2);
