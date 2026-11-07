@@ -10,7 +10,127 @@ any later version published by the Free Software Foundation; with no
 Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 --
 
-= Directivas reconocidas
+= Sintaxis del ensamblador
+
+== Operadores
+
+Los operadores reconocidos por el analizador sintáctico de Lily son básicamente
+los existentes en C, con pocas diferencias:
+
+ - `=` no es asignación como en C —que no existe en Lily—, sino comparación.
+ - Los operadores ternario y módulo no existen en Lily.
+
+La razón es principalmente mantener la familiaridad con aquellos programadores
+que muy probablemente ya conocen el lenguaje C y sus reglas de precedencia, que
+también es común a muchos lenguajes cuya sintaxis se inspira en C.
+
+|===
+| Nivel | Símbolo | Operador | Asociatividad
+
+.2+| 0
+| `(` `)`
+| Agrupadores
+| —
+
+| `[` `]`
+| Indirección
+| —
+
+| 1
+| `.`
+| Miembro
+| Izquierda
+
+.3+| 2
+| `~`
+| NOT binario
+.3+| Derecha
+
+| `!`
+| NOT lógico
+
+| `-`
+| Negación numérica
+
+.2+| 3
+| `*`
+| Multiplicación
+.2+| Izquierda
+
+| `/`
+| División
+
+.2+| 4
+| `+`
+| Multiplicación
+.2+| Izquierda
+
+| `-`
+| Resta
+
+.2+| 5
+| `<<`
+| Desplazamiento de bits a la izquierda
+.2+| Izquierda
+
+| `>>`
+| Desplazamiento de bits a la derecha
+
+.4+| 6
+| `<`
+| Menor que
+.4+| Izquierda
+
+| `>`
+| Mayor que
+
+| `\<=`
+| Menor o igual que
+
+| `>=`
+| Mayor o igual que
+
+.2+| 7
+| `=`
+| Igual que
+.2+| Izquierda
+
+| `!=`
+| Diferente que
+
+| 8
+| `&`
+| AND binario
+| Izquierda
+
+| 9
+| `^`
+| XOR binario
+| Izquierda
+
+| 10
+| `\|`
+| OR binario
+| Izquierda
+
+| 11
+| `&&`
+| AND lógico
+| Izquierda
+
+| 12
+| `\|\|`
+| OR lógico
+| Izquierda
+
+| 13
+| `,`
+| Separador de expresiones
+| Izquierda
+
+|===
+
+== Directivas
 
 La siguiente tabla lista las directivas que modifican el comportamiento del ensamblador Lily.
 
