@@ -74,7 +74,20 @@ void lily_lua_entorno_ejecucion_validar_registro(lua_State *L, bool escritura) {
     // Si es escritura, validar que el valor quepa en el registro
     // FIX: por ahora, solo enteros
     if (escritura) {
-        if (ceil(log2(lua_tointeger(L, 2))) > tamano) {
+        int es_entero;
+        const lua_Integer valor = lua_tointegerx(L, 2, &es_entero);
+        if (!es_entero) {
+            lua_pushliteral(L, "El valor a guardar en el registro no es entero");
+            lua_error(L);
+        }
+        // Se admite cualquier valor representable en \a tamano bits, con o sin signo:
+        // [-2^(tamano-1), 2^tamano - 1]
+        bool cabe;
+        if (tamano >= 64) cabe = true;
+        else if (tamano == 0) cabe = (valor == 0);
+        else if (valor >= 0) cabe = ((uint64_t) valor >> tamano) == 0;
+        else cabe = valor >= -(lua_Integer) (UINT64_C(1) << (tamano - 1));
+        if (!cabe) {
             lua_pushliteral(L, "El tamaño del valor a guardar es más grande que el registro");
             lua_error(L);
         }
