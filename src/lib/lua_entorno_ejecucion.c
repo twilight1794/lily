@@ -18,7 +18,7 @@
 
 #include "lua_entorno_ejecucion.h"
 
-void lily_lua_entorno_ejecucion_validar_params(lua_State *L, bool escritura) {
+static void lily_lua_entorno_ejecucion_validar_params(lua_State *L, bool escritura) {
     if (escritura && lua_gettop(L) != 2) {
         lua_pushstring(L, "Se necesitan dos parámetros");
         lua_error(L);
@@ -39,7 +39,7 @@ void lily_lua_entorno_ejecucion_validar_params(lua_State *L, bool escritura) {
     }
 }
 
-void lily_lua_entorno_ejecucion_validar_memoria(lua_State* L, bool escritura) {
+static void lily_lua_entorno_ejecucion_validar_memoria(lua_State* L, bool escritura) {
     // Validar que parámetro 1 sea una dirección de memoria disponible
     if (!lua_isinteger(L, 1)) {
         lua_pushliteral(L, "El primer parámetro no es una dirección válida de memoria");
@@ -56,7 +56,7 @@ void lily_lua_entorno_ejecucion_validar_memoria(lua_State* L, bool escritura) {
     }
 }
 
-void lily_lua_entorno_ejecucion_validar_registro(lua_State *L, bool escritura) {
+static void lily_lua_entorno_ejecucion_validar_registro(lua_State *L, bool escritura) {
     // Validar que parámetro 1 sea un registro existente
     lua_pushliteral(L, "registros");
     lua_gettable(L, -2);
