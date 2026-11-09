@@ -584,6 +584,8 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
 }
 
 void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
+    const int tope = lua_gettop(L);
+
     // Obtener el mnemónico canónico
     char* mnemo = instruccion->simbolo->valor;
     for (size_t i = 0; i < strlen(mnemo); i++)
@@ -600,39 +602,28 @@ void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instr
         // El mnemónico no existe
         *estado = COD_LUA_CPU_MNEMO_INEXISTENTE;
         cctx->ultimo = instruccion->simbolo;
-        lua_pop(L, lua_gettop(L));
-        return;
     }
-    if (lua_isfunction(L, -1)) {
+    else if (lua_isfunction(L, -1))
         lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
-        lua_pop(L, 1);
-    }
     else if (lua_istable(L, -1)) {
         // En este punto puede ser: List<int>, Tuple<char*, function>, List<Tuple<List<Args>, Value>>
         int tipo_tentativo = lua_geti(L, -1, 1);
-        if (tipo_tentativo == LUA_TNUMBER) {
+        if (tipo_tentativo == LUA_TNUMBER)
             lily_lua_cpu_ensamblar_lista(L, instruccion, enviar_mensaje, estado, ctx);
-            lua_pop(L, 1);
-        }
-        else if (tipo_tentativo == LUA_TSTRING) {
+        else if (tipo_tentativo == LUA_TSTRING)
             lily_lua_cpu_ensamblar_redireccion(L, instruccion, enviar_mensaje, estado, ctx);
-            lua_pop(L, 2);
-        }
-        else if (tipo_tentativo == LUA_TTABLE) {
+        else if (tipo_tentativo == LUA_TTABLE)
             lily_lua_cpu_ensamblar_lparams(L, instruccion, enviar_mensaje, estado, ctx);
-            lua_pop(L, 2);
-        }
         else {
             // Tabla vacía, o cuyo primer elemento no corresponde a ninguna forma de definición
             *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
             cctx->ultimo = instruccion->simbolo;
-            lua_pop(L, 3);
         }
     }
     else {
         // Ni función ni tabla: lua_geti sobre un número o booleano lanzaría un error fuera de pcall
         *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
         cctx->ultimo = instruccion->simbolo;
-        lua_pop(L, 2);
     }
+    lua_settop(L, tope);
 }
