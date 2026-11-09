@@ -367,27 +367,22 @@ int lily_lua_int_mt_index(lua_State* L) {
 }
 
 int lily_lua_int_mt_tostring(lua_State *L) {
-    lua_getiuservalue(L, -1, 1);
-    uint64_t tamano = lua_tointeger(L, -1);
-    lua_getiuservalue(L, -1, 3);
-    bool endianness = lua_tointeger(L, -1);
-    lua_pop(L, 3);
-    void *obj = lua_touserdata(L, -1);
-    char cad[19] = {0};
-    strcpy(cad, "0x");
-    for (size_t i = 0, j = 2; i < tamano; i++) {
-      size_t real_i = endianness ? i : (tamano - 1 - i);
-      // 3, 2, 1, 0
-      uint8_t byte = ((uint8_t*)obj)[real_i];
-      // Primera letra
-      if ((byte & 0x0F) < 0xA ) cad[j] = 0x30 + (byte & 0x0F);
-      else cad[j] = 0x57 + (byte & 0x0F);
-      j++;
-      // Segunda letra
-      if ((byte & 0xF0) < 0xA) cad[j] = 0x30 + (byte & 0xF0);
-      else cad[j] = 0x57 + (byte & 0xF0);
-      j++;
+    lua_getiuservalue(L, 1, 1);
+    const size_t tamano = (size_t) lua_tointeger(L, -1);
+    lua_getiuservalue(L, 1, 3);
+    const bool endianness = lua_tointeger(L, -1) != 0;
+    lua_pop(L, 2);
+    const uint8_t* obj = (const uint8_t*) lua_touserdata(L, 1);
+    static const char cifras[] = "0123456789abcdef";
+    char cad[19] = "0x"; // <- max. 16 del valor, + 2 del prefijo
+    size_t j = 2;
+    for (size_t i = 0; i < tamano && i < 8; i++) {
+        // En little-endian, el byte más significativo es el último
+        const uint8_t byte = obj[endianness ? (tamano - 1 - i) : i];
+        cad[j++] = cifras[byte >> 4];
+        cad[j++] = cifras[byte & 0x0F];
     }
+    cad[j] = 0;
     lua_pushstring(L, cad);
     return 1;
 }

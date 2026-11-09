@@ -140,7 +140,7 @@ int lily_lua_int_sint64l(lua_State* L);
 int lily_lua_int_mt_len(lua_State* L);
 int lily_lua_int_mt_eq(lua_State* L);
 int lily_lua_int_mt_index(lua_State* L);
-int lily_lua_int_mt_tostring(lua_State* L);
+int lily_lua_int_mt_tostring(lua_State* L); // <- Representación hexadecimal del valor
 
 void lily_lua_int_preparar(lua_State* L);
 
