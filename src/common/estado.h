@@ -98,7 +98,8 @@ enum lily_estado {
     COD_LUA_EJECUCION_INSTRUCCION_ILEGAL, /**< La secuencia de bytes encontrada no es una instrucción válida */
     COD_LUA_EJECUCION_MAQUINA_PAUSADA_UNA_INST, /**< Se ha terminado de ejecutar una instrucción en el modo paso-a-paso */
     COD_LUA_EJECUCION_MAQUINA_DETENIDA, /**< La instrucción solicitó la detención de la ejecución */
-    COD_LUA_EJECUCION_MAQUINA_DETENIDA_USUARIO /**< El usuario solicitó la detención de la ejecución */
+    COD_LUA_EJECUCION_MAQUINA_DETENIDA_USUARIO, /**< El usuario solicitó la detención de la ejecución */
+    COD_LUA_EJECUCION_PROGRAMA_MAYOR_MEMORIA /**< El programa a cargar no cabe en la memoria de la máquina */
 };
 
 #endif

@@ -207,6 +207,10 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
 void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uint8_t* programa, size_t tamano, struct lily_lua_ejecucion_ctx* ctx) {
     // TODO: Por ahora, solo copiamos los datos de un lado a otro desde el inicio
     // Para otros sistemas, vendrá la carga de una BIOS
+    if (tamano > maquina->tamano_memoria) {
+        ctx->estado = COD_LUA_EJECUCION_PROGRAMA_MAYOR_MEMORIA;
+        return;
+    }
     for (size_t i = 0; i < tamano; i++) {
         maquina->memoria[i] = programa[i];
         struct lily_lily_mensaje_tmemoria obj = {
