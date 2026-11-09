@@ -215,10 +215,6 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                         if (con_signo) ((union lily_simbolo_numero*) op1->valor)->negativo /= ((union lily_simbolo_numero*) op2->valor)->negativo;
                         else ((union lily_simbolo_numero*) op1->valor)->positivo /= ((union lily_simbolo_numero*) op2->valor)->positivo;
                     }
-                    if (es(OP_MODULO)) {
-                        if (con_signo) ((union lily_simbolo_numero*) op1->valor)->negativo %= ((union lily_simbolo_numero*) op2->valor)->negativo;
-                        else ((union lily_simbolo_numero*) op1->valor)->positivo %= ((union lily_simbolo_numero*) op2->valor)->positivo;
-                    }
                     if (es(OP_BIT_AND))
                         ((union lily_simbolo_numero*) op1->valor)->positivo &= ((union lily_simbolo_numero*) op2->valor)->positivo;
                     if (es(OP_BIT_OR))

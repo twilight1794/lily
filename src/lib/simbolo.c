@@ -272,7 +272,6 @@ int lily_simbolo_precedencia(const struct lily_simbolo_simbolo* operador) {
             return 2; // Asociativo diestro
         case OP_MULTI:
         case OP_DIV:
-        case OP_MODULO:
             return 3;
         case OP_SUMA:
         case OP_RESTA:
@@ -311,7 +310,6 @@ int lily_simbolo_aridad(enum lily_simbolo_operador subtipo) {
         case OP_RESTA:
         case OP_MULTI:
         case OP_DIV:
-        case OP_MODULO:
         case OP_MIEMBRO:
         case OP_BIT_AND:
         case OP_BIT_OR:

@@ -28,7 +28,7 @@ char* lily_a_lexico_directivas[] = { "DB", "DWL", "DWM", "DDL", "DDM", "DQL", "D
 /**
  * Listado de operadores, para comparar
  */
-char* lily_a_lexico_operadores[] = { "(", ")", "[", "]", ",", "+", "-", "*", "/", "%", "-", ".", "&", "|", "^", "~", "&&", "||", "!", "<<", ">>", "<", ">", "<=", ">=", "=", "!=" };
+char* lily_a_lexico_operadores[] = { "(", ")", "[", "]", ",", "+", "-", "*", "/", "-", ".", "&", "|", "^", "~", "&&", "||", "!", "<<", ">>", "<", ">", "<=", ">=", "=", "!=" };
 
 void lily_a_lexico_modo_comentario(const char* blob, size_t* i, size_t* linea, size_t* linea_pos) {
     do (*i)++;
@@ -249,7 +249,6 @@ enum lily_estado lily_a_lexico_modo_operador(const char* blob, size_t* i, const 
     else if (blob[*i] == '-') subtipo = OP_RESTA;
     else if (blob[*i] == '*') subtipo = OP_MULTI;
     else if (blob[*i] == '/') subtipo = OP_DIV;
-    //OP_MODULO,
     else if (blob[*i] == '.') subtipo = OP_MIEMBRO;
     else if (blob[*i] == '&') {
         if (blob[*i + 1] == '&') {
