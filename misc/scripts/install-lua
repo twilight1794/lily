@@ -33,8 +33,8 @@ else
     SOEXT="so"
 fi
 
-wget https://www.lua.org/ftp/lua-5.4.8.tar.gz -q -O - | tar -xz
-cd lua-5.4.8
+wget https://www.lua.org/ftp/lua-5.4.9.tar.gz -q -O - | tar -xz
+cd lua-5.4.9
 patch -p1 src/Makefile <<EOF
 10c10
 < CFLAGS= -O2 -Wall -Wextra -DLUA_COMPAT_5_3 \$(SYSCFLAGS) \$(MYCFLAGS)
@@ -49,7 +49,7 @@ patch -p1 src/Makefile <<EOF
 62a64,66
 > \$(LUA_SO): \$(CORE_O) \$(LIB_O)
 > 	\$(CC) -shared -ldl -Wl,${SONAME},\$(LUA_SO).\$(V) -o \$@.\$(R) \$? -lm \$(MYLDFLAGS)
-> 
+>
 144a149,150
 > wasm:
 > 	\$(MAKE) generic CC='emcc -s WASM=1'
@@ -59,8 +59,8 @@ patch -p1 Makefile <<EOF
 37a38,41
 > # Lua version and release.
 > V= 5.4
-> R= \$V.8
-> 
+> R= \$V.9
+>
 39c43
 < PLATS= guess aix bsd c89 freebsd generic ios linux linux-readline macosx mingw posix solaris
 ---
@@ -72,8 +72,8 @@ patch -p1 Makefile <<EOF
 47,50d50
 < # Lua version and release.
 < V= 5.4
-< R= \$V.8
-< 
+< R= \$V.9
+<
 55c55
 < 	@cd src && \$(MAKE) \$@
 ---
@@ -84,10 +84,10 @@ patch -p1 Makefile <<EOF
 69a72,77
 > install_wasm:
 > 	cd src && \$(INSTALL_DATA) liblua.a \$(INSTALL_LIB)/libluawasm.a
-> 
+>
 > uninstall_wasm:
 > 	cd src && cd \$(INSTALL_LIB) && \$(RM) libluawasm.a
-> 
+>
 104c112
 < .PHONY: all \$(PLATS) help test clean install uninstall local dummy echo pc
 ---
@@ -113,4 +113,4 @@ make install_wasm
 # Borrar
 cd ..
 pwd
-rm -rf lua-5.4.8
+rm -rf lua-5.4.9

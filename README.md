@@ -20,12 +20,12 @@ distribuirlo y modificarlo sin otra condición que conservar la misma licencia.
 ## Instalación
 
 ### Requerimientos
-La biblioteca compartida solo depende de liblua5.4.8. Si usas un sistema de
+La biblioteca compartida solo depende de liblua5.4.9. Si usas un sistema de
 tipo Unix, el script [misc/scripts/install-lua](./misc/scripts/install-lua)
 instalará los archivos de biblioteca necesarios en tu sistema. Si vas a generar
 una compilación para web, se recomienda que uses este script en vez de instalar
-la versión provista por el administrador de paquetes de tu distribución. El
-cliente CLI requiere además libgettext.
+la versión provista por el administrador de paquetes de tu sistema. El cliente
+CLI requiere además libgettext.
 
 ### Compilación
 Para compilar, necesitas make. La receta tratará de determinar tu sistema
