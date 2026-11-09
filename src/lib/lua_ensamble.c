@@ -240,8 +240,8 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     }
     // Llamar función
     if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
-        *estado = COD_LUA_CPU_TIPO_INEXISTENTE;
-        // FIX: comprobar NULL
+        // El tipo existe, pero su función de comprobación lanzó una excepción
+        *estado = COD_LUA_EXC;
         lily_lua_cpu_copiar_msg(L, &cctx->lua_msg);
         lua_pop(L, 2);
         return false;
@@ -469,7 +469,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         lua_pop(L, 1);
 
         // Obtener lista de tipos de parámetros
-        char** lista_params = (char**) malloc(sizeof(char*)*tam_params);
+        char** lista_params = (char**) malloc(sizeof(char*) * (tam_params ? (size_t) tam_params : 1));
         if (lista_params == NULL) {
             *estado = COD_MALLOC_FALLO;
             return;
@@ -481,11 +481,13 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             lua_pop(L, 1);
             tam_cad_params += strlen(lista_params[j]) + 2;
         }
-        tam_cad_params -= 1;
+        // Cada tipo va seguido de ", " salvo el último, que lleva el terminador: sobra un carácter
+        tam_cad_params = tam_params ? tam_cad_params - 1 : 1;
 
         // Generar mensaje de log
         char* msg_cad_params = (char*) malloc(sizeof(char)*tam_cad_params);
         if (msg_cad_params == NULL) {
+            free(lista_params);
             *estado = COD_MALLOC_FALLO;
             return;
         }
@@ -506,6 +508,8 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         // Comprobar que los tamaños de las listas de argumentos coincidan
         if ((size_t) tam_params != lily_lde_size(instruccion->params_tmp)) {
             // Diferentes tamaños, ésta no es la opción
+            free(lista_params);
+            free(msg_cad_params);
             lua_pop(L, 2);
             continue;
         }
@@ -519,12 +523,21 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             if (!coincide) break;
         }
         lua_pop(L, 1); // quita idx 10
+        free(lista_params);
+
+        if (*estado != COD_OK) {
+            free(msg_cad_params);
+            cctx->ultimo = instruccion->simbolo;
+            lua_pop(L, 1); // quita idx 9
+            return;
+        }
 
         // Es la opción
         if (coincide) {
             msg_buf = d_printf("Seleccionado caso (%s)", msg_cad_params);
             enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
             free(msg_buf);
+            free(msg_cad_params);
             lua_geti(L, -1, 2); // values (idx 10)
             if (lua_isfunction(L, -1)) {
                 lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
@@ -543,7 +556,6 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
             }
             return;
         }
-        free(lista_params);
         free(msg_cad_params);
         lua_pop(L, 1);
     }
