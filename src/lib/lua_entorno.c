@@ -67,10 +67,11 @@ int lily_lua_entorno_base_getmetatable(lua_State* L) {
 }
 
 int lily_lua_entorno_base_ipairs_it(lua_State* L) {
-    lua_pushinteger(L, 1);
-    lua_arith(L, LUA_OPADD);
-    lua_geti(L, 1, lua_tointeger(L, 2));
-    return 2;
+    // Recibe (tabla, índice anterior) y devuelve (índice, valor), o solo nil al llegar al final
+    const lua_Integer i = lua_tointeger(L, 2) + 1;
+    lua_pushinteger(L, i);
+    // El for genérico se detiene cuando el primer valor devuelto es nil
+    return (lua_geti(L, 1, i) == LUA_TNIL) ? 1 : 2;
 }
 
 int lily_lua_entorno_base_ipairs(lua_State* L) {
