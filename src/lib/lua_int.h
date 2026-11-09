@@ -146,25 +146,8 @@ int lily_lua_int_sint64l(lua_State* L);
  * @return Tipo del entero exacto resultante de la operación
  */
 enum lily_lua_tipo lily_lua_int_comp_operandos(lua_State* L, uint64_t* op1, uint64_t* op2);
-int lily_lua_int_mt_add(lua_State* L);
-int lily_lua_int_mt_sub(lua_State* L);
-int lily_lua_int_mt_mul(lua_State* L);
-//int lily_lua_int_mt_idiv(lua_State* L); // FIX: implementar división con decimales
-int lily_lua_int_mt_mod(lua_State* L);
-int lily_lua_int_mt_pow(lua_State* L);
-int lily_lua_int_mt_unm(lua_State* L);
-int lily_lua_int_mt_idiv(lua_State* L);
-int lily_lua_int_mt_band(lua_State* L);
-int lily_lua_int_mt_bor(lua_State* L);
-int lily_lua_int_mt_bxor(lua_State* L);
-int lily_lua_int_mt_bnot(lua_State* L);
-int lily_lua_int_mt_shl(lua_State* L);
-int lily_lua_int_mt_shr(lua_State* L);
-//int lily_lua_int_mt_concat(lua_State* L); // FIX: implementar aplanado de tablas, conversión de cadenas
 int lily_lua_int_mt_len(lua_State* L);
 int lily_lua_int_mt_eq(lua_State* L);
-int lily_lua_int_mt_lt(lua_State* L);
-int lily_lua_int_mt_le(lua_State* L);
 int lily_lua_int_mt_index(lua_State* L);
 int lily_lua_int_mt_tostring(lua_State* L);
 
