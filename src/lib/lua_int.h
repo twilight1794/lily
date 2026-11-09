@@ -137,15 +137,6 @@ int lily_lua_int_sint64l(lua_State* L);
 
 // Metamétodos para enteros exactos
 
-/**
- * @brief Comprueba si los operandos son aptos para la operación
- * Los tipos exactos solo pueden operarse con otro tipo exacto de la misma clase, o con un entero nativo de Lua
- * @param L Sesión de Lua
- * @param[out] op1 Valor numérico del primer operando
- * @param[out] op2 Valor numérico del segundo operando, para operadores binarios
- * @return Tipo del entero exacto resultante de la operación
- */
-enum lily_lua_tipo lily_lua_int_comp_operandos(lua_State* L, uint64_t* op1, uint64_t* op2);
 int lily_lua_int_mt_len(lua_State* L);
 int lily_lua_int_mt_eq(lua_State* L);
 int lily_lua_int_mt_index(lua_State* L);

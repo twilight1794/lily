@@ -314,83 +314,45 @@ int lily_lua_int_sint64l(lua_State* L) {
     return 1;
 }
 
-enum lily_lua_tipo lily_lua_int_comp_operandos(lua_State* L, uint64_t* op1, uint64_t* op2) {
-    enum lily_lua_tipo t_op1, t_op2;
-    int exacto = 0; // Bandera para igualdad de tipos
-
-    // Comprobar operando 1
-    t_op1 = lily_lua_int_obj(L);
-    if (t_op1 == LILY_LUA_TNUMBER)
-        *op1 = lua_tointeger(L, -1-(op2 != NULL));
-    else if (t_op1 >= LILY_LUA_TINT8) {
-        size_t tamano; int signo; bool endianness;
-        union lily_simbolo_numero val;
-        void* bytes = lua_touserdata(L, -1 - (op2 != NULL));
-        lily_lua_int_tipo_valores(t_op1, &tamano, &signo, &endianness);
-        lily_nums_decodificar_num(&val, bytes, tamano, signo, endianness);
-        *op1 = val.positivo;
-    }
-    else {
-        lua_pushstring(L, "Tipo no compatible para operaciones");
-        lua_error(L);
-    }
-
-    if (op2 != NULL) {
-        // Operador binario
-        // Comprobar operando 2
-        t_op2 = lily_lua_int_obj(L);
-        if (t_op2 == LILY_LUA_TNUMBER)
-            *op2 = lua_tointeger(L, -1);
-        else if (t_op2 >= LILY_LUA_TINT8) {
-            size_t tamano; int signo; bool endianness;
-            union lily_simbolo_numero val;
-            void* bytes = lua_touserdata(L, -1);
-            lily_lua_int_tipo_valores(t_op2, &tamano, &signo, &endianness);
-            lily_nums_decodificar_num(&val, bytes, tamano, signo, endianness);
-            *op2 = val.positivo;
-        }
-        else {
-            lua_pushstring(L, "Tipo no compatible para operaciones");
-            lua_error(L);
-        }
-        lua_pop(L, 2);
-
-        // Si ambos operandos son userdata, deben ser del mismo tipo
-        if (exacto == 3 && t_op1 == t_op2)
-            return t_op1;
-        else if (exacto == 2)
-            // En caso contrario, se devuelve el tipo del objeto userdata
-            return t_op2;
-        else
-            return t_op1;
-    }
-    lua_pop(L, 1);
-    // Operador unario
-    if (exacto) return t_op1;
-    return LILY_LUA_TINDETERMINADO;
-}
-
 int lily_lua_int_mt_len(lua_State* L) {
     // Tamaño en bytes del entero exacto
     lua_getiuservalue(L, 1, 1);
     return 1;
 }
 
+/*
+ * Indica si el valor en \a idx es un entero exacto, es decir, si tiene su metatabla
+ */
+static bool lily_lua_int_es_exacto(lua_State* L, int idx) {
+    if (!lua_getmetatable(L, idx)) return false;
+    lua_getglobal(L, "__imt");
+    const bool exacto = lua_rawequal(L, -1, -2);
+    lua_pop(L, 2);
+    return exacto;
+}
+
 int lily_lua_int_mt_eq(lua_State* L) {
-    uint64_t op1, op2;
-    uint8_t bytes[8];
-    int tipo = lily_lua_int_comp_operandos(L, &op1, &op2);
-    if (tipo == LILY_LUA_TINDETERMINADO) {
-        lua_pushstring(L, "Los operandos son de tipos diferentes");
-        lua_error(L);
+    // Dos enteros exactos son iguales si son del mismo tipo (tamaño, signo y endianness) y
+    // tienen la misma representación binaria. Lua solo llama a __eq si ambos operandos son
+    // userdata, así que la comparación con un número nativo siempre es falsa
+    if (!lily_lua_int_es_exacto(L, 1) || !lily_lua_int_es_exacto(L, 2)) {
+        lua_pushboolean(L, false);
+        return 1;
     }
-    lua_pushboolean(L, op1 == op2);
-    enum lily_estado estado = lily_lua_int_comp_argumentos(L, bytes, tipo);
-    if (estado == COD_OK) lily_lua_int_crear(L, bytes, tipo);
-    else {
-        lua_pushstring(L, "El resultado de la operación excede los límites del tipo");
-        lua_error(L);
+    for (int i = 1; i <= 3; i++) {
+        lua_getiuservalue(L, 1, i);
+        lua_getiuservalue(L, 2, i);
+        const bool igual = lua_rawequal(L, -1, -2);
+        lua_pop(L, 2);
+        if (!igual) {
+            lua_pushboolean(L, false);
+            return 1;
+        }
     }
+    lua_getiuservalue(L, 1, 1);
+    const size_t tamano = (size_t) lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_pushboolean(L, memcmp(lua_touserdata(L, 1), lua_touserdata(L, 2), tamano) == 0);
     return 1;
 }
 
