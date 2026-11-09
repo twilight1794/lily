@@ -371,13 +371,8 @@ enum lily_lua_tipo lily_lua_int_comp_operandos(lua_State* L, uint64_t* op1, uint
 }
 
 int lily_lua_int_mt_len(lua_State* L) {
-    uint64_t op1;
-    int tipo = lily_lua_int_comp_operandos(L, &op1, NULL);
-    if (tipo == LILY_LUA_TINDETERMINADO) {
-        lua_pushstring(L, "Los operandos son de tipos diferentes");
-        lua_error(L);
-    }
-    lua_getiuservalue(L, -1, 1);
+    // Tamaño en bytes del entero exacto
+    lua_getiuservalue(L, 1, 1);
     return 1;
 }
 
