@@ -39,6 +39,28 @@ static void lily_lua_entorno_ejecucion_validar_params(lua_State *L, bool escritu
     }
 }
 
+/*
+ * Valida que el parámetro 2 sea un entero representable en \a bits bits, con o sin signo:
+ * [-2^(bits-1), 2^bits - 1]. \a destino nombra dónde se guardará, para los mensajes de error
+ */
+static void lily_lua_entorno_ejecucion_validar_valor(lua_State* L, size_t bits, const char* destino) {
+    int es_entero;
+    const lua_Integer valor = lua_tointegerx(L, 2, &es_entero);
+    if (!es_entero) {
+        lua_pushfstring(L, "El valor a guardar en %s no es entero", destino);
+        lua_error(L);
+    }
+    bool cabe;
+    if (bits >= 64) cabe = true;
+    else if (bits == 0) cabe = (valor == 0);
+    else if (valor >= 0) cabe = ((uint64_t) valor >> bits) == 0;
+    else cabe = valor >= -(lua_Integer) (UINT64_C(1) << (bits - 1));
+    if (!cabe) {
+        lua_pushfstring(L, "El tamaño del valor a guardar es más grande que %s", destino);
+        lua_error(L);
+    }
+}
+
 static void lily_lua_entorno_ejecucion_validar_memoria(lua_State* L, bool escritura) {
     // Validar que parámetro 1 sea una dirección de memoria disponible
     if (!lua_isinteger(L, 1)) {
@@ -54,6 +76,8 @@ static void lily_lua_entorno_ejecucion_validar_memoria(lua_State* L, bool escrit
         lua_pushliteral(L, "La dirección de memoria es mayor que el tamaño disponible");
         lua_error(L);
     }
+    // Si es escritura, validar que el valor quepa en una localidad de memoria
+    if (escritura) lily_lua_entorno_ejecucion_validar_valor(L, 8, "una localidad de memoria");
 }
 
 static void lily_lua_entorno_ejecucion_validar_registro(lua_State *L, bool escritura) {
@@ -73,25 +97,7 @@ static void lily_lua_entorno_ejecucion_validar_registro(lua_State *L, bool escri
 
     // Si es escritura, validar que el valor quepa en el registro
     // FIX: por ahora, solo enteros
-    if (escritura) {
-        int es_entero;
-        const lua_Integer valor = lua_tointegerx(L, 2, &es_entero);
-        if (!es_entero) {
-            lua_pushliteral(L, "El valor a guardar en el registro no es entero");
-            lua_error(L);
-        }
-        // Se admite cualquier valor representable en \a tamano bits, con o sin signo:
-        // [-2^(tamano-1), 2^tamano - 1]
-        bool cabe;
-        if (tamano >= 64) cabe = true;
-        else if (tamano == 0) cabe = (valor == 0);
-        else if (valor >= 0) cabe = ((uint64_t) valor >> tamano) == 0;
-        else cabe = valor >= -(lua_Integer) (UINT64_C(1) << (tamano - 1));
-        if (!cabe) {
-            lua_pushliteral(L, "El tamaño del valor a guardar es más grande que el registro");
-            lua_error(L);
-        }
-    }
+    if (escritura) lily_lua_entorno_ejecucion_validar_valor(L, tamano, "el registro");
 }
 
 int lily_lua_entorno_ejecucion_leer_memoria(lua_State* L) {
@@ -127,8 +133,8 @@ int lily_lua_entorno_ejecucion_escribir_memoria(lua_State* L) {
     lua_pop(L, 2); // -global, esquema
     // Escritura
     const size_t direccion = lua_tointeger(L, 1);
-    lua_Integer valor = lua_tointeger(L, 2);
-    memoria[direccion] = *((uint8_t*) &valor);
+    const uint8_t valor = (uint8_t) lua_tointeger(L, 2);
+    memoria[direccion] = valor;
     // Mensaje
     struct lily_lily_mensaje_tmemoria mensaje = {
         .direccion = direccion,
