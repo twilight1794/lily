@@ -37,11 +37,20 @@
 #define ptipo(pre, idx) printf("%s: %s\n", (pre), lua_typename(L, lua_type(L, idx)));
 
 /**
+ * Guarda en \a destino una copia del mensaje en el tope de la pila de Lua, liberando el que hubiera.
+ * La cadena de Lua deja de ser válida al sacarla de la pila, o al cerrar la sesión, pero la copia no
+ * @param L Sesión de Lua
+ * @param [in,out] destino Mensaje anterior, a liberar, y después la copia, o \c NULL si no se pudo obtener
+ */
+void lily_lua_cpu_copiar_msg(lua_State* L, char** destino);
+
+/**
  * Analiza un script de descripción de un microprocesador
  * @param L Sesión de Lua
  * @param codigo Cadena de caracteres que contiene el código del script
- * @param [out] ctx Estado de la ejecución al momento de salir de la función
+ * @param [out] estado Estado de la ejecución al momento de salir de la función
+ * @param [out] lua_msg Si hubo un error de Lua, copia de su mensaje, que debe liberar quien llama
  */
-void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* estado, void** ctx);
+void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* estado, char** lua_msg);
 
 #endif

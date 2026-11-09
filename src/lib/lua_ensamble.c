@@ -242,7 +242,7 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
         *estado = COD_LUA_CPU_TIPO_INEXISTENTE;
         // FIX: comprobar NULL
-        cctx->lua_msg = (char*) lua_tostring(L, -1);
+        lily_lua_cpu_copiar_msg(L, &cctx->lua_msg);
         lua_pop(L, 2);
         return false;
     }
@@ -366,7 +366,7 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_ins
     }
     else {
         *estado = COD_LUA_EXC;
-        cctx->lua_msg = (char*) lua_tostring(L, -1);
+        lily_lua_cpu_copiar_msg(L, &cctx->lua_msg);
         lua_pop(L, 1);
     }
 }
@@ -442,7 +442,7 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
     }
     else {
         *estado = COD_LUA_EXC;
-        cctx->lua_msg = (char*) lua_tostring(L, -1);
+        lily_lua_cpu_copiar_msg(L, &cctx->lua_msg);
     }
     lua_settop(L, idx_tupla);
 }
@@ -553,7 +553,6 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
 }
 
 void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
-    *ctx = (struct lily_a_semantico_ctx*) calloc(1, sizeof(struct lily_a_semantico_ctx));
     // Obtener el mnemónico canónico
     char* mnemo = instruccion->simbolo->valor;
     for (size_t i = 0; i < strlen(mnemo); i++)

@@ -18,7 +18,17 @@
 
 #include "lua_cpu.h"
 
-void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* estado, void** ctx) {
+void lily_lua_cpu_copiar_msg(lua_State* L, char** destino) {
+    free(*destino);
+    *destino = NULL;
+    size_t tam;
+    const char* msg = lua_tolstring(L, -1, &tam);
+    if (msg == NULL) return;
+    *destino = (char*) malloc(tam + 1);
+    if (*destino != NULL) memcpy(*destino, msg, tam + 1);
+}
+
+void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* estado, char** lua_msg) {
     // Cargar definición arquitectura a utilizar
     if (luaL_dostring(L, codigo) == LUA_OK) {
         if (!lua_istable(L, -1)) {
@@ -124,7 +134,7 @@ void lily_lua_cpu_cargar(lua_State* L, const char* codigo, enum lily_estado* est
     }
     else {
         *estado = COD_LUA_EXC;
-        ((struct lily_a_semantico_ctx*) (*ctx))->lua_msg = (char*) lua_tostring(L, -1);
+        lily_lua_cpu_copiar_msg(L, lua_msg); // Antes de cerrar la sesión, que libera el mensaje
         lua_close(L);
         return;
     }

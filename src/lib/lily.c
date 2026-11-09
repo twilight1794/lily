@@ -18,8 +18,8 @@
 
 #include "lily.h"
 
-#define lua_msg()                                                 \
-    msg_buf = d_printf("codigo=%d (%s)", *estado, ((struct lily_a_semantico_ctx*) (*ctx))->lua_msg); \
+#define codigo_msg()                                              \
+    msg_buf = d_printf("codigo=%d", *estado);                     \
     fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lily_ensamble", msg_buf); \
     free(msg_buf);
 
@@ -50,12 +50,12 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     // Cargar y preparar entorno de Lua
     lua_State* L = lily_lua_entorno_preparar(estado, fun_mensaje);
     if (*estado != COD_OK) {
-        lua_msg();
+        codigo_msg();
         return NULL;
     }
     lily_lua_int_preparar(L);
     if (*estado != COD_OK) {
-        lua_msg();
+        codigo_msg();
         return NULL;
     }
 
@@ -87,9 +87,13 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     }
 
     // Abrir esquema de la arquitectura en la ruta generada
-    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, estado, ctx);
+    char* lua_msg = NULL;
+    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, estado, &lua_msg);
     if (*estado != COD_OK) {
-        lua_msg();
+        msg_buf = d_printf("codigo=%d (%s)", *estado, lua_msg);
+        fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lily_ensamble", msg_buf);
+        free(msg_buf);
+        free(lua_msg);
         return NULL;
     }
     fun_cerrar_archivo(archivo_arquitectura);
@@ -128,7 +132,10 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
         ctx->estado = COD_LILY_SIN_ESQUEMA;
         return NULL;
     }
-    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, &ctx->estado, (void**) &ctx);
+    // El contexto de la ejecución se queda con la copia del mensaje de Lua, si lo hay
+    char* lua_msg = NULL;
+    lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, &ctx->estado, &lua_msg);
+    ctx->lua_msg = lua_msg;
     if (ctx->estado != COD_OK) {
         return NULL;
     }

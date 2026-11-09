@@ -714,6 +714,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         }
         nodo = nodo->posterior;
     }
+    free(cctx->lua_msg);
     free(*ctx);
     return bytes;
 }
