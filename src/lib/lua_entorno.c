@@ -125,7 +125,7 @@ int lily_lua_entorno_base_pairs(lua_State* L) {
 
 int lily_lua_entorno_base_rawequal(lua_State* L) {
     if (lua_gettop(L) != 2) {
-        lua_pushliteral(L, "rawequal necesita 1 parámetro");
+        lua_pushliteral(L, "rawequal necesita 2 parámetros");
         lua_error(L);
     }
     lua_pushboolean(L, lua_rawequal(L, 1, 2));
@@ -169,7 +169,7 @@ int lily_lua_entorno_base_rawset(lua_State* L) {
         lua_error(L);
     }
     if (lua_isnoneornil(L, 2)) {
-        lua_pushliteral(L, "rawset necesita un índice entero");
+        lua_pushliteral(L, "rawset necesita una clave distinta de nil");
         lua_error(L);
     }
     lua_rawset(L, 1);
@@ -190,9 +190,10 @@ int lily_lua_entorno_base_setmetatable(lua_State* L) {
         lua_pushliteral(L, "setmetatable requiere una tabla o nil como metatabla");
         lua_error(L);
     }
-    // Si ya hay un campo __metatable, error
+    // Una metatabla con campo __metatable está protegida y no se puede cambiar ni quitar
     if (luaL_getmetafield(L, 1, "__metatable") != LUA_TNIL) {
-        lua_pushliteral(L, "la tabla ya tiene una metatabla");
+        lua_pushliteral(L, "no se puede cambiar una metatabla protegida");
+        lua_error(L);
     }
     lua_setmetatable(L, 1);
     return 1;
