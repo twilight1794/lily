@@ -255,6 +255,14 @@ static MunitTest lily_nums_test_tests[] = {
         MUNIT_TEST_OPTION_NONE,
         NULL,
     },
+    {
+        "/lily_nums_decodificar",
+        lily_nums_test_decodificar,
+        NULL,
+        NULL,
+        MUNIT_TEST_OPTION_NONE,
+        NULL,
+    },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 

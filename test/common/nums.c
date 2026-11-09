@@ -122,3 +122,47 @@ MunitResult lily_nums_test_error_no_escribe(const MunitParameter params[], void 
     munit_assert_memory_equal(4, buf, ((uint8_t[]) { 0xaa, 0xaa, 0xaa, 0xaa }));
     return MUNIT_OK;
 }
+
+// Comprueba que \a bytes se decodifique como \a esperado
+#define assert_decodifica(esperado, tam, signo, endianness, ...) do { \
+        uint8_t bytes[] = { __VA_ARGS__ }; \
+        union lily_simbolo_numero n = { .positivo = 0xa5a5a5a5a5a5a5a5 }; \
+        munit_assert_int(lily_nums_decodificar_num(&n, bytes, (tam), (signo), (endianness)), ==, COD_OK); \
+        munit_assert_int64(n.negativo, ==, (esperado)); \
+    } while (0)
+
+MunitResult lily_nums_test_decodificar(const MunitParameter params[], void *user_data) {
+    (void) params; (void) user_data;
+    // Sin signo: se rellena con ceros
+    assert_decodifica(255, 1, SIN_SIGNO, true, 0xff);
+    assert_decodifica(0xfffe, 2, SIN_SIGNO, true, 0xfe, 0xff);
+    // Con signo: se extiende el bit más alto, y solo si está activo
+    assert_decodifica(5, 1, CON_SIGNO, true, 0x05);
+    assert_decodifica(-5, 1, CON_SIGNO, true, 0xfb);
+    assert_decodifica(127, 1, CON_SIGNO, true, 0x7f);
+    assert_decodifica(-128, 1, CON_SIGNO, true, 0x80);
+    assert_decodifica(0x1234, 2, CON_SIGNO, true, 0x34, 0x12);
+    assert_decodifica(-2, 4, CON_SIGNO, true, 0xfe, 0xff, 0xff, 0xff);
+    // Todo el rango: se interpreta sin signo
+    assert_decodifica(255, 1, TODO, true, 0xff);
+    assert_decodifica(0x8000, 2, TODO, true, 0x00, 0x80);
+    // Big endian: el byte más significativo es el primero
+    assert_decodifica(-2, 2, CON_SIGNO, false, 0xff, 0xfe);
+    assert_decodifica(0x12345678, 4, SIN_SIGNO, false, 0x12, 0x34, 0x56, 0x78);
+    assert_decodifica(0x7f00, 2, CON_SIGNO, false, 0x7f, 0x00);
+    // 8 bytes: no hay relleno
+    assert_decodifica(-1, 8, CON_SIGNO, true, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+    assert_decodifica(INT64_MIN, 8, CON_SIGNO, false, 0x80, 0, 0, 0, 0, 0, 0, 0);
+    // Ida y vuelta con signo, en ambas endianness
+    static const int64_t valores[] = { -32768, -129, -1, 0, 1, 127, 32767 };
+    for (size_t i = 0; i < sizeof(valores) / sizeof(valores[0]); i++) {
+        for (int e = 0; e < 2; e++) {
+            union lily_simbolo_numero n = { .negativo = valores[i] }, m;
+            uint8_t buf[2];
+            munit_assert_int(lily_nums_codificar_num(buf, &n.positivo, 2, CON_SIGNO, e), ==, COD_OK);
+            munit_assert_int(lily_nums_decodificar_num(&m, buf, 2, CON_SIGNO, e), ==, COD_OK);
+            munit_assert_int64(m.negativo, ==, valores[i]);
+        }
+    }
+    return MUNIT_OK;
+}

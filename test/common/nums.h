@@ -40,5 +40,6 @@ MunitResult lily_nums_test_con_signo(const MunitParameter params[], void *user_d
 MunitResult lily_nums_test_todo(const MunitParameter params[], void *user_data);
 MunitResult lily_nums_test_endianness(const MunitParameter params[], void *user_data);
 MunitResult lily_nums_test_error_no_escribe(const MunitParameter params[], void *user_data);
+MunitResult lily_nums_test_decodificar(const MunitParameter params[], void *user_data);
 
 #endif
