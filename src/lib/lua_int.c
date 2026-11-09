@@ -18,41 +18,41 @@
 
 #include "lua_int.h"
 
+/*
+ * Indica si el valor en \a idx es un entero exacto, es decir, si tiene su metatabla
+ */
+static bool lily_lua_int_es_exacto(lua_State* L, int idx) {
+    if (!lua_getmetatable(L, idx)) return false;
+    lua_getglobal(L, "__imt");
+    const bool exacto = lua_rawequal(L, -1, -2);
+    lua_pop(L, 2);
+    return exacto;
+}
+
 enum lily_lua_tipo lily_lua_int_obj(lua_State* L) {
     enum lily_lua_tipo tipo = LILY_LUA_TINDETERMINADO;
     int t = lua_type(L, -1);
     if (t == LUA_TUSERDATA) {
         // Primero vemos si es uno de nuestros tipos enteros
+        if (!lily_lua_int_es_exacto(L, -1)) return LILY_LUA_TINDETERMINADO;
         lua_getiuservalue(L, -1, 1);
-        size_t tamano = lua_tointeger(L, -1);
+        const size_t tamano = (size_t) lua_tointeger(L, -1);
         lua_pop(L, 1);
         lua_getiuservalue(L, -1, 2);
-        int signo = lua_tointeger(L, -1);
+        const int signo = (int) lua_tointeger(L, -1);
         lua_pop(L, 1);
+        // Se guarda como entero: lua_toboolean consideraría verdadero también al 0
         lua_getiuservalue(L, -1, 3);
-        bool endianness = lua_toboolean(L, -1);
+        const bool endianness = lua_tointeger(L, -1) != 0;
         lua_pop(L, 1);
-        if (tamano == 1 && signo == 0) tipo = LILY_LUA_TINT8;
-        else if (tamano == 1 && signo == 1) tipo = LILY_LUA_TUINT8;
-        else if (tamano == 1 && signo == 2) tipo = LILY_LUA_TSINT8;
-        else if (tamano == 2 && signo == 2) tipo = LILY_LUA_TINT16B;
-        else if (tamano == 2 && signo == 2 && endianness) tipo = LILY_LUA_TINT16L;
-        else if (tamano == 2 && signo == 0) tipo = LILY_LUA_TUINT16B;
-        else if (tamano == 2 && signo == 0 && endianness) tipo = LILY_LUA_TUINT16L;
-        else if (tamano == 2 && signo == 1) tipo = LILY_LUA_TSINT16B;
-        else if (tamano == 2 && signo == 1 && endianness) tipo = LILY_LUA_TSINT16L;
-        else if (tamano == 4 && signo == 2) tipo = LILY_LUA_TINT32B;
-        else if (tamano == 4 && signo == 2 && endianness) tipo = LILY_LUA_TINT32L;
-        else if (tamano == 4 && signo == 0) tipo = LILY_LUA_TUINT32B;
-        else if (tamano == 4 && signo == 0 && endianness) tipo = LILY_LUA_TUINT32L;
-        else if (tamano == 4 && signo == 1) tipo = LILY_LUA_TSINT32B;
-        else if (tamano == 4 && signo == 1 && endianness) tipo = LILY_LUA_TSINT32L;
-        else if (tamano == 8 && signo == 2) tipo = LILY_LUA_TINT64B;
-        else if (tamano == 8 && signo == 2 && endianness) tipo = LILY_LUA_TINT64L;
-        else if (tamano == 8 && signo == 0) tipo = LILY_LUA_TUINT64B;
-        else if (tamano == 8 && signo == 0 && endianness) tipo = LILY_LUA_TUINT64L;
-        else if (tamano == 8 && signo == 1) tipo = LILY_LUA_TSINT64B;
-        else if (tamano == 8 && signo == 1 && endianness) tipo = LILY_LUA_TSINT64L;
+        for (int i = LILY_LUA_TINT8; i <= LILY_LUA_TSINT64L; i++) {
+            size_t t_tamano; int t_signo; bool t_endianness;
+            lily_lua_int_tipo_valores((enum lily_lua_tipo) i, &t_tamano, &t_signo, &t_endianness);
+            if (t_tamano == tamano && t_signo == signo && t_endianness == endianness) {
+                tipo = (enum lily_lua_tipo) i;
+                break;
+            }
+        }
     }
     // Si no, probablemente se trate de un tipo integrado
     else if (t == LUA_TNIL)      tipo = LILY_LUA_TNIL;
@@ -318,17 +318,6 @@ int lily_lua_int_mt_len(lua_State* L) {
     // Tamaño en bytes del entero exacto
     lua_getiuservalue(L, 1, 1);
     return 1;
-}
-
-/*
- * Indica si el valor en \a idx es un entero exacto, es decir, si tiene su metatabla
- */
-static bool lily_lua_int_es_exacto(lua_State* L, int idx) {
-    if (!lua_getmetatable(L, idx)) return false;
-    lua_getglobal(L, "__imt");
-    const bool exacto = lua_rawequal(L, -1, -2);
-    lua_pop(L, 2);
-    return exacto;
 }
 
 int lily_lua_int_mt_eq(lua_State* L) {
