@@ -204,6 +204,13 @@ int lily_lua_entorno_base_tonumber(lua_State* L) {
         lua_error(L);
     }
     if (lua_type(L, 1) == LUA_TNUMBER) return 1;
+    union lily_simbolo_numero num;
+    if (lily_lua_int_decodificar(L, 1, &num, NULL)) {
+        // Un entero exacto se convierte al entero nativo que representa. Un uint64 mayor que
+        // INT64_MAX conserva sus bits y queda negativo, como un literal hexadecimal de Lua fuera
+        // de rango: así, uint64l(tonumber(x)) reconstruye los mismos bytes
+        lua_pushinteger(L, (lua_Integer) num.negativo);
+    }
     else {
         size_t tam;
         const char *val = lua_tolstring(L, 1, &tam);
@@ -226,6 +233,14 @@ int lily_lua_entorno_base_tostring(lua_State* L) {
     }
     else if (tipo == LUA_TSTRING || tipo == LUA_TNUMBER)
         lua_pushstring(L, lua_tolstring(L, 1, NULL));
+    else if ((tipo == LUA_TUSERDATA || tipo == LUA_TTABLE) && luaL_callmeta(L, 1, "__tostring")) {
+        // Si tiene metamétodo __tostring, se usa, igual que string.format("%s")
+        if (!lua_isstring(L, -1)) {
+            lua_pushliteral(L, "__tostring debe devolver una cadena");
+            lua_error(L);
+        }
+        lua_tolstring(L, -1, NULL); // Un número se convierte a cadena en la pila
+    }
     else
         lua_pushliteral(L, "nil");
     return 1;

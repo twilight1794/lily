@@ -50,8 +50,9 @@ enum lily_estado lily_nums_codificar_num(uint8_t* buf, uint64_t* val, const size
  * @param [out] val Valor resultante
  * @param bytes Array desde donde leer los bytes
  * @param tam Número de bytes del valor: 1, 2, 4 u 8
- * @param signo El rango de valores admitidos según su signo: 0 para un tipo
- * positivo, 1 para un tipo negativo, 2 para cubrir t
+ * @param signo Cómo se interpreta el valor: 0 sin signo, 1 con signo (en
+ * complemento a dos, extendiendo su bit más alto), 2 para todo el rango posible
+ * para el tamaño, que se interpreta sin signo
  * @param endianness Endianness de la representación: \c true para
  * little-endian, \c false para big-endian
  * @return Código de operación resultante

@@ -57,13 +57,12 @@ enum lily_estado lily_nums_codificar_num(uint8_t* buf, uint64_t* val, const size
 }
 
 enum lily_estado lily_nums_decodificar_num(union lily_simbolo_numero* val, uint8_t* bytes, const size_t tam, const int signo, const bool endianness) {
-    for (size_t i = 0; i < 8; i++) {
-        size_t real_i = endianness ? i : (tam-1)-i;
-        if (i < tam) val->bytes[i] = *(bytes + real_i);
-        else {
-            if (signo == 0 || (signo == 2 && val->negativo >= 0)) val->bytes[i] = 0;
-            else val->bytes[i] = 0xFF;
-        }
-    }
+    // Solo los tipos con signo se extienden según el bit más alto del valor (complemento a dos).
+    // Con signo == 2 el rango admitido es ambiguo (0xFF puede ser -1 o 255): se interpreta sin
+    // signo
+    const uint8_t mas_significativo = bytes[endianness ? tam-1 : 0];
+    const uint8_t relleno = (signo == 1 && (mas_significativo & 0x80)) ? 0xFF : 0x00;
+    for (size_t i = 0; i < 8; i++)
+        val->bytes[i] = (i < tam) ? bytes[endianness ? i : (tam-1)-i] : relleno;
     return COD_OK;
 }

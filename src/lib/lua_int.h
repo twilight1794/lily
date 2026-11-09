@@ -94,6 +94,16 @@ char* lily_lua_int_tipo_cad(enum lily_lua_tipo tipo);
  */
 void lily_lua_int_tipo_valores(enum lily_lua_tipo tipo, size_t* tamano, int* signo, bool* endiannes);
 
+/**
+ * Decodifica el entero exacto en la posición \a idx de la pila
+ * @param L Sesión de Lua
+ * @param idx Posición del objeto en la pila
+ * @param [out] val Valor representado por el entero exacto
+ * @param [out] signo Si no es \c NULL, signo del tipo, como en lily_lua_int_tipo_valores
+ * @return \c true si el objeto es un entero exacto, \c false si no lo es, y entonces no se modifica \a val
+ */
+bool lily_lua_int_decodificar(lua_State* L, int idx, union lily_simbolo_numero* val, int* signo);
+
 // Constructores para enteros exactos
 
 /**
@@ -140,7 +150,14 @@ int lily_lua_int_sint64l(lua_State* L);
 int lily_lua_int_mt_len(lua_State* L);
 int lily_lua_int_mt_eq(lua_State* L);
 int lily_lua_int_mt_index(lua_State* L);
-int lily_lua_int_mt_tostring(lua_State* L); // <- Representación hexadecimal del valor
+int lily_lua_int_mt_tostring(lua_State* L); // <- Valor en decimal
+
+/**
+ * Función hex de Lua: representación hexadecimal de un entero exacto, con tantas cifras como su tamaño
+ * @param L Sesión de Lua
+ * @return Número de valores devueltos
+ */
+int lily_lua_int_hex(lua_State* L);
 
 void lily_lua_int_preparar(lua_State* L);
 

@@ -18,6 +18,8 @@
 
 #include "lua_int.h"
 
+#include <inttypes.h>
+
 /*
  * Indica si el valor en \a idx es un entero exacto, es decir, si tiene su metatabla
  */
@@ -119,6 +121,18 @@ void lily_lua_int_tipo_valores(enum lily_lua_tipo tipo, size_t* tamano, int* sig
     else if (tipo == LILY_LUA_TUINT64L) { opc(tamano, 8) opc(signo, 0) opc(endianness, 1) }
     else if (tipo == LILY_LUA_TSINT64B) { opc(tamano, 8) opc(signo, 1) opc(endianness, 0) }
     else if (tipo == LILY_LUA_TSINT64L) { opc(tamano, 8) opc(signo, 1) opc(endianness, 1) }
+}
+
+bool lily_lua_int_decodificar(lua_State* L, int idx, union lily_simbolo_numero* val, int* signo) {
+    lua_pushvalue(L, idx); // lily_lua_int_obj trabaja con el tope de la pila
+    const enum lily_lua_tipo tipo = lily_lua_int_obj(L);
+    lua_pop(L, 1);
+    if (tipo < LILY_LUA_TINT8 || tipo > LILY_LUA_TSINT64L) return false;
+    size_t tamano; int signo_tipo; bool endianness;
+    lily_lua_int_tipo_valores(tipo, &tamano, &signo_tipo, &endianness);
+    lily_nums_decodificar_num(val, (uint8_t*) lua_touserdata(L, idx), tamano, signo_tipo, endianness);
+    if (signo != NULL) *signo = signo_tipo;
+    return true;
 }
 
 enum lily_estado lily_lua_int_comp_argumentos(lua_State* L, uint8_t* bytes, enum lily_lua_tipo tipo) {
@@ -366,7 +380,12 @@ int lily_lua_int_mt_index(lua_State* L) {
     return 1;
 }
 
-int lily_lua_int_mt_tostring(lua_State *L) {
+int lily_lua_int_hex(lua_State* L) {
+    // Representación hexadecimal del entero exacto, del byte más significativo al menos significativo
+    if (lua_gettop(L) != 1 || !lily_lua_int_es_exacto(L, 1)) {
+        lua_pushliteral(L, "hex necesita un entero exacto");
+        lua_error(L);
+    }
     lua_getiuservalue(L, 1, 1);
     const size_t tamano = (size_t) lua_tointeger(L, -1);
     lua_getiuservalue(L, 1, 3);
@@ -383,6 +402,19 @@ int lily_lua_int_mt_tostring(lua_State *L) {
         cad[j++] = cifras[byte & 0x0F];
     }
     cad[j] = 0;
+    lua_pushstring(L, cad);
+    return 1;
+}
+
+int lily_lua_int_mt_tostring(lua_State *L) {
+    // Valor representado por el entero exacto, en decimal
+    union lily_simbolo_numero val;
+    int signo;
+    lily_lua_int_decodificar(L, 1, &val, &signo);
+    // Se formatea en C y no con lua_pushinteger: un uint64 mayor que INT64_MAX no cabe en un entero de Lua
+    char cad[21];
+    if (signo == 1) snprintf(cad, sizeof(cad), "%" PRId64, val.negativo);
+    else snprintf(cad, sizeof(cad), "%" PRIu64, val.positivo);
     lua_pushstring(L, cad);
     return 1;
 }
@@ -409,6 +441,7 @@ void lily_lua_int_preparar(lua_State* L) {
     lua_register(L, "uint64l", lily_lua_int_uint64l);
     lua_register(L, "sint64b", lily_lua_int_sint64b);
     lua_register(L, "sint64l", lily_lua_int_sint64l);
+    lua_register(L, "hex", lily_lua_int_hex);
     lua_createtable(L, 0, 4);
     lua_registertable(L, "__len", lily_lua_int_mt_len);
     lua_registertable(L, "__eq", lily_lua_int_mt_eq);
