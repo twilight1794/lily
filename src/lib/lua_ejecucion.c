@@ -150,7 +150,7 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
     lua_gettable(L, -2);
     // FIX: por ahora, el tamaño de la memoria no es ajustable
     obj->tamano_memoria = (uint64_t) lua_tointeger(L, -1);
-    obj->memoria = (uint8_t*) malloc(obj->tamano_memoria);
+    obj->memoria = (uint8_t*) calloc(obj->tamano_memoria ? obj->tamano_memoria : 1, sizeof(uint8_t));
     if (obj->memoria == NULL) {
         free(obj);
         ctx->estado = COD_MALLOC_FALLO;
@@ -188,7 +188,9 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
         lua_pop(L, 1);
     }
     lua_pop(L, 1);
-    obj->registros = (uint8_t*) malloc(ceil(obj->tamano_registros/8) + (obj->tamano_registros%8));
+    // tamano_registros está en bits: se redondea hacia arriba al byte completo, y los registros empiezan en cero
+    const size_t bytes_registros = (obj->tamano_registros + 7) / 8;
+    obj->registros = (uint8_t*) calloc(bytes_registros ? bytes_registros : 1, sizeof(uint8_t));
     if (obj->registros == NULL) {
         free(obj->memoria);
         free(obj);
