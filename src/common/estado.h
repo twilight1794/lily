@@ -99,7 +99,9 @@ enum lily_estado {
     COD_LUA_EJECUCION_MAQUINA_PAUSADA_UNA_INST, /**< Se ha terminado de ejecutar una instrucción en el modo paso-a-paso */
     COD_LUA_EJECUCION_MAQUINA_DETENIDA, /**< La instrucción solicitó la detención de la ejecución */
     COD_LUA_EJECUCION_MAQUINA_DETENIDA_USUARIO, /**< El usuario solicitó la detención de la ejecución */
-    COD_LUA_EJECUCION_PROGRAMA_MAYOR_MEMORIA /**< El programa a cargar no cabe en la memoria de la máquina */
+    COD_LUA_EJECUCION_PROGRAMA_MAYOR_MEMORIA, /**< El programa a cargar no cabe en la memoria de la máquina */
+    // lib/lua_ensamble.c (al final para no cambiar el valor de los códigos anteriores)
+    COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA /**< La definición de un mnemónico no es una función, ni una lista de bytes, redirección o lista de opciones */
 };
 
 #endif

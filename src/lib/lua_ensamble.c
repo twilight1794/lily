@@ -412,6 +412,14 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
             *estado = COD_LUA_CPU_MNEMO_REDIRECCION_MULTIPLE;
             cctx->ultimo = instruccion->simbolo;
         }
+        else {
+            *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+            cctx->ultimo = instruccion->simbolo;
+        }
+    }
+    else {
+        *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+        cctx->ultimo = instruccion->simbolo;
     }
     // Cada tipo de ensamble deja la pila distinta: dejar solo la tupla y la función de transformación
     lua_settop(L, idx_tupla + 1);
@@ -543,7 +551,7 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
                 lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
                 lua_pop(L, 1);
             }
-            else {
+            else if (lua_istable(L, -1)) {
                 int tipo_tentativo = lua_geti(L, -1, 1);
                 if (tipo_tentativo == LUA_TNUMBER) {
                     lily_lua_cpu_ensamblar_lista(L, instruccion, enviar_mensaje, estado, ctx);
@@ -553,6 +561,17 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
                     lily_lua_cpu_ensamblar_redireccion(L, instruccion, enviar_mensaje, estado, ctx);
                     lua_pop(L, 2);
                 }
+                else {
+                    // Una opción no puede contener otra lista de opciones
+                    *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+                    cctx->ultimo = instruccion->simbolo;
+                    lua_pop(L, 3);
+                }
+            }
+            else {
+                *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+                cctx->ultimo = instruccion->simbolo;
+                lua_pop(L, 2);
             }
             return;
         }
@@ -588,7 +607,7 @@ void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instr
         lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
         lua_pop(L, 1);
     }
-    else {
+    else if (lua_istable(L, -1)) {
         // En este punto puede ser: List<int>, Tuple<char*, function>, List<Tuple<List<Args>, Value>>
         int tipo_tentativo = lua_geti(L, -1, 1);
         if (tipo_tentativo == LUA_TNUMBER) {
@@ -603,5 +622,17 @@ void lily_lua_cpu_ensamblar(lua_State* L, struct lily_simbolo_instruccion* instr
             lily_lua_cpu_ensamblar_lparams(L, instruccion, enviar_mensaje, estado, ctx);
             lua_pop(L, 2);
         }
+        else {
+            // Tabla vacía, o cuyo primer elemento no corresponde a ninguna forma de definición
+            *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+            cctx->ultimo = instruccion->simbolo;
+            lua_pop(L, 3);
+        }
+    }
+    else {
+        // Ni función ni tabla: lua_geti sobre un número o booleano lanzaría un error fuera de pcall
+        *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+        cctx->ultimo = instruccion->simbolo;
+        lua_pop(L, 2);
     }
 }
