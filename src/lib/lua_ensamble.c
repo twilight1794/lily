@@ -289,6 +289,7 @@ static void lily_lua_cpu_est_parametros(lua_State* L, struct lily_lde_lde* param
 }
 
 static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, enum lily_estado* estado) {
+    *tam = 0; // Si hay un error, no hay bytes
     if (!lua_istable(L, -1)) {
         *estado = COD_LUA_CPU_RES_ENSAMBLE_NO_TABLA;
         return NULL;
@@ -303,6 +304,7 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
     }
     uint8_t* bytes = calloc(*tam, sizeof(uint8_t)); // Tamaño inicial
     if (bytes == NULL) {
+        *tam = 0;
         *estado = COD_MALLOC_FALLO;
         return NULL;
     }
@@ -315,14 +317,22 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
         }
         else if (lua_isuserdata(L, -1)) {
             enum lily_lua_tipo tipo = lily_lua_int_obj(L);
+            // Solo se admiten userdata que sean enteros exactos
+            if (tipo < LILY_LUA_TINT8 || tipo > LILY_LUA_TSINT64L) {
+                free(bytes);
+                *tam = 0;
+                *estado = COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO;
+                return NULL;
+            }
             size_t tamano_obj;
-            // NOTE: Por ahora, asumiremos que todos los userdata son enteros exactos
             lily_lua_int_tipo_valores(tipo, &tamano_obj, NULL, NULL);
             if (tamano_obj > 1) {
                 // Agrandar array si el entero es multibyte
                 *tam += tamano_obj - 1;
                 uint8_t* tmp = (uint8_t*) realloc(bytes, *tam);
                 if (tmp == NULL) {
+                    free(bytes);
+                    *tam = 0;
                     *estado = COD_MALLOC_FALLO;
                     return NULL;
                 }
@@ -333,6 +343,8 @@ static uint8_t* lily_lua_cpu_procesar_resultado(lua_State* L, lua_Integer* tam, 
             idx += tamano_obj;
         }
         else {
+            free(bytes);
+            *tam = 0;
             *estado = COD_LUA_CPU_RES_ENSAMBLE_NO_ENTERO;
             return NULL;
         }
@@ -374,22 +386,43 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_redireccion", msg_buf);
     free(msg_buf);
     lua_pop(L, 1);
+    // Al terminar, en la pila solo debe quedar la tupla, sin importar qué haya dejado cada tipo de ensamble
+    const int idx_tupla = lua_gettop(L);
     lua_geti(L, -1, 2); // <- Función para modificar el resultado (idx 9)
     lua_geti(L, -2, 1); // <- Cadena con el mnemónico al cual redirigir (idx 10)
     lua_getglobal(L, "_lily_tabla_idx");
     lua_Integer tabla_mnemos_idx = lua_tointeger(L, -1) + 1;
     lua_pop(L, 1);
     lua_gettable(L, (int) tabla_mnemos_idx);
-    if (lua_isfunction(L, -1))
+    if (lua_isnil(L, -1)) {
+        // El mnemónico al que se redirige no existe
+        *estado = COD_LUA_CPU_MNEMO_INEXISTENTE;
+        cctx->ultimo = instruccion->simbolo;
+    }
+    else if (lua_isfunction(L, -1))
         lily_lua_cpu_ensamblar_funcion(L, instruccion, enviar_mensaje, estado, ctx);
-    else {
+    else if (lua_istable(L, -1)) {
         int tipo_tentativo = lua_geti(L, -1, 1);
         if (tipo_tentativo == LUA_TNUMBER)
             lily_lua_cpu_ensamblar_lista(L, instruccion, enviar_mensaje, estado, ctx);
         else if (tipo_tentativo == LUA_TTABLE)
             lily_lua_cpu_ensamblar_lparams(L, instruccion, enviar_mensaje, estado, ctx);
+        else if (tipo_tentativo == LUA_TSTRING) {
+            // El mnemónico al que se redirige es otra redirección
+            *estado = COD_LUA_CPU_MNEMO_REDIRECCION_MULTIPLE;
+            cctx->ultimo = instruccion->simbolo;
+        }
     }
-    lua_pop(L, 1);
+    // Cada tipo de ensamble deja la pila distinta: dejar solo la tupla y la función de transformación
+    lua_settop(L, idx_tupla + 1);
+    if (*estado != COD_OK) {
+        // No se transforma un resultado que no se pudo generar
+        free(instruccion->bytes);
+        instruccion->bytes = NULL;
+        instruccion->tam_bytes = 0;
+        lua_settop(L, idx_tupla);
+        return;
+    }
 
     // Generar tabla como argumento de la función de transformación
     lua_createtable(L, (int) instruccion->tam_bytes, 0);
@@ -398,6 +431,8 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
         lua_seti(L, -2, (lua_Integer) i+1);
     }
     free(instruccion->bytes);
+    instruccion->bytes = NULL;
+    instruccion->tam_bytes = 0;
 
     // Ejecutar función de transformación
     if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
@@ -408,8 +443,8 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
     else {
         *estado = COD_LUA_EXC;
         cctx->lua_msg = (char*) lua_tostring(L, -1);
-        lua_pop(L, 1);
     }
+    lua_settop(L, idx_tupla);
 }
 
 static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
