@@ -324,7 +324,16 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
         // Iterar por cada elemento de coincidencia
         bool coincide = true; // Esto queda así si toda la lista de coincidencias coincide
         for (size_t j = 1; j <= tam_lista_bytes; j++) {
-            const uint8_t byte_actual = maquina->memoria[ptr_inicio_relativo + j - 1];
+            // FIX: hay casos en los que el procesador simplemente hace overflow, en vez de simplemente rechazar la dirección. Eso debe ser tratado aquí después.
+            const size_t direccion = ptr_inicio_relativo + j - 1;
+            if (direccion >= maquina->tamano_memoria) {
+                msg_buf = d_printf("La dirección 0x%02lx está fuera de la memoria", direccion);
+                ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
+                free(msg_buf);
+                coincide = false;
+                break;
+            }
+            const uint8_t byte_actual = maquina->memoria[direccion];
             msg_buf = d_printf("Comparando byte 0x%02lx en dirección 0x%02lx + %lu", byte_actual, ptr_inicio_relativo, j - 1);
             ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
             free(msg_buf);
