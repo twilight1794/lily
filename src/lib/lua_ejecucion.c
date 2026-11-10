@@ -237,6 +237,23 @@ void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uin
     lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, (const uint8_t*) &valor, NULL, true);
 }
 
+/*
+ * Registra en \a ctx el error de Lua que está en el tope de la pila: pone COD_LUA_EXC, guarda una copia
+ * del mensaje en ctx->lua_msg (la libera lily_lily_destruccion_maquina) y lo avisa. No saca el mensaje de la pila
+ */
+static void lily_lua_ejecucion_error_lua(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
+    static char sin_mensaje[] = "(error sin mensaje)";
+    ctx->estado = COD_LUA_EXC;
+    free((char*) ctx->lua_msg);
+    ctx->lua_msg = NULL;
+    size_t tam;
+    const char* msg = lua_tolstring(maquina->L, -1, &tam);
+    char* copia = (msg != NULL) ? (char*) malloc(tam + 1) : NULL;
+    if (copia != NULL) memcpy(copia, msg, tam + 1);
+    ctx->lua_msg = copia;
+    ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lua_ejecucion_ejecutar", (copia != NULL) ? copia : sin_mensaje);
+}
+
 void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
     // Obtener PC
     union lily_simbolo_numero pc;
@@ -326,7 +343,12 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
             }
             else if (tipo == LUA_TFUNCTION) {
                 lua_pushinteger(maquina->L, byte_actual);
-                lua_pcall(maquina->L, 1, 1, 0);
+                if (lua_pcall(maquina->L, 1, 1, 0) != LUA_OK) {
+                    lily_lua_ejecucion_error_lua(maquina, ctx);
+                    free(msg_cad_params);
+                    lua_settop(maquina->L, base_pila);
+                    return;
+                }
                 const bool val_fun = lua_toboolean(maquina->L, -1);
                 lua_pop(maquina->L, 1);
                 msg_buf = d_printf("Comparando con elemento de coincidencia (%ld) @", j);
@@ -364,10 +386,18 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
                 lily_lua_ejecucion_escribir_registro(maquina, maquina->pc, pc.bytes, NULL, true);
                 // Y ejecutar operación
                 ejecutado = true;
-                if (lua_pcall(maquina->L, 1, 0, 0)) {
-                    // FIX: procesar error bien
-                    ctx->estado = COD_LUA_EXC;
-                    ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lua_ejecucion_ejecutar", lua_tostring(maquina->L, -1));
+                if (lua_pcall(maquina->L, 1, 0, 0) != LUA_OK)
+                    lily_lua_ejecucion_error_lua(maquina, ctx); // La pila se restaura al final
+                else {
+                    // La operación pudo llamar a L.detener(): se atiende y se borra la marca
+                    lua_getglobal(maquina->L, "_lily_detener");
+                    if (lua_toboolean(maquina->L, -1)) {
+                        ctx->estado = COD_LUA_EJECUCION_MAQUINA_DETENIDA;
+                        ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", "La instrucción detuvo la ejecución");
+                    }
+                    lua_pop(maquina->L, 1);
+                    lua_pushnil(maquina->L);
+                    lua_setglobal(maquina->L, "_lily_detener");
                 }
             }
             else if (tipo == LUA_TTABLE) {
@@ -379,6 +409,7 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
                 i = 1;
                 msg_buf = d_printf("Lista de casos anidada: Se encontraron %lu casos", tam_lista_casos);
                 ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
+                free(msg_buf);
             }
         }
         else {

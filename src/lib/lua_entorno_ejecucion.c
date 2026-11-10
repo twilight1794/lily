@@ -213,11 +213,22 @@ int lily_lua_entorno_ejecucion_escribir_registro(lua_State* L) {
     return 0;
 }
 
+int lily_lua_entorno_ejecucion_detener(lua_State* L) {
+    if (lua_gettop(L) != 0) {
+        lua_pushliteral(L, "detener no recibe parámetros");
+        lua_error(L);
+    }
+    lua_pushboolean(L, true);
+    lua_setglobal(L, "_lily_detener");
+    return 0;
+}
+
 void lily_lua_entorno_ejecucion_preparar(lua_State* L, enum lily_estado *estado) {
-    lua_createtable(L, 0, 4);
+    lua_createtable(L, 0, 5);
     lua_registertable(L, "leer_memoria", lily_lua_entorno_ejecucion_leer_memoria);
     lua_registertable(L, "escribir_memoria", lily_lua_entorno_ejecucion_escribir_memoria);
     lua_registertable(L, "leer_registro", lily_lua_entorno_ejecucion_leer_registro);
     lua_registertable(L, "escribir_registro", lily_lua_entorno_ejecucion_escribir_registro);
+    lua_registertable(L, "detener", lily_lua_entorno_ejecucion_detener);
     lua_setglobal(L, "L");
 }

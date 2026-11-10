@@ -348,6 +348,10 @@ int main(int argc, char** argv) {
                     lily_lily_ejecutar_instruccion(maquina, ctx_e);
                     ejecutora(maquina, ctx_e);
                 }
+                // Detenerse por la instrucción o por el usuario es el final normal; cualquier otro estado es un error
+                estado = ctx_e->estado;
+                if (estado == COD_LUA_EJECUCION_MAQUINA_DETENIDA || estado == COD_LUA_EJECUCION_MAQUINA_DETENIDA_USUARIO)
+                    estado = COD_OK;
             }
             // La máquina ya no se usará, haya fallado su creación o haya terminado de ejecutarse
             lily_lily_destruccion_maquina(maquina, ctx_e);

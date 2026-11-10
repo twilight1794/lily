@@ -41,6 +41,7 @@ int lily_lua_entorno_ejecucion_leer_memoria(lua_State* L);
 int lily_lua_entorno_ejecucion_escribir_memoria(lua_State* L);
 int lily_lua_entorno_ejecucion_leer_registro(lua_State* L);
 int lily_lua_entorno_ejecucion_escribir_registro(lua_State* L);
+int lily_lua_entorno_ejecucion_detener(lua_State* L);
 
 void lily_lua_entorno_ejecucion_preparar(lua_State* L, enum lily_estado* estado);
 
