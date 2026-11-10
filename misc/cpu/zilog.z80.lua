@@ -52,6 +52,11 @@ rr_vals_rr = {
     [2] = "IY",    [3] = "SP"
 }
 
+-- Desplazamiento relativo de JR y DJNZ: el byte está en complemento a dos
+function desp_e(byte)
+    return (byte ~ 0x80) - 0x80
+end
+
 -- Correspondencias valor->bits
 function r_vals(v)
     vals = {
@@ -942,7 +947,7 @@ return {
             { 0x18, true }, -- JR e
             function (bytes)
                 local pc = L.leer_registro("PC")
-                L.escribir_registro("PC", pc + bytes[2])
+                L.escribir_registro("PC", (pc + desp_e(bytes[2])) & 0xffff)
             end
         },
         {
@@ -1011,10 +1016,10 @@ return {
         {
             { 0x10, true }, -- DJNZ e
             function (bytes)
-                local b = L.leer_registro("B") - 1
+                local b = (L.leer_registro("B") - 1) & 0xff
                 L.escribir_registro("B", b)
                 if (b ~= 0) then
-                    L.escribir_registro("PC", L.leer_registro("PC") + e)
+                    L.escribir_registro("PC", (L.leer_registro("PC") + desp_e(bytes[2])) & 0xffff)
                 end
             end
         },
@@ -3789,8 +3794,8 @@ return {
             { function (byte) return byte & 0xc7 == 4 end }, -- INC r
             function (bytes)
                 local r = r_vals_r[(bytes[1] & 0x38) >> 3]
-                local v = L.leer_registro(r) + 1
-                if (v < 0) then
+                local v = (L.leer_registro(r) + 1) & 0xff -- El registro da la vuelta, como en el Z80
+                if (v & 0x80 ~= 0) then
                     L.escribir_registro("SF", 1)
                 else
                     L.escribir_registro("SF", 0)
@@ -3801,7 +3806,7 @@ return {
                     L.escribir_registro("ZF", 0)
                 end
                 -- FIX: H
-                if (v == 0x7f) then
+                if (v == 0x80) then -- Desbordamiento con signo
                     L.escribir_registro("VF", 1)
                 else
                     L.escribir_registro("VF", 0)
@@ -3814,8 +3819,8 @@ return {
             { function (byte) return byte & 0xc7 == 5 end }, -- DEC r
             function (bytes)
                 local r = r_vals_r[(bytes[1] & 0x38) >> 3]
-                local v = L.leer_registro(r) - 1
-                if (v < 0) then
+                local v = (L.leer_registro(r) - 1) & 0xff -- El registro da la vuelta, como en el Z80
+                if (v & 0x80 ~= 0) then
                     L.escribir_registro("SF", 1)
                 else
                     L.escribir_registro("SF", 0)
@@ -3826,7 +3831,7 @@ return {
                     L.escribir_registro("ZF", 0)
                 end
                 -- FIX: H
-                if (v == 0x80) then
+                if (v == 0x7f) then -- Desbordamiento con signo
                     L.escribir_registro("VF", 1)
                 else
                     L.escribir_registro("VF", 0)
@@ -3887,7 +3892,7 @@ return {
                     (cc == "NC" and L.leer_registro("CF") == 0) or
                     (cc == "Z" and L.leer_registro("ZF") == 1) or
                     (cc == "NZ" and L.leer_registro("ZF") == 0) then
-                    L.escribir_registro("PC", L.leer_registro("PC") + bytes[2])
+                    L.escribir_registro("PC", (L.leer_registro("PC") + desp_e(bytes[2])) & 0xffff)
                 end
             end
         },
