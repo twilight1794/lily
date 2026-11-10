@@ -43,15 +43,30 @@ static int mensaje_nulo(enum lily_lily_mensaje_tipo tipo, int subtipo, char* mod
 
 // Ensambla \a fuente solo con directivas, y devuelve los bytes generados
 static uint8_t* ensamblar(const char* fuente, size_t* tam, enum lily_estado* estado) {
+    // Libera todo lo que reservan las etapas, igual que lily_lily_ensamble
     void* ctx = NULL;
+    uint8_t* bytes = NULL;
+    struct lily_lde_lde* ast = NULL;
+    struct lily_dict_dict* opciones = NULL;
     *estado = COD_OK;
+    *tam = 0;
     struct lily_lde_lde* simbolos = lily_a_lexico(fuente, mensaje_nulo, estado, &ctx);
-    if (*estado != COD_OK) return NULL;
-    struct lily_lde_lde* ast = lily_a_sintactico(simbolos, mensaje_nulo, estado, &ctx);
-    if (*estado != COD_OK) return NULL;
-    struct lily_dict_dict* opciones = lily_dict_create();
+    if (*estado != COD_OK) goto fin;
+    ast = lily_a_sintactico(simbolos, mensaje_nulo, estado, &ctx);
+    free(ctx);
+    ctx = NULL;
+    if (*estado != COD_OK) goto fin;
+    opciones = lily_dict_create();
     munit_assert_not_null(opciones);
-    return lily_a_semantico(ast, NULL, 0, tam, opciones, mensaje_nulo, estado, &ctx);
+    bytes = lily_a_semantico(ast, NULL, 0, tam, opciones, mensaje_nulo, estado, &ctx);
+    // Con un error, el contexto del semántico se conserva, con su mensaje de Lua
+    if (ctx != NULL) free(((struct lily_a_semantico_ctx*) ctx)->lua_msg);
+fin:
+    free(ctx);
+    lily_dict_destroy(opciones, NULL);
+    lily_simbolo_instrucciones_destroy(ast);
+    lily_simbolo_lista_destroy(simbolos);
+    return bytes;
 }
 
 // Evalúa \a expresion y devuelve su valor como entero de 32 bits con signo
@@ -100,6 +115,9 @@ MunitResult lily_expresiones_test_postfija_negativo(const MunitParameter params[
         munit_assert_int(simbolo->tipo, ==, tipos[i]);
         if (tipos[i] == SIMB_OPERADOR) munit_assert_int(simbolo->subtipo, ==, subtipos[i]);
     }
+    free(ctx);
+    lily_simbolo_instrucciones_destroy(ast);
+    lily_simbolo_lista_destroy(simbolos);
     return MUNIT_OK;
 }
 

@@ -169,3 +169,17 @@ enum lily_dict_estados lily_dict_iterate(struct lily_dict_iterador* iter, struct
     }
     return LILY_DICT_OK;
 }
+
+static void lily_dict_destroy_nodo(struct lily_dict_nodo* nodo, void (*liberar)(void*)) {
+    if (nodo == NULL) return;
+    lily_dict_destroy_nodo(nodo->izquierda, liberar);
+    lily_dict_destroy_nodo(nodo->derecha, liberar);
+    if (liberar != NULL) liberar(nodo->valor);
+    free(nodo);
+}
+
+void lily_dict_destroy(struct lily_dict_dict* dict, void (*liberar)(void*)) {
+    if (dict == NULL) return;
+    lily_dict_destroy_nodo(dict->raiz, liberar);
+    free(dict);
+}

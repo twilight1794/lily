@@ -361,6 +361,8 @@ static void lily_lua_cpu_ensamblar_funcion(lua_State* L, struct lily_simbolo_ins
     lily_lua_cpu_est_parametros(L, instruccion->params_tmp);
     if (lua_pcall(L, lily_lde_size(instruccion->params_tmp), 1, 0) == LUA_OK) {
         lua_Integer tam;
+        // La instrucción puede venir de una pasada anterior con bytes temporales
+        free(instruccion->bytes);
         instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, estado);
         instruccion->tam_bytes = (size_t) tam;
     }
@@ -377,6 +379,7 @@ static void lily_lua_cpu_ensamblar_lista(lua_State* L, struct lily_simbolo_instr
     free(msg_buf);
     lua_pop(L, 1);
     lua_Integer tam;
+    free(instruccion->bytes); // Puede venir de una pasada anterior
     instruccion->bytes = lily_lua_cpu_procesar_resultado(L, &tam, estado);
     instruccion->tam_bytes = (size_t) tam;
 }

@@ -115,6 +115,20 @@ enum lily_lde_estados lily_lde_remove_node(struct lily_lde_lde* lde, struct lily
  */
 size_t lily_lde_size(const struct lily_lde_lde* lde);
 
+/**
+ * Quita todos los elementos de la lista, que queda vacía pero utilizable
+ * @param lde Lista a vaciar
+ * @param liberar Si no es \c NULL, función a llamar con el valor de cada elemento para liberarlo
+ */
+void lily_lde_clear(struct lily_lde_lde* lde, void (*liberar)(void*));
+
+/**
+ * Libera la lista y todos sus nodos
+ * @param lde Lista a liberar; puede ser \c NULL
+ * @param liberar Si no es \c NULL, función a llamar con el valor de cada elemento para liberarlo
+ */
+void lily_lde_destroy(struct lily_lde_lde* lde, void (*liberar)(void*));
+
 // Macros para funciones auxiliares
 #define lily_lde_push(lde, valor) lily_lde_insert(lde, lily_lde_size(lde), valor)
 

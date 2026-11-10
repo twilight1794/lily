@@ -105,6 +105,14 @@ enum lily_dict_estados lily_dict_remove(struct lily_dict_dict* dict, const char*
  */
 size_t lily_dict_size(const struct lily_dict_dict* dict);
 
+/**
+ * Libera el diccionario y todos sus nodos
+ * @param dict Diccionario a liberar; puede ser \c NULL
+ * @param liberar Si no es \c NULL, función a llamar con el valor de cada entrada para liberarlo
+ * @note Las claves no se liberan: el diccionario no las copia al insertarlas, así que pertenecen a quien las insertó
+ */
+void lily_dict_destroy(struct lily_dict_dict* dict, void (*liberar)(void*));
+
 // Iteraciones
 
 /**

@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include "../common/cadena.h"
+#include "../common/dict.h"
 #include "../common/lde.h"
 #include "mensajes.h"
 
@@ -169,6 +170,24 @@ struct lily_simbolo_simbolo* lily_simbolo_simbolo_clone(struct lily_simbolo_simb
 char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo);
 
 /**
+ * Libera un símbolo y su valor. Un desplazamiento libera también la lista de símbolos que contiene
+ * @param simbolo Símbolo a liberar; puede ser \c NULL
+ */
+void lily_simbolo_simbolo_destroy(struct lily_simbolo_simbolo* simbolo);
+
+/**
+ * Libera todos los símbolos de una lista, que queda vacía pero utilizable
+ * @param lista Lista de símbolos
+ */
+void lily_simbolo_lista_clear(struct lily_lde_lde* lista);
+
+/**
+ * Libera una lista de símbolos, con todos sus símbolos
+ * @param lista Lista de símbolos; puede ser \c NULL
+ */
+void lily_simbolo_lista_destroy(struct lily_lde_lde* lista);
+
+/**
  * Devuelve el nivel de precedencia de un operador
  * @param operador Operador en cuestión
  * @return Nivel de precedencia de \a operador
@@ -211,6 +230,18 @@ struct lily_simbolo_instruccion* lily_simbolo_instruccion_create(void);
  */
 char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* instruccion);
 
+/**
+ * Libera una instrucción, con su etiqueta, su símbolo, sus parámetros y sus bytes
+ * @param instruccion Instrucción a liberar; puede ser \c NULL
+ */
+void lily_simbolo_instruccion_destroy(struct lily_simbolo_instruccion* instruccion);
+
+/**
+ * Libera una lista de instrucciones, como el AST, con todas sus instrucciones
+ * @param lista Lista de instrucciones; puede ser \c NULL
+ */
+void lily_simbolo_instrucciones_destroy(struct lily_lde_lde* lista);
+
 struct lily_simbolo_identificador {
     union lily_simbolo_numero* valor; /**< Número asociado al identificador */
     bool es_const; /**< Si se podrá modificar el valor asociado al identificador una vez asignado */
@@ -223,4 +254,11 @@ struct lily_simbolo_identificador {
  * @return Un objeto para identificador nuevo
  */
 struct lily_simbolo_identificador* lily_simbolo_identificador_create(void);
+
+/**
+ * Libera un diccionario de identificadores, con cada identificador y su valor
+ * @param identificadores Diccionario a liberar; puede ser \c NULL
+ * @note Las claves no se liberan: son las cadenas de las etiquetas, que pertenecen a sus instrucciones
+ */
+void lily_simbolo_identificadores_destroy(struct lily_dict_dict* identificadores);
 #endif

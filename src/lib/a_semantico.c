@@ -460,16 +460,16 @@ char* lily_a_semantico_obt_arquitectura_declarada(struct lily_lde_lde* ast, enum
             cctx->ultimo = instruccion->simbolo;
             return NULL;
         }
-        arquitectura = (char*) ((struct lily_simbolo_simbolo*) instruccion->params->inicio->valor)->valor;
-        // Liberar nodo
-        free(instruccion->params->inicio->valor);
-        lily_lde_remove_node(instruccion->params, instruccion->params->inicio);
-        free(instruccion->params);
-        free(instruccion->params_tmp);
-        free(instruccion);
+        // La cadena de la arquitectura pasa a quien llama, que debe liberarla
+        struct lily_simbolo_simbolo* simbolo_cadena = instruccion->params->inicio->valor;
+        arquitectura = (char*) simbolo_cadena->valor;
+        simbolo_cadena->valor = NULL;
+        // Liberar la instrucción .CPU, que ya no hace falta en el AST
+        lily_simbolo_instruccion_destroy(instruccion);
         lily_lde_remove_node(ast, nodo);
     }
     free(*ctx);
+    *ctx = NULL;
     return arquitectura;
 }
 
@@ -485,15 +485,18 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         return bytes;
     }
 
-    // Contador de localidad
+    // Contador de localidad: a partir de aquí, su identificador es dueño de pc_obj
     union lily_simbolo_numero* pc_obj = (union lily_simbolo_numero*) malloc(sizeof(union lily_simbolo_numero));
     if (pc_obj == NULL) {
         *estado = COD_MALLOC_FALLO;
+        lily_simbolo_identificadores_destroy(identificadores);
         return bytes;
     }
     struct lily_simbolo_identificador* pc_identificador = lily_a_semantico_anad_identificador(identificadores, "pc", pc_obj, true, estado, *ctx);
     if (pc_identificador == NULL) {
         *estado = COD_MALLOC_FALLO;
+        free(pc_obj);
+        lily_simbolo_identificadores_destroy(identificadores);
         return bytes;
     }
 
@@ -501,8 +504,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     size_t it_max_op = 10;
     struct lily_dict_nodo* it_max_nodo = lily_dict_get(opciones, "iteraciones_max");
     if (it_max_nodo != NULL) {
-        it_max_op = atoi(it_max_nodo->valor);
-        free(it_max_nodo);
+        it_max_op = atoi(it_max_nodo->valor); // El nodo pertenece al diccionario opciones
     }
 
     size_t iteraciones = 0;
@@ -531,29 +533,13 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
             instruccion = nodo->valor;
             if (instruccion->simbolo != NULL && !instruccion->reducido) {
                 // Si el símbolo no ha sido traducido, intentaremos traducirlo
-                msg_buf = d_printf("Procesando %s", lily_simbolo_instruccion_print(instruccion));
+                char* cad_inst = lily_simbolo_instruccion_print(instruccion);
+                msg_buf = d_printf("Procesando %s", cad_inst);
+                free(cad_inst);
                 enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
                 free(msg_buf);
-                // Limpiar lista temporal
-                if (lily_lde_size(instruccion->params_tmp)) {
-                    lily_lde_foreachm(instruccion->params_tmp, nodo_limp, nodo_limp_sig) {
-                        struct lily_simbolo_simbolo* simbolo_limp = nodo_limp->valor;
-                        // Si es desplazamiento, aparte hay qué borrar su contenido
-                        if (simbolo_limp->subtipo == SIMB_DESPLAZAMIENTO_AP) {
-                            lily_lde_foreachm(simbolo_limp->valor, nodo_limp_d, nodo_limp_d_sig) {
-                                struct lily_simbolo_simbolo* simbolo_limp_d = nodo_limp_d->valor;
-                                free(simbolo_limp_d->valor);
-                                free(simbolo_limp_d);
-                                lily_lde_remove_node(nodo_limp->valor, nodo_limp_d);
-                            }
-                        }
-                        else {
-                            free(simbolo_limp->valor);
-                            free(simbolo_limp);
-                            lily_lde_remove_node(instruccion->params_tmp, nodo_limp);
-                        }
-                    }
-                }
+                // Limpiar lista temporal (un desplazamiento se libera con todo su contenido)
+                lily_simbolo_lista_clear(instruccion->params_tmp);
                 // Copiar símbolos a lista temporal
                 lily_lde_foreach(instruccion->params, nodo_orig) {
                     struct lily_simbolo_simbolo* simbolo_orig = nodo_orig->valor;
@@ -563,9 +549,10 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                         break;
                     }
                     if (lily_lde_push(instruccion->params_tmp, simbolo_copia) == NULL) {
-                        // FIX: borrar resto de elementos ya añadidos a la lista
-                        free(simbolo_copia);
-                        return NULL;
+                        // Los ya añadidos se liberan en la siguiente limpieza, o con la instrucción
+                        lily_simbolo_simbolo_destroy(simbolo_copia);
+                        *estado = COD_MALLOC_FALLO;
+                        break;
                     }
                 }
                 if (*estado != COD_OK) {
@@ -575,7 +562,9 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                 enum lily_a_semantico_reduccion reducido = lily_a_semantico_reducir(instruccion->simbolo, instruccion->params_tmp, identificadores, estado, *ctx);
                 // Analizar reducción
                 if (reducido != SIN_REDUCCION) {
-                    msg_buf = d_printf("se ha reducido %s%s", (reducido == REDUCCION_TEMPORAL)?"temporalmente ":"", lily_simbolo_instruccion_print(instruccion));
+                    cad_inst = lily_simbolo_instruccion_print(instruccion);
+                    msg_buf = d_printf("se ha reducido %s%s", (reducido == REDUCCION_TEMPORAL)?"temporalmente ":"", cad_inst);
+                    free(cad_inst);
                     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
                     free(msg_buf);
                     // Bandera de actualización temporal
@@ -613,13 +602,17 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                         sprintf(cad+(i*6), "0x%02X", instruccion->bytes[i]);
                         if (i+1 < instruccion->tam_bytes) sprintf(cad+(i*6)+4, ", ");
                     }
-                    msg_buf = d_printf("%s generó %lu bytes (%s)", lily_simbolo_simbolo_print(instruccion->simbolo), instruccion->tam_bytes, cad);
+                    cad_inst = lily_simbolo_simbolo_print(instruccion->simbolo);
+                    msg_buf = d_printf("%s generó %lu bytes (%s)", cad_inst, instruccion->tam_bytes, cad);
+                    free(cad_inst);
                     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
                     free(msg_buf);
                     free(cad);
                 }
                 else {
-                    msg_buf = d_printf("Reducción no completada: %s", lily_simbolo_instruccion_print(instruccion));
+                    cad_inst = lily_simbolo_instruccion_print(instruccion);
+                    msg_buf = d_printf("Reducción no completada: %s", cad_inst);
+                    free(cad_inst);
                     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
                     free(msg_buf);
                     num_indeterminadas++;
@@ -627,7 +620,9 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                 }
             }
             else if (instruccion->simbolo != NULL && instruccion->reducido) {
-                msg_buf = d_printf("Saltando instrucción ya reducida: %s", lily_simbolo_instruccion_print(instruccion));
+                char* cad_inst = lily_simbolo_instruccion_print(instruccion);
+                msg_buf = d_printf("Saltando instrucción ya reducida: %s", cad_inst);
+                free(cad_inst);
                 enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
                 free(msg_buf);
             }
@@ -684,7 +679,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         // ¿Salimos por un error?
         if (*estado != COD_OK) {
             *tam = 0;
-            return bytes;
+            goto fin;
         }
         msg_buf = d_printf("Instrucciones no reducidas: %zu, temporales: %zu", num_indeterminadas, num_temporales);
         enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
@@ -693,7 +688,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
 
     if (iteraciones >= it_max_op) {
         *estado = COD_A_SEMANTICO_MAXIMO_ITERACIONES;
-        return bytes;
+        goto fin;
     }
 
     // Cuando acabemos, crear el array...
@@ -701,7 +696,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     bytes = malloc(*tam ? *tam : 1); // malloc(0) puede devolver NULL sin que sea un fallo
     if (bytes == NULL) {
         *estado = COD_MALLOC_FALLO;
-        return bytes;
+        goto fin;
     }
     // ...escribir en array
     size_t desp = 0;
@@ -714,7 +709,12 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         }
         nodo = nodo->posterior;
     }
+    // Sin errores, el contexto ya no hace falta. Con un error se conserva, pues quien llama lo usa
+    // para informar del error, y debe liberarlo después
     free(cctx->lua_msg);
     free(*ctx);
+    *ctx = NULL;
+fin:
+    lily_simbolo_identificadores_destroy(identificadores);
     return bytes;
 }

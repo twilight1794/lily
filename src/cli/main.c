@@ -358,6 +358,8 @@ int main(int argc, char** argv) {
         datos_entrada = datos_proceso;
         tam_entrada = tam_proceso;
     }
+    // Ninguna etapa usa ya el archivo de entrada: la ejecución copió el programa a la memoria de la máquina
+    lily_cli_archivo_close(archivo_entrada_obj);
     if (estado != COD_OK) {
         exit(estado);
     }
@@ -372,6 +374,7 @@ int main(int argc, char** argv) {
         memcpy(archivo_salida_obj->p, datos_salida, tam_salida);
         lily_cli_archivo_close(archivo_salida_obj);
     }
+    free(datos_salida);
     exit(COD_OK);
 }
 

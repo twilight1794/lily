@@ -223,8 +223,9 @@ char* lily_simbolo_simbolo_print(const struct lily_simbolo_simbolo* simbolo) {
                         }
                     }
                     buff = (char*) malloc(snprintf(NULL, 0, patron, LC, cad) + 1);
+                    if (buff != NULL) sprintf(buff, patron, LC, cad);
+                    free(cad);
                     if (buff == NULL) return NULL;
-                    sprintf(buff, patron, LC, cad);
                 }
             }
             else if (simbolo->subtipo == SIMB_DESPLAZAMIENTO_CI) {
@@ -374,6 +375,7 @@ char* lily_simbolo_instruccion_print(const struct lily_simbolo_instruccion* inst
         char* cad_tipo = lily_simbolo_simbolo_print(instruccion->simbolo);
         if (cad_tipo == NULL) return NULL;
         buff_tmp = lily_cadena_concat(buff, cad_tipo);
+        free(cad_tipo);
         if (buff_tmp == NULL) return NULL;
         buff = buff_tmp;
         buff_tmp = lily_cadena_concat(buff, " { ");
@@ -413,4 +415,50 @@ struct lily_simbolo_identificador* lily_simbolo_identificador_create(void) {
         obj->origen = NULL;
     }
     return obj;
+}
+
+// Envolturas con la firma que esperan lily_lde_clear, lily_lde_destroy y lily_dict_destroy
+static void lily_simbolo_liberar_simbolo(void* simbolo) { lily_simbolo_simbolo_destroy(simbolo); }
+static void lily_simbolo_liberar_instruccion(void* instruccion) { lily_simbolo_instruccion_destroy(instruccion); }
+static void lily_simbolo_liberar_identificador(void* obj) {
+    struct lily_simbolo_identificador* identificador = obj;
+    free(identificador->valor);
+    free(identificador);
+}
+
+void lily_simbolo_simbolo_destroy(struct lily_simbolo_simbolo* simbolo) {
+    if (simbolo == NULL) return;
+    if (simbolo->tipo == SIMB_OPERADOR && simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP)
+        lily_simbolo_lista_destroy(simbolo->valor);
+    else
+        free(simbolo->valor); // Cadena, número, o NULL para los demás operadores
+    free(simbolo);
+}
+
+void lily_simbolo_lista_clear(struct lily_lde_lde* lista) {
+    lily_lde_clear(lista, lily_simbolo_liberar_simbolo);
+}
+
+void lily_simbolo_lista_destroy(struct lily_lde_lde* lista) {
+    lily_lde_destroy(lista, lily_simbolo_liberar_simbolo);
+}
+
+void lily_simbolo_instruccion_destroy(struct lily_simbolo_instruccion* instruccion) {
+    if (instruccion == NULL) return;
+    lily_simbolo_simbolo_destroy(instruccion->etiqueta);
+    lily_simbolo_simbolo_destroy(instruccion->simbolo);
+    lily_simbolo_lista_destroy(instruccion->params);
+    lily_simbolo_lista_destroy(instruccion->params_tmp);
+    lily_simbolo_instrucciones_destroy(instruccion->instrucciones);
+    lily_simbolo_instrucciones_destroy(instruccion->instruccionesn);
+    free(instruccion->bytes);
+    free(instruccion);
+}
+
+void lily_simbolo_instrucciones_destroy(struct lily_lde_lde* lista) {
+    lily_lde_destroy(lista, lily_simbolo_liberar_instruccion);
+}
+
+void lily_simbolo_identificadores_destroy(struct lily_dict_dict* identificadores) {
+    lily_dict_destroy(identificadores, lily_simbolo_liberar_identificador);
 }

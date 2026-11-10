@@ -72,6 +72,7 @@ enum lily_estado lily_a_lexico_modo_directiva(const char* blob, size_t* i, const
             (*sim)->linea = *linea;
             (*sim)->linea_pos = *linea_pos;
             (*sim)->pos = *i_inicial;
+            free(cad_tentativa); // La directiva queda identificada por su subtipo
             return COD_OK;
         }
     }

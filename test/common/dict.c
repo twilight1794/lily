@@ -73,6 +73,7 @@ MunitResult lily_dict_test_insercion_eliminacion_tamano(const MunitParameter par
     munit_assert_size(lily_dict_size(dict), ==, 1);
     munit_assert_int(LILY_DICT_OK, ==, lily_dict_remove(dict, "nombre"));
     munit_assert_size(lily_dict_size(dict), ==, 0);
+    lily_dict_destroy(dict, NULL);
     return MUNIT_OK;
 }
 
@@ -144,5 +145,7 @@ MunitResult lily_dict_test_iteracion(const MunitParameter params[], void *user_d
     munit_assert_int(visitados[1], ==, true);
     munit_assert_int(visitados[2], ==, true);
 
+    free(it);
+    lily_dict_destroy(dict, NULL);
     return MUNIT_OK;
 }

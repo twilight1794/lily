@@ -103,3 +103,22 @@ enum lily_lde_estados lily_lde_remove_node(struct lily_lde_lde* lde, struct lily
 inline size_t lily_lde_size(const struct lily_lde_lde* lde) {
     return lde->tamano;
 }
+
+void lily_lde_clear(struct lily_lde_lde* lde, void (*liberar)(void*)) {
+    struct lily_lde_nodo* nodo = lde->inicio;
+    while (nodo != NULL) {
+        struct lily_lde_nodo* siguiente = nodo->posterior;
+        if (liberar != NULL) liberar(nodo->valor);
+        free(nodo);
+        nodo = siguiente;
+    }
+    lde->inicio = NULL;
+    lde->final = NULL;
+    lde->tamano = 0;
+}
+
+void lily_lde_destroy(struct lily_lde_lde* lde, void (*liberar)(void*)) {
+    if (lde == NULL) return;
+    lily_lde_clear(lde, liberar);
+    free(lde);
+}

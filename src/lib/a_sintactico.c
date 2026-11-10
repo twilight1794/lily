@@ -83,13 +83,17 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                         ctx->ultimo = simbolo;
                         break;
                     }
-                    free(o2);
+                    // Ni "(" ni ")" pasan a la salida: se liberan
+                    lily_simbolo_simbolo_destroy(o2);
                     o2 = NULL;
                     esperando_unario = false;
                     lily_lde_remove_node(simbolos, pila_actual->final->valor);
                     lily_lde_remove_node(pila_actual, pila_actual->final);
+                    nodo_viejo = *nodo;
                     *nodo = (*nodo)->posterior;
                     if (*nodo != NULL) simbolo = (*nodo)->valor;
+                    lily_simbolo_simbolo_destroy(nodo_viejo->valor);
+                    lily_lde_remove_node(simbolos, nodo_viejo);
                     // Note: Para función: sería esto mismo, y averiguar si ahora hay un símbolo llamada-a-función, y moverlo a la lista
                 }
                 else if (simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
@@ -137,12 +141,14 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                     }
                     ((struct lily_simbolo_simbolo*) instruccion->params->final->valor)->valor = lista_desplazamiento;
                     lista_desplazamiento = NULL;
-                    free(pila_desplazamiento);
+                    lily_lde_destroy(pila_desplazamiento, NULL);
                     pila_desplazamiento = NULL;
                     esperando_unario = false;
                     nodo_viejo = *nodo;
                     *nodo = (*nodo)->posterior;
                     if (*nodo != NULL) simbolo = (*nodo)->valor;
+                    // "]" no pasa a la salida: el desplazamiento queda representado por "["
+                    lily_simbolo_simbolo_destroy(nodo_viejo->valor);
                     lily_lde_remove_node(simbolos, nodo_viejo);
                 }
                 else if (simbolo->subtipo == SIMB_SEPARADOR) {
@@ -159,6 +165,8 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
                     nodo_viejo = *nodo;
                     *nodo = (*nodo)->posterior;
                     if (*nodo != NULL) simbolo = (*nodo)->valor;
+                    // "," no pasa a la salida
+                    lily_simbolo_simbolo_destroy(nodo_viejo->valor);
                     lily_lde_remove_node(simbolos, nodo_viejo);
                 }
                 else {
@@ -191,15 +199,29 @@ static enum lily_estado lily_a_sintactico_modo_instruccion(struct lily_lde_lde* 
         }
         if (estado != COD_OK) break;
     }
-    while (lily_lde_size(pila_simbolos)) {
+    // Un "[" sin cerrar al final de la línea
+    if (estado == COD_OK && pila_desplazamiento != NULL) {
+        estado = COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS;
+        ctx->ultimo = instruccion->params->final->valor;
+    }
+    while (estado == COD_OK && lily_lde_size(pila_simbolos)) {
         struct lily_lde_nodo* nodo_pila = (struct lily_lde_nodo*) pila_simbolos->final->valor;
         struct lily_simbolo_simbolo* simbolo_pila = nodo_pila->valor;
-        if (simbolo_pila->subtipo != SIMB_PARENTESIS_AP) {
-            lily_lde_insert(instruccion->params, lily_lde_size(instruccion->params), simbolo_pila);
-            lily_lde_remove_node(simbolos, nodo_pila);
-            lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
+        if (simbolo_pila->subtipo == SIMB_PARENTESIS_AP) {
+            // Un "(" sin cerrar: antes, este bucle no terminaba
+            estado = COD_A_SINTACTICO_PARENTESIS_DESBALANCEADOS;
+            ctx->ultimo = simbolo_pila;
+            break;
         }
+        lily_lde_insert(instruccion->params, lily_lde_size(instruccion->params), simbolo_pila);
+        lily_lde_remove_node(simbolos, nodo_pila);
+        lily_lde_remove_node(pila_simbolos, pila_simbolos->final);
     }
+    // Las pilas guardan nodos de \a simbolos, que siguen en esa lista: solo se liberan los nodos de las pilas.
+    // La lista de desplazamiento, si quedó, ya tiene símbolos que salieron de \a simbolos
+    lily_lde_destroy(pila_simbolos, NULL);
+    lily_lde_destroy(pila_desplazamiento, NULL);
+    lily_simbolo_lista_destroy(lista_desplazamiento);
     return estado;
 }
 
@@ -245,7 +267,15 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, f_mensajes
             nodo = nodo->posterior;
             lily_lde_remove_node(simbolos, nodo_viejo);
         }
-        if (nodo == NULL) break; // Si la etiqueta está al final de todo, salimos
+        if (nodo == NULL) {
+            // La etiqueta está al final de todo: es una instrucción por sí misma
+            if (lily_lde_insert(ast, lily_lde_size(ast), instruccion) == NULL) {
+                lily_simbolo_instruccion_destroy(instruccion);
+                *estado = COD_MALLOC_FALLO;
+                cctx->ultimo = NULL;
+            }
+            break;
+        }
         simbolo = nodo->valor;
         // Si no, vemos si seguimos en la misma línea
         if (simbolo->linea > linea_actual) {
@@ -270,25 +300,30 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, f_mensajes
             nodo_viejo = nodo;
             nodo = nodo->posterior;
             lily_lde_remove_node(simbolos, nodo_viejo);
-            lily_a_sintactico_modo_instruccion(simbolos, &nodo, instruccion, *ctx);
+            *estado = lily_a_sintactico_modo_instruccion(simbolos, &nodo, instruccion, *ctx);
+            // Aunque haya un error, la instrucción pasa al AST para liberarse junto con él
+            if (lily_lde_insert(ast, lily_lde_size(ast), instruccion) == NULL) {
+                lily_simbolo_instruccion_destroy(instruccion);
+                if (*estado == COD_OK) {
+                    *estado = COD_MALLOC_FALLO;
+                    cctx->ultimo = NULL;
+                }
+            }
             if (*estado != COD_OK) break;
-            lily_lde_insert(ast, lily_lde_size(ast), instruccion);
-        }
-        else if (simbolo->tipo == SIMB_ETI) {
-            *estado = COD_A_SINTACTICO_ETIQUETA_MULTIPLE_LINEA;
-            cctx->ultimo = simbolo;
-            break;
         }
         else {
-            *estado = COD_A_SINTACTICO_SIMBOLO_INICIAL_INVALIDO;
-            cctx->ultimo = simbolo;
+            *estado = (simbolo->tipo == SIMB_ETI) ? COD_A_SINTACTICO_ETIQUETA_MULTIPLE_LINEA : COD_A_SINTACTICO_SIMBOLO_INICIAL_INVALIDO;
+            cctx->ultimo = simbolo; // Sigue en \a simbolos
+            // La instrucción puede tener ya una etiqueta: pasa al AST para liberarse junto con él
+            if (lily_lde_insert(ast, lily_lde_size(ast), instruccion) == NULL)
+                lily_simbolo_instruccion_destroy(instruccion);
             break;
         }
         simb_cad = lily_simbolo_instruccion_print(instruccion);
         char* simb_cad_prefijo = realloc(simb_cad, strlen(simb_cad) + 6);
         if (simb_cad_prefijo == NULL) {
+            free(simb_cad);
             *estado = COD_MALLOC_FALLO;
-            free(ast);
             break;
         }
         memmove(simb_cad_prefijo + 5, simb_cad_prefijo, strlen(simb_cad_prefijo) + 1);
@@ -297,9 +332,7 @@ struct lily_lde_lde* lily_a_sintactico(struct lily_lde_lde* simbolos, f_mensajes
         free(simb_cad_prefijo);
     } while (nodo != NULL);
 
-    if (*estado != COD_OK) {
-        free(ast);
-        return NULL;
-    }
+    // Si hubo un error, el AST se devuelve igual: \a ctx puede apuntar a uno de sus símbolos, así que
+    // quien llama debe liberarlo con lily_simbolo_instrucciones_destroy después de informar del error
     return ast;
 }
