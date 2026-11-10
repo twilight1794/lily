@@ -558,7 +558,8 @@ struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, int* estado
         sprintf(archivo_arquitectura_ruta, "%s.lua", archivo);
         log_debug_v(l, "obt_archivo", _("Searching architecture description file at ./%s"), archivo_arquitectura_ruta);
         obj->obj = (void*) lily_cli_archivo_create(archivo_arquitectura_ruta, 0);
-        if (obj->obj == NULL) {
+        if (obj->obj != NULL) free(archivo_arquitectura_ruta);
+        else {
             // Si no, en el directorio predeterminado
             ruta_tam = strlen(archivo) + strlen(MISCDIR) + 10;
             char* tmp = (char*) realloc(archivo_arquitectura_ruta, ruta_tam * sizeof(char));
@@ -595,7 +596,9 @@ struct lily_lily_archivo* obt_archivo(const char* archivo, int tipo, int* estado
     return obj;
 }
 int cerrar_archivo(struct lily_lily_archivo* st) {
-    return lily_cli_archivo_close((struct lily_cli_archivo*) st->obj);
+    const int res = lily_cli_archivo_close((struct lily_cli_archivo*) st->obj);
+    free(st);
+    return res;
 }
 #elif defined(_WIN32)
 #error "Windows aún no está soportado"

@@ -89,6 +89,7 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
     // Abrir esquema de la arquitectura en la ruta generada
     char* lua_msg = NULL;
     lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, estado, &lua_msg);
+    fun_cerrar_archivo(archivo_arquitectura);
     if (*estado != COD_OK) {
         msg_buf = d_printf("codigo=%d (%s)", *estado, lua_msg);
         fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lily_ensamble", msg_buf);
@@ -96,7 +97,6 @@ uint8_t* lily_lily_ensamble(const char* datos_entrada, char* arquitectura, struc
         free(lua_msg);
         return NULL;
     }
-    fun_cerrar_archivo(archivo_arquitectura);
 
     // Análisis semántico
     uint8_t* datos_salida = lily_a_semantico(ast, L, 0, tam_salida, opciones, fun_mensaje, estado, ctx);
@@ -115,14 +115,15 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
     ctx->lua_msg = NULL;
     ctx->estado = COD_OK;
 
+    // Sin arquitectura no hay nada que hacer
+    if (arquitectura == NULL) {
+        ctx->estado = COD_LILY_CPU_NO_ESPECIFICADO;
+        return NULL;
+    }
+
     // Cargar y preparar entorno de Lua
     lua_State* L = lily_lua_entorno_preparar(&ctx->estado, ctx->fun_mensaje);
     if (ctx->estado != COD_OK) {
-        return NULL;
-    }
-    // FIX: comprobar si éste es un buen lugar para comprobar esto
-    if (arquitectura == NULL) {
-        ctx->estado = COD_LILY_CPU_NO_ESPECIFICADO;
         return NULL;
     }
     lily_lua_int_preparar(L);
@@ -130,16 +131,17 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
     struct lily_lily_archivo* archivo_arquitectura = ctx->fun_abrir_archivo(arquitectura, 0, (int*) &ctx->estado);
     if (archivo_arquitectura == NULL) {
         ctx->estado = COD_LILY_SIN_ESQUEMA;
+        lua_close(L);
         return NULL;
     }
     // El contexto de la ejecución se queda con la copia del mensaje de Lua, si lo hay
     char* lua_msg = NULL;
     lily_lua_cpu_cargar(L, archivo_arquitectura->archivo, &ctx->estado, &lua_msg);
     ctx->lua_msg = lua_msg;
+    ctx->fun_cerrar_archivo(archivo_arquitectura);
     if (ctx->estado != COD_OK) {
         return NULL;
     }
-    ctx->fun_cerrar_archivo(archivo_arquitectura);
     // Preparar máquina
     struct lily_lua_ejecucion_maquina* maquina = lily_lua_ejecucion_ini(L, ctx);
     if (maquina == NULL) {
