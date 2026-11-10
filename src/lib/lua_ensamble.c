@@ -197,7 +197,7 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     if (!strcmp(tipo, "uint64") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) return false;
         n.positivo = ((union lily_simbolo_numero*) simbolo->valor)->positivo;
-        return n.positivo >= 18446744073709551615U;
+        return n.positivo <= 18446744073709551615U;
     }
     if (!strcmp(tipo, "sint64") && simbolo->tipo == SIMB_NUMERO) {
         if (simbolo->signo) {
