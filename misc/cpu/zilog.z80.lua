@@ -1381,7 +1381,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1409,7 +1409,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1436,7 +1436,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1463,7 +1463,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1490,7 +1490,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1517,7 +1517,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1531,7 +1531,7 @@ return {
                 {
                     { function (byte) return byte & 0xf8 == 0 end }, -- RLC r
                     function (bytes)
-                        local r = rr_vals_rr[bytes[2] & 7]
+                        local r = r_vals_r[bytes[2] & 7]
                         local rv = L.leer_registro(r)
                         local b7 = (rv & 0x80) >> 7
                         local v = ((rv << 1) & 0xff) + b7
@@ -1545,7 +1545,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1559,7 +1559,7 @@ return {
                 {
                     { function (byte) return byte & 0xf8 == 0x10 end }, -- RL r
                     function (bytes)
-                        local r = rr_vals_rr[bytes[2] & 7]
+                        local r = r_vals_r[bytes[2] & 7]
                         local rv = L.leer_registro(r)
                         local v = ((rv << 1) & 0xff) + L.leer_registro("CF")
                         if (v < 0) then
@@ -1572,7 +1572,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1586,7 +1586,7 @@ return {
                 {
                     { function (byte) return byte & 0xf8 == 8 end }, -- RRC r
                     function (bytes)
-                        local r = rr_vals_rr[bytes[2] & 7]
+                        local r = r_vals_r[bytes[2] & 7]
                         local rv = L.leer_registro(r)
                         local b0 = rv & 1
                         local v = (rv >> 1) + (b0 << 7)
@@ -1600,7 +1600,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1614,7 +1614,7 @@ return {
                 {
                     { function (byte) return byte & 0xf8 == 0x18 end }, -- RR r
                     function (bytes)
-                        local r = rr_vals_rr[bytes[2] & 7]
+                        local r = r_vals_r[bytes[2] & 7]
                         local rv = L.leer_registro(r)
                         local v = (rv >> 1) + L.leer_registro("CF")
                         if (v < 0) then
@@ -1627,7 +1627,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1641,7 +1641,7 @@ return {
                 {
                     { function (byte) return byte & 0xc7 == 0x20 end }, -- SLA r
                     function (bytes)
-                        local r = rr_vals_rr[bytes[2] & 7]
+                        local r = r_vals_r[bytes[2] & 7]
                         local rv = L.leer_registro(r)
                         local v = (rv << 1) & 0xff
                         if (v < 0) then
@@ -1654,7 +1654,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1668,7 +1668,7 @@ return {
                 {
                     { function (byte) return byte & 0xc7 == 0x38 end }, -- SRA r
                     function (bytes)
-                        local r = rr_vals_rr[bytes[2] & 7]
+                        local r = r_vals_r[bytes[2] & 7]
                         local rv = L.leer_registro(r)
                         local v = (rv >> 1) + (rv & 0x80)
                         if (v < 0) then
@@ -1681,7 +1681,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -1695,7 +1695,7 @@ return {
                 {
                     { function (byte) return byte & 0xc7 == 0x38 end }, -- SRL r
                     function (bytes)
-                        local r = rr_vals_rr[bytes[2] & 7]
+                        local r = r_vals_r[bytes[2] & 7]
                         local rv = L.leer_registro(r)
                         local v = rv >> 1
                         if (v < 0) then
@@ -1708,7 +1708,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -2185,7 +2185,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -2213,7 +2213,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -2240,7 +2240,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -2267,7 +2267,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -2294,7 +2294,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -2321,7 +2321,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -3261,7 +3261,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -3289,7 +3289,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -3316,7 +3316,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -3343,7 +3343,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -3370,7 +3370,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -3397,7 +3397,7 @@ return {
                         else
                             L.escribir_registro("ZF", 0)
                         end
-                        L.escribir_registro("HF")
+                        L.escribir_registro("HF", 0)
                         if (v % 2 == 0) then
                             L.escribir_registro("VF", 1)
                         else
@@ -3551,7 +3551,7 @@ return {
         },
         {
             { function (byte) return byte & 0xc0 == 0x40 end }, -- LD r, r
-            function (byte)
+            function (bytes)
                 local r1 = r_vals_r[(bytes[1] & 0x38) >> 3]
                 local r2 = r_vals_r[bytes[1] & 7]
                 L.escribir_registro(r1, L.leer_registro(r2))
@@ -3862,16 +3862,16 @@ return {
             end
         },
         {
-            { function (byte) return byte & 0xc7 == 0xc2 end, bytes, bytes }, -- JP cc, nn
+            { function (byte) return byte & 0xc7 == 0xc2 end, true, true }, -- JP cc, nn
             function (bytes)
                 local idx = (bytes[1] & 0x38) >> 3
                 local cc = cc_vals_cc[idx]
-                if (cc == "NZ" and L.leer_registro("ZF") == 1) or
-                    (cc == "Z" and L.leer_registro("ZF") == 0) or
-                    (cc == "NC" and L.leer_registro("CF") == 1) or
-                    (cc == "C" and L.leer_registro("CF") == 0) or
-                    (cc == "PO" and L.leer_registro("VF") == 1) or
-                    (cc == "PE" and L.leer_registro("VF") == 0) or
+                if (cc == "NZ" and L.leer_registro("ZF") == 0) or
+                    (cc == "Z" and L.leer_registro("ZF") == 1) or
+                    (cc == "NC" and L.leer_registro("CF") == 0) or
+                    (cc == "C" and L.leer_registro("CF") == 1) or
+                    (cc == "PO" and L.leer_registro("VF") == 0) or
+                    (cc == "PE" and L.leer_registro("VF") == 1) or
                     (cc == "P" and L.leer_registro("SF") == 0) or
                     (cc == "M" and L.leer_registro("SF") == 1) then
                     L.escribir_registro("PC", bytes[2] + (bytes[3] << 8))
@@ -3896,12 +3896,12 @@ return {
             function (bytes)
                 local idx = (bytes[1] & 0x38) >> 3
                 local cc = cc_vals_cc[idx]
-                if (cc == "NZ" and L.leer_registro("ZF") == 1) or
-                    (cc == "Z" and L.leer_registro("ZF") == 0) or
-                    (cc == "NC" and L.leer_registro("CF") == 1) or
-                    (cc == "C" and L.leer_registro("CF") == 0) or
-                    (cc == "PO" and L.leer_registro("VF") == 1) or
-                    (cc == "PE" and L.leer_registro("VF") == 0) or
+                if (cc == "NZ" and L.leer_registro("ZF") == 0) or
+                    (cc == "Z" and L.leer_registro("ZF") == 1) or
+                    (cc == "NC" and L.leer_registro("CF") == 0) or
+                    (cc == "C" and L.leer_registro("CF") == 1) or
+                    (cc == "PO" and L.leer_registro("VF") == 0) or
+                    (cc == "PE" and L.leer_registro("VF") == 1) or
                     (cc == "P" and L.leer_registro("SF") == 0) or
                     (cc == "M" and L.leer_registro("SF") == 1) then
                     local pc = L.leer_registro("PC") + 3
@@ -3918,12 +3918,12 @@ return {
             function (bytes)
                 local idx = (bytes[1] & 0x38) >> 3
                 local cc = cc_vals_cc[idx]
-                if (cc == "NZ" and L.leer_registro("ZF") == 1) or
-                    (cc == "Z" and L.leer_registro("ZF") == 0) or
-                    (cc == "NC" and L.leer_registro("CF") == 1) or
-                    (cc == "C" and L.leer_registro("CF") == 0) or
-                    (cc == "PO" and L.leer_registro("VF") == 1) or
-                    (cc == "PE" and L.leer_registro("VF") == 0) or
+                if (cc == "NZ" and L.leer_registro("ZF") == 0) or
+                    (cc == "Z" and L.leer_registro("ZF") == 1) or
+                    (cc == "NC" and L.leer_registro("CF") == 0) or
+                    (cc == "C" and L.leer_registro("CF") == 1) or
+                    (cc == "PO" and L.leer_registro("VF") == 0) or
+                    (cc == "PE" and L.leer_registro("VF") == 1) or
                     (cc == "P" and L.leer_registro("SF") == 0) or
                     (cc == "M" and L.leer_registro("SF") == 1) then
                     local sp = L.leer_registro("SP")
