@@ -64,6 +64,12 @@ int lily_lua_ejecucion_escribir_registro(struct lily_lua_ejecucion_maquina* maqu
 struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct lily_lua_ejecucion_ctx* ctx);
 
 /**
+ * Libera una máquina virtual Lily: su memoria, sus registros y su sesión de Lua
+ * @param maquina Máquina virtual a liberar; puede ser \c NULL
+ */
+void lily_lua_ejecucion_fin(struct lily_lua_ejecucion_maquina* maquina);
+
+/**
  * @brief Cargador de arranque primigenio
  * Carga una secuencia de bytes a memoria
  * @param maquina Máquina virtual sobre la que se trabajará

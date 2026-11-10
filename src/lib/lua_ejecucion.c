@@ -204,6 +204,15 @@ struct lily_lua_ejecucion_maquina* lily_lua_ejecucion_ini(lua_State* L, struct l
     return obj;
 }
 
+void lily_lua_ejecucion_fin(struct lily_lua_ejecucion_maquina* maquina) {
+    if (maquina == NULL) return;
+    free(maquina->registros);
+    free(maquina->memoria);
+    // La máquina es dueña de la sesión: al cerrarla, también deja de ser válido maquina->pc
+    lua_close(maquina->L);
+    free(maquina);
+}
+
 void lily_lua_ejecucion_arrancar(struct lily_lua_ejecucion_maquina* maquina, uint8_t* programa, size_t tamano, struct lily_lua_ejecucion_ctx* ctx) {
     // TODO: Por ahora, solo copiamos los datos de un lado a otro desde el inicio
     // Para otros sistemas, vendrá la carga de una BIOS

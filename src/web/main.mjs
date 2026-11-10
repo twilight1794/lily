@@ -299,6 +299,9 @@ class Maquina {
      * @param {string} arquitectura Identificador del esquema del microprocesador a utilizar.
      */
     iniciar(datos_entrada, arquitectura) {
+        // Si ya había una máquina encendida, se libera antes de crear otra
+        this.apagar();
+
         // size_t tamano
         let tam_datos_entrada_iniciar = datos_entrada.length; // FIX: ver el tamaño de esto
 
@@ -352,6 +355,24 @@ class Maquina {
             //-M._free(this.p_ctx);
         }
         return estado;
+    }
+
+    /**
+     * Libera la máquina virtual creada con iniciar(), si la hay, junto con su contexto de ejecución
+     */
+    apagar() {
+        if (this.p_ejecucion_ctx === undefined) return;
+        // Acepta una máquina nula, por si su creación falló: aun así libera el mensaje de Lua del contexto
+        M.ccall("lily_lily_destruccion_maquina",
+                null,
+                ["number", "number"],
+                [this.p_maquina, this.p_ejecucion_ctx]
+               );
+        M._free(this.p_ejecucion_ctx);
+        M._free(this.p_datos_entrada_iniciar);
+        this.p_maquina = undefined;
+        this.p_ejecucion_ctx = undefined;
+        this.p_datos_entrada_iniciar = undefined;
     }
 
     leer_memoria(direccion, anunciar=false) {

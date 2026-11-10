@@ -189,10 +189,7 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
     }
     lily_lua_ejecucion_arrancar(maquina, (uint8_t*) bytes, tamano, ctx);
     if (ctx->estado != COD_OK) {
-        free(maquina->registros);
-        free(maquina->memoria);
-        free(maquina);
-        lua_close(L);
+        lily_lua_ejecucion_fin(maquina); // Cierra también la sesión de Lua
         return NULL;
     }
     return maquina;
@@ -200,4 +197,13 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
 
 void lily_lily_ejecutar_instruccion(void* maquina, struct lily_lua_ejecucion_ctx* ctx) {
     lily_lua_ejecucion_ejecutar(maquina, ctx);
+}
+
+void lily_lily_destruccion_maquina(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
+    lily_lua_ejecucion_fin(maquina);
+    if (ctx != NULL) {
+        // Es la copia que reservó lily_lily_creacion_maquina, aunque el campo sea const
+        free((char*) ctx->lua_msg);
+        ctx->lua_msg = NULL;
+    }
 }

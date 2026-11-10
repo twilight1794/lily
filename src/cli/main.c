@@ -349,6 +349,10 @@ int main(int argc, char** argv) {
                     ejecutora(maquina, ctx_e);
                 }
             }
+            // La máquina ya no se usará, haya fallado su creación o haya terminado de ejecutarse
+            lily_lily_destruccion_maquina(maquina, ctx_e);
+            free(ctx);
+            ctx = NULL;
         }
         if (etapa_final == etapa_actual) {
             datos_salida = datos_proceso;

@@ -68,4 +68,12 @@ struct lily_lua_ejecucion_maquina* lily_lily_creacion_maquina(char* bytes, size_
 
 void lily_lily_ejecutar_instruccion(void* maquina, struct lily_lua_ejecucion_ctx* ctx);
 
+/**
+ * Libera una máquina creada con lily_lily_creacion_maquina, y el mensaje de Lua que esa función pudo dejar
+ * en \a ctx. El contexto en sí pertenece a quien llama
+ * @param maquina Máquina a liberar; puede ser \c NULL, por ejemplo si su creación falló
+ * @param ctx Contexto de la ejecución; puede ser \c NULL
+ */
+void lily_lily_destruccion_maquina(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx);
+
 #endif
