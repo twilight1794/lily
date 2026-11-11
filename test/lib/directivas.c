@@ -133,6 +133,11 @@ MunitResult lily_directivas_test_referencia_adelantada(const MunitParameter para
         { "v: .DB $x\nx: .DB 7\n", 2, { 0x01, 0x07 } },
         { "v: .DWL $x, $x\nw: .DB 9\nx: .DB 7\n", 6, { 0x05, 0x00, 0x05, 0x00, 0x09, 0x07 } },
         { "v: .DFS 3\nw: .DB $w\n", 4, { 0x00, 0x00, 0x00, 0x03 } },
+        // Una etiqueta tras una instrucción con valor temporal no es definitiva, pues el tamaño de
+        // esa instrucción aún puede cambiar: l no se fija mientras .DFS $m mide 0
+        { "z: .DFS $m\nl: .DB $l\na: .DFS $n\nb: .DB 9\nm: .CONST $b - $a\nn: .CONST 2\n", 6, { 0x00, 0x00, 0x02, 0x00, 0x00, 0x09 } },
+        // Las referencias mutuas se resuelven cuando los valores dejan de cambiar
+        { "v: .DB $w\nw: .DB $v\n", 2, { 0x01, 0x00 } },
     };
     return probar(casos);
 }
@@ -179,5 +184,7 @@ MunitResult lily_directivas_test_redefinicion(const MunitParameter params[], voi
     assert_rechaza("pc: .DB 1\n", COD_A_SEMANTICO_REDEF_CONSTANTE);
     // Una definición circular nunca se reduce
     assert_rechaza("x: .CONST $x + 1\n", COD_A_SEMANTICO_MAXIMO_ITERACIONES);
+    // Un valor que solo se usó temporalmente debe caber cuando se toma como definitivo
+    assert_rechaza("v: .DB $x\nw: .DFS 300\nx: .DB 1\n", COD_NUMS_MAS_8);
     return MUNIT_OK;
 }

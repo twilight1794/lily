@@ -33,10 +33,11 @@ static struct lily_simbolo_identificador* lily_a_semantico_anad_identificador(st
  * @param simbolo_principal Directiva o mnemónico a procesar
  * @param params Lista que contiene los símbolos a reducir
  * @param identificadores Tabla de símbolos
+ * @param valores_finales Si los valores de todos los identificadores ya no cambiarán, aunque no estén marcados como definidos
  * @param [out] ctx Contexto del estado de la operación
  * @return Tipo de reducción llevada a cabo sobre la lista de símbolos
  */
-static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_principal, struct lily_lde_lde* params, struct lily_dict_dict* identificadores, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx);
+static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_principal, struct lily_lde_lde* params, struct lily_dict_dict* identificadores, bool valores_finales, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx);
 
 /**
  * Codifica los datos de una directiva DB, DW*, DD* o DQ*
@@ -51,9 +52,10 @@ static void lily_a_semantico_datos(struct lily_simbolo_instruccion* instruccion,
  * @param instruccion Directiva a procesar
  * @param identificadores Tabla de símbolos
  * @param pc Contador de instrucción
+ * @param [out] cambios Se incrementa si la directiva registra un identificador o cambia su valor
  * @param [out] ctx Contexto del estado de la operación
  */
-static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const union lily_simbolo_numero* pc, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx);
+static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const union lily_simbolo_numero* pc, size_t* cambios, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx);
 
 static struct lily_simbolo_identificador* lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_simbolo_numero* valor, bool es_const, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
     struct lily_dict_nodo* nodo = lily_dict_get(identificadores, identificador);
@@ -75,7 +77,7 @@ static struct lily_simbolo_identificador* lily_a_semantico_anad_identificador(st
     return val;
 }
 
-static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_principal, struct lily_lde_lde* params, struct lily_dict_dict* identificadores, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
+static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simbolo_simbolo* simbolo_principal, struct lily_lde_lde* params, struct lily_dict_dict* identificadores, bool valores_finales, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
     struct lily_lde_nodo* nodo = params->inicio;
     struct lily_lde_nodo* nodo_viejo;
     struct lily_dict_nodo* dict_nodo; // Puntero para consultas a identificadores
@@ -106,7 +108,7 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                     break;
                 }
                 struct lily_simbolo_identificador* identificador_obj = dict_nodo->valor;
-                if (!(identificador_obj->definido)) reducido = REDUCCION_TEMPORAL;
+                if (!(identificador_obj->definido) && !valores_finales) reducido = REDUCCION_TEMPORAL;
                 // Redefinimos tipo de símbolo
                 simbolo->tipo = SIMB_NUMERO;
                 free(simbolo->valor);
@@ -174,7 +176,7 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                 nodo_viejo = nodo;
                 nodo = nodo->posterior;
                 if (lily_simbolo_aridad(simbolo->subtipo) == 0 && simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
-                    lily_a_semantico_reducir(simbolo_principal, (struct lily_lde_lde*) simbolo->valor, identificadores, estado, ctx);
+                    lily_a_semantico_reducir(simbolo_principal, (struct lily_lde_lde*) simbolo->valor, identificadores, valores_finales, estado, ctx);
                     i++;
                     break; // <- Este operador no será eliminado como los demás
                 }
@@ -309,7 +311,7 @@ static void lily_a_semantico_datos(struct lily_simbolo_instruccion* instruccion,
     instruccion->tam_bytes = num_datos * tam_dato;
 }
 
-static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const union lily_simbolo_numero* pc, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
+static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instruccion, struct lily_dict_dict* identificadores, const union lily_simbolo_numero* pc, size_t* cambios, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
     char* msg_buf;
     struct lily_simbolo_simbolo* simbolo_param;
     union lily_simbolo_numero* pc_numero = (union lily_simbolo_numero*) malloc(sizeof(union lily_simbolo_numero));
@@ -390,7 +392,9 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             struct lily_dict_nodo* nodo_id = lily_dict_get(identificadores, instruccion->etiqueta->valor);
             if (nodo_id != NULL && ((struct lily_simbolo_identificador*) nodo_id->valor)->origen == instruccion) {
                 // Una reducción temporal de esta misma directiva ya registró el identificador: solo se actualiza su valor
-                ((struct lily_simbolo_identificador*) nodo_id->valor)->valor->positivo = valor_param->positivo;
+                union lily_simbolo_numero* valor_id = ((struct lily_simbolo_identificador*) nodo_id->valor)->valor;
+                if (valor_id->positivo != valor_param->positivo) (*cambios)++;
+                valor_id->positivo = valor_param->positivo;
                 break;
             }
             // El identificador guarda su propia copia del valor, pues params_tmp se limpia en cada iteración
@@ -408,6 +412,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 break;
             }
             identificador->origen = instruccion;
+            (*cambios)++;
             break;
         }
         case DIR_IF:
@@ -510,6 +515,9 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     size_t iteraciones = 0;
     size_t num_indeterminadas;
     size_t num_temporales;
+    size_t cambios; // Identificadores registrados o con valor distinto en esta pasada
+    bool valores_finales = false; // Si los valores temporales ya son los definitivos
+    bool continuar;
 
     struct lily_lde_nodo* nodo = lily_lde_get(ast, 0);
     struct lily_simbolo_instruccion *instruccion = nodo->valor;
@@ -517,6 +525,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
     do {
         num_indeterminadas = 0;
         num_temporales = 0;
+        cambios = 0;
         pc_obj->positivo = pc_inicial;
         pc_identificador->definido = true;
         nodo = lily_lde_get(ast, 0);
@@ -531,6 +540,8 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
         // Por cada instrucción...
         while (nodo != NULL) {
             instruccion = nodo->valor;
+            // La dirección de la instrucción es definitiva si lo es el tamaño de todas las anteriores
+            const bool direccion_definida = pc_identificador->definido;
             if (instruccion->simbolo != NULL && !instruccion->reducido) {
                 // Si el símbolo no ha sido traducido, intentaremos traducirlo
                 char* cad_inst = lily_simbolo_instruccion_print(instruccion);
@@ -559,7 +570,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     break;
                 }
                 // Reducir
-                enum lily_a_semantico_reduccion reducido = lily_a_semantico_reducir(instruccion->simbolo, instruccion->params_tmp, identificadores, estado, *ctx);
+                enum lily_a_semantico_reduccion reducido = lily_a_semantico_reducir(instruccion->simbolo, instruccion->params_tmp, identificadores, valores_finales, estado, *ctx);
                 // Analizar reducción
                 if (reducido != SIN_REDUCCION) {
                     cad_inst = lily_simbolo_instruccion_print(instruccion);
@@ -567,14 +578,18 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     free(cad_inst);
                     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
                     free(msg_buf);
-                    // Bandera de actualización temporal
-                    if (reducido == REDUCCION_TEMPORAL) num_temporales++;
+                    // Con un valor temporal, el tamaño de la instrucción puede cambiar, y con él, las
+                    // direcciones de las siguientes
+                    if (reducido == REDUCCION_TEMPORAL) {
+                        num_temporales++;
+                        pc_identificador->definido = false;
+                    }
                     // Marcar instruccion como reducida definitivamente si es el caso
                     if (reducido == REDUCCION_DEFINITIVA) instruccion->reducido = true;
                     // Si ya está reducida, al menos temporalmente...
                     if (instruccion->simbolo->tipo == SIMB_DIRECTIVA) {
                         // ...y es directiva...
-                        lily_a_semantico_directiva(instruccion, identificadores, pc_obj, enviar_mensaje, estado, *ctx);
+                        lily_a_semantico_directiva(instruccion, identificadores, pc_obj, &cambios, enviar_mensaje, estado, *ctx);
                         if (*estado != COD_OK) {
                             cctx->ultimo = instruccion->simbolo;
                             break;
@@ -651,6 +666,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     }
                     // Si ya la conocíamos, trabajamos con ese valor
                     pc_numero = identificador->valor;
+                    if (pc_numero->positivo != pc_obj->positivo) cambios++;
                     pc_numero->positivo = pc_obj->positivo;
                 }
                 else {
@@ -665,8 +681,9 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     identificador = lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, pc_numero, true, estado, *ctx);
                     if (*estado != COD_OK) break;
                     identificador->origen = instruccion;
+                    cambios++;
                 }
-                if (!num_indeterminadas) identificador->definido = true;
+                identificador->definido = direccion_definida;
             }
             // Actualizamos PC
             pc_obj->positivo += instruccion->tam_bytes;
@@ -681,12 +698,21 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
             *tam = 0;
             goto fin;
         }
-        msg_buf = d_printf("Instrucciones no reducidas: %zu, temporales: %zu", num_indeterminadas, num_temporales);
+        msg_buf = d_printf("Instrucciones no reducidas: %zu, temporales: %zu, cambios: %zu", num_indeterminadas, num_temporales, cambios);
         enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "a_semantico", msg_buf);
         free(msg_buf);
-    } while (num_indeterminadas + num_temporales > 0 && iteraciones < it_max_op);
+        if (num_indeterminadas > 0) continuar = true;
+        else if (num_temporales == 0) continuar = false;
+        else {
+            // Todo se redujo, pero algo con valores temporales. Si en esta pasada ningún
+            // identificador cambió, todas las lecturas obtuvieron ya su valor definitivo: una
+            // última pasada los toma como definitivos, y así se validan como tales
+            continuar = true;
+            if (cambios == 0) valores_finales = true;
+        }
+    } while (continuar && (valores_finales || iteraciones < it_max_op) && iteraciones <= it_max_op);
 
-    if (iteraciones >= it_max_op) {
+    if (continuar) {
         *estado = COD_A_SEMANTICO_MAXIMO_ITERACIONES;
         goto fin;
     }
