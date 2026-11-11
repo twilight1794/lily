@@ -78,6 +78,16 @@ static void lily_lua_cpu_ensamblar_redireccion(lua_State* L, struct lily_simbolo
  */
 static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_instruccion* instruccion, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx);
 
+static bool lily_lua_cpu_tipo_predefinido(const char* tipo) {
+    static const char* predefinidos[] = {
+        "int3", "uint3", "sint3", "int4", "uint4", "sint4", "int8", "uint8", "sint8",
+        "int16", "uint16", "sint16", "int32", "uint32", "sint32", "int64", "uint64", "sint64", NULL
+    };
+    for (size_t i = 0; predefinidos[i] != NULL; i++)
+        if (!strcmp(tipo, predefinidos[i])) return true;
+    return false;
+}
+
 static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struct lily_simbolo_simbolo* simbolo, f_mensajes_ptr enviar_mensaje, enum lily_estado* estado, void** ctx) {
     union lily_simbolo_numero n;
     // Primero, comprobar si el tipo es uno precargado
@@ -217,6 +227,9 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
     lua_gettable(L, -2);
     if (lua_isnil(L, -1)) {
         lua_pop(L, 2);
+        // Un tipo predefinido existe aunque el esquema no lo defina: si se llegó acá, es porque el
+        // símbolo no es un número, y por tanto no coincide
+        if (lily_lua_cpu_tipo_predefinido(tipo)) return false;
         *estado = COD_LUA_CPU_TIPO_INEXISTENTE;
         return false;
     }
@@ -481,9 +494,14 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
     enviar_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_cpu_ensamblar_lparams", msg_buf);
     free(msg_buf);
     for (lua_Integer i = 1; i <= tam_i; i++) {
-        // Bucle para cada opción
-        lua_geti(L, -1, i); // <- Tuple<List<Args>, values> (idx 9)
-        lua_geti(L, -1, 1); // <- List<Args> (idx 10)
+        // Bucle para cada opción. Con algo que no sea tabla, lua_geti y lua_len lanzarían un error
+        // fuera de pcall. Al volver, quien llama restaura la pila
+        if (lua_geti(L, -1, i) != LUA_TTABLE || // <- Tuple<List<Args>, values> (idx 9)
+            lua_geti(L, -1, 1) != LUA_TTABLE) { // <- List<Args> (idx 10)
+            *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+            cctx->ultimo = instruccion->simbolo;
+            return;
+        }
 
         // Obtener número de parámetros
         lua_len(L, -1);
@@ -498,7 +516,15 @@ static void lily_lua_cpu_ensamblar_lparams(lua_State* L, struct lily_simbolo_ins
         }
         size_t tam_cad_params = 0;
         for (lua_Integer j = 0; j < tam_params; j++) {
-            lua_geti(L, -1, j + 1);
+            // Solo una cadena sirve como identificador de tipo. lua_tostring devolvería NULL con
+            // otros tipos, y con un número, una cadena nueva que se liberaría al quitarla de la pila.
+            // La cadena de la tabla sigue viva mientras List<Args> esté en la pila
+            if (lua_geti(L, -1, j + 1) != LUA_TSTRING) {
+                free(lista_params);
+                *estado = COD_LUA_CPU_MNEMO_DEFINICION_INVALIDA;
+                cctx->ultimo = instruccion->simbolo;
+                return;
+            }
             lista_params[j] = (char*) lua_tostring(L, -1);
             lua_pop(L, 1);
             tam_cad_params += strlen(lista_params[j]) + 2;
