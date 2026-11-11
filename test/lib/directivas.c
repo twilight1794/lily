@@ -156,16 +156,15 @@ MunitResult lily_directivas_test_const_var(const MunitParameter params[], void *
     (void) params; (void) user_data;
     static const struct caso casos[] = {
         { "v: .DDL $x\nx: .CONST 5\n", 4, { 0x05, 0, 0, 0 } },
-        { "v: .DDL $x\nx: .VAR 3\n", 4, { 0x03, 0, 0, 0 } },
         // Una constante cuyo valor depende de otra definida antes o después
         { "v: .DDL $y\nx: .CONST 5\ny: .CONST $x + 1\n", 4, { 0x06, 0, 0, 0 } },
         { "v: .DDL $y\ny: .CONST $x + 1\nx: .CONST 5\n", 4, { 0x06, 0, 0, 0 } },
         // Una constante cuyo valor depende de una etiqueta de localidad posterior
         { "x: .CONST $e\nv: .DB 1, 2\ne: .DB 1\nw: .DB $x\n", 4, { 0x01, 0x02, 0x01, 0x02 } },
-        // CONST y VAR no generan bytes ni avanzan PC
+        // CONST no genera bytes ni avanza PC
         { "x: .CONST 5\n", 0, { 0 } },
         { "x: .CONST 5\nv: .DB $v, $x\n", 2, { 0x00, 0x05 } },
-        { "v: .DB 1\nx: .VAR 2\nw: .DB $w\n", 2, { 0x01, 0x01 } },
+        { "v: .DB 1\nx: .CONST 2\nw: .DB $w\n", 2, { 0x01, 0x01 } },
         // Una directiva que no genera bytes tampoco es un error
         { "v: .DFS 0\nw: .DB $w\n", 1, { 0x00 } },
     };
@@ -176,7 +175,6 @@ MunitResult lily_directivas_test_redefinicion(const MunitParameter params[], voi
     (void) params; (void) user_data;
     assert_rechaza("x: .CONST 5\nx: .CONST 6\n", COD_A_SEMANTICO_REDEF_CONSTANTE);
     assert_rechaza("v: .DDL $x\nx: .CONST 5\nx: .CONST 6\n", COD_A_SEMANTICO_REDEF_CONSTANTE);
-    assert_rechaza("x: .VAR 5\nx: .VAR 6\n", COD_A_SEMANTICO_REDEF_VARIABLE);
     assert_rechaza("x: .CONST 5\nx: .DB 1\n", COD_A_SEMANTICO_REDEF_CONSTANTE);
     assert_rechaza("x: .DB 1\nx: .CONST 5\n", COD_A_SEMANTICO_REDEF_CONSTANTE);
     assert_rechaza("x: .DB 1\nx: .DB 2\n", COD_A_SEMANTICO_REDEF_CONSTANTE);
@@ -184,6 +182,8 @@ MunitResult lily_directivas_test_redefinicion(const MunitParameter params[], voi
     assert_rechaza("pc: .DB 1\n", COD_A_SEMANTICO_REDEF_CONSTANTE);
     // Una definición circular nunca se reduce
     assert_rechaza("x: .CONST $x + 1\n", COD_A_SEMANTICO_MAXIMO_ITERACIONES);
+    // VAR está reservada, pero aún no implementada
+    assert_rechaza("x: .VAR 5\n", COD_NO_IMPLEMENTADO);
     // Un valor que solo se usó temporalmente debe caber cuando se toma como definitivo
     assert_rechaza("v: .DB $x\nw: .DFS 300\nx: .DB 1\n", COD_NUMS_MAS_8);
     return MUNIT_OK;

@@ -60,10 +60,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
 static struct lily_simbolo_identificador* lily_a_semantico_anad_identificador(struct lily_dict_dict* identificadores, char* identificador, union lily_simbolo_numero* valor, bool es_const, enum lily_estado* estado, struct lily_a_semantico_ctx* ctx) {
     struct lily_dict_nodo* nodo = lily_dict_get(identificadores, identificador);
     if (nodo != NULL) {
-        if (((struct lily_simbolo_identificador*) nodo->valor)->es_const)
-            *estado = COD_A_SEMANTICO_REDEF_CONSTANTE;
-        else
-            *estado = COD_A_SEMANTICO_REDEF_VARIABLE;
+        *estado = COD_A_SEMANTICO_REDEF_CONSTANTE;
         return NULL;
     }
     struct lily_simbolo_identificador* val = lily_simbolo_identificador_create();
@@ -366,8 +363,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             }
             // La etiqueta, si la hay, la registra el analizador con el valor de PC
             break;
-        case DIR_CONST:
-        case DIR_VAR: {
+        case DIR_CONST: {
             if (lily_lde_size(instruccion->params_tmp) != 1) {
                 *estado = COD_A_SEMANTICO_CONST_VAR_MULTIPLES_PARAMS;
                 ctx->ultimo = instruccion->simbolo;
@@ -405,7 +401,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
                 break;
             }
             valor->positivo = valor_param->positivo;
-            struct lily_simbolo_identificador* identificador = lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, valor, (instruccion->simbolo->subtipo == DIR_CONST), estado, ctx);
+            struct lily_simbolo_identificador* identificador = lily_a_semantico_anad_identificador(identificadores, instruccion->etiqueta->valor, valor, true, estado, ctx);
             if (*estado != COD_OK) {
                 if (identificador == NULL) free(valor);
                 ctx->ultimo = instruccion->etiqueta;
@@ -415,6 +411,7 @@ static void lily_a_semantico_directiva(struct lily_simbolo_instruccion* instrucc
             (*cambios)++;
             break;
         }
+        case DIR_VAR:
         case DIR_IF:
         case DIR_IFDEF:
         case DIR_IFNDEF:
@@ -642,10 +639,10 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                 free(msg_buf);
             }
             // Si hay etiqueta, establecemos su valor
-            // En CONST y VAR, la etiqueta nombra al valor definido por la directiva, no a una localidad
-            const bool es_const_var = instruccion->simbolo != NULL && instruccion->simbolo->tipo == SIMB_DIRECTIVA &&
-                (instruccion->simbolo->subtipo == DIR_CONST || instruccion->simbolo->subtipo == DIR_VAR);
-            if (instruccion->etiqueta != NULL && es_const_var) {
+            // En CONST, la etiqueta nombra al valor definido por la directiva, no a una localidad
+            const bool es_constante = instruccion->simbolo != NULL && instruccion->simbolo->tipo == SIMB_DIRECTIVA &&
+                instruccion->simbolo->subtipo == DIR_CONST;
+            if (instruccion->etiqueta != NULL && es_constante) {
                 // Su valor es definitivo cuando la directiva se redujo definitivamente
                 struct lily_dict_nodo* etiqueta_nodo = lily_dict_get(identificadores, instruccion->etiqueta->valor);
                 if (etiqueta_nodo != NULL && ((struct lily_simbolo_identificador*) etiqueta_nodo->valor)->origen == instruccion)
@@ -660,7 +657,7 @@ uint8_t* lily_a_semantico(struct lily_lde_lde *ast, lua_State* L, size_t pc_inic
                     identificador = etiqueta_nodo->valor;
                     // Solo esta misma instrucción puede actualizar el valor de su etiqueta
                     if (identificador->origen != instruccion) {
-                        *estado = identificador->es_const ? COD_A_SEMANTICO_REDEF_CONSTANTE : COD_A_SEMANTICO_REDEF_VARIABLE;
+                        *estado = COD_A_SEMANTICO_REDEF_CONSTANTE;
                         cctx->ultimo = instruccion->etiqueta;
                         break;
                     }

@@ -64,7 +64,6 @@ enum lily_estado {
     COD_A_SEMANTICO_CONST_VAR_MULTIPLES_PARAMS, /**< La directiva CONST o VAR ha recibido más de un parámetro */
     COD_A_SEMANTICO_CONST_VAR_PARAM_NO_ENTERO, /**< La directiva CONST o VAR ha recibido un parámetro que no es entero */
     COD_A_SEMANTICO_REDEF_CONSTANTE, /**< Se intentó redefinir un identificador declarado como constante */
-    COD_A_SEMANTICO_REDEF_VARIABLE, /**< Se intentó redefinir un identificador declarado con una etiqueta de localidad */
     COD_A_SEMANTICO_FIN_USUARIO, /**< Una directiva STOP ha detenido el proceso de ensamble */
     COD_A_SEMANTICO_OPERANDOS_INSUFICIENTES, /**< Hace falta operandos en la pila para un operador  */
     COD_A_SEMANTICO_OPERANDO_OBJETO, /**< Se intentó operar sobre un objeto */
