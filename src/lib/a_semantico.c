@@ -173,7 +173,10 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
                 nodo_viejo = nodo;
                 nodo = nodo->posterior;
                 if (lily_simbolo_aridad(simbolo->subtipo) == 0 && simbolo->subtipo == SIMB_DESPLAZAMIENTO_AP) {
-                    lily_a_semantico_reducir(simbolo_principal, (struct lily_lde_lde*) simbolo->valor, identificadores, valores_finales, estado, ctx);
+                    // La reducción de la instrucción no puede ser mejor que la de su desplazamiento
+                    const enum lily_a_semantico_reduccion reducido_desp = lily_a_semantico_reducir(simbolo_principal, (struct lily_lde_lde*) simbolo->valor, identificadores, valores_finales, estado, ctx);
+                    if (reducido_desp == SIN_REDUCCION) reducido = SIN_REDUCCION;
+                    else if (reducido_desp == REDUCCION_TEMPORAL && reducido == REDUCCION_DEFINITIVA) reducido = REDUCCION_TEMPORAL;
                     i++;
                     break; // <- Este operador no será eliminado como los demás
                 }
@@ -258,7 +261,7 @@ static enum lily_a_semantico_reduccion lily_a_semantico_reducir(struct lily_simb
             break;
         }
         // Las variables no definidas se resuelven fuera de aquí
-        if (!reducido && simbolo->tipo == SIMB_VARIABLE) break;
+        if (reducido == SIN_REDUCCION) break;
         ++i;
     }
     return reducido;

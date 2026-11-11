@@ -235,8 +235,19 @@ static bool lily_lua_cpu_comp_tipo_simbolo(lua_State* L, const char* tipo, struc
                 lua_pushstring(L, (char*) simbolo_desp->valor);
             else if (simbolo_desp->tipo == SIMB_NUMERO)
                 lua_pushinteger(L, ((union lily_simbolo_numero*) simbolo_desp->valor)->negativo);
+            else {
+                // Un elemento sin valor que pasar a Lua no puede coincidir con ningún tipo.
+                // Se quitan la tabla del desplazamiento, la función y la tabla de tipos
+                lua_pop(L, 3);
+                return false;
+            }
             lua_seti(L, -2, (int) i + 1);
         }
+    }
+    else {
+        // Igual que arriba, pero sin tabla de desplazamiento
+        lua_pop(L, 2);
+        return false;
     }
     // Llamar función
     if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
