@@ -254,6 +254,49 @@ static void lily_lua_ejecucion_error_lua(struct lily_lua_ejecucion_maquina* maqu
     ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_FATAL, "lua_ejecucion_ejecutar", (copia != NULL) ? copia : sin_mensaje);
 }
 
+/*
+ * Escribe en \a buf, si no es NULL, la representación del elemento de coincidencia en el tope de la pila,
+ * y devuelve su longitud (como snprintf, que admite NULL para solo medir)
+ */
+static int lily_lua_ejecucion_cad_elemento(lua_State* L, char* buf, size_t tam) {
+    const int tipo = lua_type(L, -1);
+    if (tipo == LUA_TNUMBER) {
+        if (lua_isinteger(L, -1)) return snprintf(buf, tam, "0x%02llx", (unsigned long long) lua_tointeger(L, -1));
+        return snprintf(buf, tam, "%g", (double) lua_tonumber(L, -1));
+    }
+    if (tipo == LUA_TFUNCTION) return snprintf(buf, tam, "@");
+    if (tipo == LUA_TBOOLEAN) return snprintf(buf, tam, "%s", lua_toboolean(L, -1) ? "true" : "false");
+    return snprintf(buf, tam, "%s", lua_typename(L, tipo));
+}
+
+/*
+ * Genera la representación de la lista de coincidencias en el tope de la pila, como "0x3a, @, true".
+ * Se mide y se escribe con la misma función, así que el tamaño reservado siempre es el exacto
+ * @return Cadena a liberar por quien llama, o NULL si falló la reserva
+ */
+static char* lily_lua_ejecucion_cad_coincidencias(lua_State* L, size_t num) {
+    size_t total = 1; // Terminador
+    for (size_t j = 1; j <= num; j++) {
+        lua_geti(L, -1, (lua_Integer) j);
+        total += (size_t) lily_lua_ejecucion_cad_elemento(L, NULL, 0) + ((j < num) ? 2 : 0);
+        lua_pop(L, 1);
+    }
+    char* cad = (char*) malloc(total);
+    if (cad == NULL) return NULL;
+    size_t k = 0;
+    for (size_t j = 1; j <= num; j++) {
+        lua_geti(L, -1, (lua_Integer) j);
+        k += (size_t) lily_lua_ejecucion_cad_elemento(L, cad + k, total - k);
+        lua_pop(L, 1);
+        if (j < num) {
+            memcpy(cad + k, ", ", 2);
+            k += 2;
+        }
+    }
+    cad[k] = '\0';
+    return cad;
+}
+
 void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, struct lily_lua_ejecucion_ctx* ctx) {
     // Obtener PC
     union lily_simbolo_numero pc;
@@ -281,41 +324,12 @@ void lily_lua_ejecucion_ejecutar(struct lily_lua_ejecucion_maquina* maquina, str
         lua_len(maquina->L, -1);
         const size_t tam_lista_bytes = lua_tointeger(maquina->L, -1);
         lua_pop(maquina->L, 1);
-        size_t tam_cad_params = 0;
-        for (size_t j = 1; j <= tam_lista_bytes; j++) {
-            const int tipo = lua_geti(maquina->L, -1, j);
-            if (tipo == LUA_TNUMBER) tam_cad_params += 6;
-            else if (tipo == LUA_TFUNCTION) tam_cad_params += 3;
-            else if (tipo == LUA_TBOOLEAN) tam_cad_params += 6;
-            lua_pop(maquina->L, 1);
-        }
-        tam_cad_params -= 1;
-
         // Generar mensaje de log
-        char* msg_cad_params = (char*) malloc(tam_cad_params);
+        char* msg_cad_params = lily_lua_ejecucion_cad_coincidencias(maquina->L, tam_lista_bytes);
         if (msg_cad_params == NULL) {
             ctx->estado = COD_MALLOC_FALLO;
+            lua_settop(maquina->L, base_pila);
             return;
-        }
-        for (size_t j = 1, k = 0; j <= tam_lista_bytes; j++) {
-            const int tipo = lua_geti(maquina->L, -1, j);
-            if (tipo == LUA_TNUMBER) {
-                snprintf(msg_cad_params + k, 5, "0x%02llx", lua_tointeger(maquina->L, -1));
-                k += 4;
-            }
-            else if (tipo == LUA_TFUNCTION) {
-                memcpy(msg_cad_params + k, "@", 2);
-                k++;
-            }
-            else if (tipo == LUA_TBOOLEAN) {
-                memcpy(msg_cad_params + k, "true", 5);
-                k += 4;
-            }
-            lua_pop(maquina->L, 1);
-            if (j < tam_lista_bytes) {
-                memcpy(msg_cad_params + k, ", ", 2);
-                k += 2;
-            }
         }
         msg_buf = d_printf("Comprobando caso (%s)", msg_cad_params);
         ctx->fun_mensaje(LILY_MENSAJE_TLOG, LILY_LOG_DEBUG, "lua_ejecucion_ejecutar", msg_buf);
